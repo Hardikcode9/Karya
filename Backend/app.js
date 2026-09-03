@@ -10,6 +10,7 @@ const connectDB = require("./config/db");
 const serviceRoutes = require("./routes/serviceRoutes");
 const workerRoutes = require("./routes/workerRoutes");
 const authRoutes = require("./routes/authRoutes");
+const authMiddleware = require("./middleware/authMiddleware");
 const app = express();
 
 app.use(cors());
@@ -21,6 +22,15 @@ app.use("/api/auth", authRoutes);
 
 app.use("/api/services", serviceRoutes);
 app.use("/api/workers", workerRoutes);
+
+
+app.get("/api/test-protected", authMiddleware, (req, res) => {
+  res.json({
+    success: true,
+    message: "You are authenticated!",
+    user: req.user,
+  });
+});
 
 app.get("/", (req, res) => {
   res.json({

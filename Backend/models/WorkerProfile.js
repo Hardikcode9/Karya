@@ -38,12 +38,12 @@ const workerProfileSchema = new mongoose.Schema(
     location: {
       type: {
         type: String,
+        enum: ["Point"],
         default: "Point",
       },
-
       coordinates: {
         type: [Number],
-        default: [0, 0],
+        required: true,
       },
     },
 
@@ -66,7 +66,7 @@ const workerProfileSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 workerProfileSchema.index({ location: "2dsphere" });

@@ -1,11 +1,32 @@
 const Service = require("../models/Service");
 
-// Get all active services
+// Get services with optional search/category filters
 const getServices = async (req, res) => {
   try {
-    const services = await Service.find({ isActive: true }).sort({
-      name: 1,
-    });
+    const { search, category } = req.query;
+
+    const filter = {
+      isActive: true,
+    };
+
+    // Search by service name
+    if (search) {
+      filter.name = {
+        $regex: search,
+        $options: "i",
+      };
+    }
+
+    // Filter by category
+    if (category) {
+      filter.category = {
+        $regex: category,
+        $options: "i",
+      };
+    }
+
+    const services = await Service.find(filter)
+      .sort({ name: 1 });
 
     res.status(200).json({
       success: true,
@@ -25,3 +46,4 @@ const getServices = async (req, res) => {
 module.exports = {
   getServices,
 };
+

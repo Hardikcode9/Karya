@@ -579,10 +579,85 @@ const getWorkerById = async (req, res) => {
   }
 };
 
+const createWorkerProfile = async (req, res) => {
+  try {
+    // Only workers can create worker profiles
+    if (req.user.role !== "worker") {
+      return res.status(403).json({
+        success: false,
+        message: "Only workers can create worker profiles",
+      });
+    }
 
+    const {
+      service,
+      bio,
+      experience,
+      skills,
+      pricePerService,
+      location,
+    } = req.body;
+
+    if (!service || pricePerService === undefined || !location) {
+      return res.status(400).json({
+        success: false,
+        message: "Service, price and location are required",
+      });
+    }
+
+    // Check whether this worker already has a profile
+    const existingProfile = await WorkerProfile.findOne({
+      user: req.user.userId,
+    });
+
+    if (existingProfile) {
+      return res.status(400).json({
+        success: false,
+        message: "Worker profile already exists",
+      });
+    }
+
+    // Check whether the service exists
+    const Service = require("../models/Service");
+
+    const existingService = await Service.findById(service);
+
+    if (!existingService || !existingService.isActive) {
+      return res.status(404).json({
+        success: false,
+        message: "Service not found or inactive",
+      });
+    }
+
+    // Create worker profile
+    const workerProfile = await WorkerProfile.create({
+      user: req.user.userId,
+      service,
+      bio,
+      experience: experience || 0,
+      skills: skills || [],
+      pricePerService,
+      location,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Worker profile created successfully",
+      workerProfile,
+    });
+  } catch (error) {
+    console.error("Create Worker Profile Error:", error.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to create worker profile",
+    });
+  }
+};
 
 module.exports = {
   getWorkers,
   getNearbyWorkers,
   getWorkerById,
+  createWorkerProfile,
 };

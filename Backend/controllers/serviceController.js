@@ -43,7 +43,52 @@ const getServices = async (req, res) => {
   }
 };
 
+const createService = async (req, res) => {
+  try {
+    const { name, category, description, icon } = req.body;
+
+    if (!name || !category) {
+      return res.status(400).json({
+        success: false,
+        message: "Name and category are required",
+      });
+    }
+
+    const existingService = await Service.findOne({
+      name: { $regex: `^${name}$`, $options: "i" },
+    });
+
+    if (existingService) {
+      return res.status(400).json({
+        success: false,
+        message: "Service already exists",
+      });
+    }
+
+    const service = await Service.create({
+      name,
+      category,
+      description,
+      icon,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Service created successfully",
+      service,
+    });
+  } catch (error) {
+    console.error("Create Service Error:", error.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to create service",
+    });
+  }
+};
+
 module.exports = {
   getServices,
+  createService,
 };
 

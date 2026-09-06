@@ -12,6 +12,7 @@ const serviceRoutes = require("./routes/serviceRoutes");
 const workerRoutes = require("./routes/workerRoutes");
 const authRoutes = require("./routes/authRoutes");
 const bookingRoutes = require("./routes/bookingRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
 const ratingRoutes = require("./routes/ratingRoutes");
 
 const app = express();
@@ -21,13 +22,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 connectDB();
-app.use("/api/auth", authRoutes);
 
+app.use("/api/auth", authRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/workers", workerRoutes);
 app.use("/api/bookings", bookingRoutes);
+app.use("/api/payments", paymentRoutes);
 app.use("/api/ratings", ratingRoutes);
-
 
 app.get("/", (req, res) => {
   res.json({

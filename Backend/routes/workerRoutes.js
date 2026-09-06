@@ -4,10 +4,13 @@ const {
   getWorkers,
   getNearbyWorkers,
   getWorkerById,
+  createWorkerProfile
 } = require("../controllers/workerController");
 const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
+
+router.post("/profile", authMiddleware, createWorkerProfile);
 
 // GET /api/workers/nearby
 router.get("/nearby", authMiddleware, getNearbyWorkers);

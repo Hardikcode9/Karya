@@ -1,5 +1,6 @@
 const Payment = require("../models/Payment");
 const Booking = require("../models/Booking");
+const WorkerProfile = require("../models/WorkerProfile");
 
 const createPayment = async (req, res) => {
   try {
@@ -108,6 +109,7 @@ const updatePaymentStatus = async (req, res) => {
       });
     }
 
+    // Validate status
     const allowedStatuses = ["paid", "failed", "refunded"];
 
     if (!allowedStatuses.includes(status)) {
@@ -117,6 +119,7 @@ const updatePaymentStatus = async (req, res) => {
       });
     }
 
+    // Find payment
     const payment = await Payment.findById(id);
 
     if (!payment) {
@@ -134,11 +137,37 @@ const updatePaymentStatus = async (req, res) => {
       });
     }
 
-    // Prevent changing a final payment incorrectly
-    if (payment.status === "paid" && status !== "refunded") {
+    // Strict payment state transitions
+    if (payment.status === "pending") {
+      // Cash payments must be confirmed by the worker
+      if (payment.paymentMethod === "cash" && status === "paid") {
+        return res.status(403).json({
+          success: false,
+          message: "Cash payments must be confirmed by the worker",
+        });
+      }
+
+      if (status === "refunded") {
+        return res.status(400).json({
+          success: false,
+          message: "Pending payment cannot be refunded",
+        });
+      }
+    }
+
+    if (payment.status === "paid") {
+      if (status !== "refunded") {
+        return res.status(400).json({
+          success: false,
+          message: "Paid payment can only be refunded",
+        });
+      }
+    }
+
+    if (payment.status === "failed") {
       return res.status(400).json({
         success: false,
-        message: "Paid payment can only be refunded",
+        message: "Failed payment cannot be changed",
       });
     }
 
@@ -152,10 +181,10 @@ const updatePaymentStatus = async (req, res) => {
     // Update status
     payment.status = status;
 
-    // Generate simulated transaction ID when payment is completed
+    // Generate simulated transaction ID only when payment becomes paid
     if (status === "paid" && !payment.transactionId) {
       payment.transactionId = `SIM-${Date.now()}-${Math.floor(
-        Math.random() * 10000
+        Math.random() * 10000,
       )}`;
     }
 
@@ -168,6 +197,91 @@ const updatePaymentStatus = async (req, res) => {
     });
   } catch (error) {
     console.error("Update payment status error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
+const confirmCashPayment = async (req, res) => {
+  try {
+    // Only workers can confirm cash payments
+    if (req.user.role !== "worker") {
+      return res.status(403).json({
+        success: false,
+        message: "Only workers can confirm cash payments",
+      });
+    }
+
+    const { id } = req.params;
+
+    // Find payment
+    const payment = await Payment.findById(id);
+
+    if (!payment) {
+      return res.status(404).json({
+        success: false,
+        message: "Payment not found",
+      });
+    }
+
+    // Payment must be cash
+    if (payment.paymentMethod !== "cash") {
+      return res.status(400).json({
+        success: false,
+        message: "Only cash payments can be confirmed by worker",
+      });
+    }
+
+    // Find worker profile of logged-in worker
+    const workerProfile = await WorkerProfile.findOne({
+      user: req.user.userId,
+    });
+
+    if (!workerProfile) {
+      return res.status(404).json({
+        success: false,
+        message: "Worker profile not found",
+      });
+    }
+
+    // Make sure this payment belongs to this worker
+    if (payment.worker.toString() !== workerProfile._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "You cannot confirm this payment",
+      });
+    }
+
+    // Payment must still be pending
+    if (payment.status !== "pending") {
+      return res.status(400).json({
+        success: false,
+        message: `Payment cannot be confirmed because its status is ${payment.status}`,
+      });
+    }
+
+    // Mark cash payment as paid
+    payment.status = "paid";
+
+    // Generate simulated transaction ID
+    if (!payment.transactionId) {
+      payment.transactionId = `CASH-${Date.now()}-${Math.floor(
+        Math.random() * 10000,
+      )}`;
+    }
+
+    await payment.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Cash payment confirmed successfully",
+      payment,
+    });
+  } catch (error) {
+    console.error("Confirm cash payment error:", error);
 
     return res.status(500).json({
       success: false,
@@ -282,6 +396,7 @@ const getPaymentById = async (req, res) => {
 module.exports = {
   createPayment,
   updatePaymentStatus,
+  confirmCashPayment,
   getCustomerPayments,
   getPaymentById,
 };

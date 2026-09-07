@@ -325,6 +325,12 @@ const updateBookingStatus = async (req, res) => {
 
 const getCustomerBookings = async (req, res) => {
   try {
+    if (req.user.role !== "customer") {
+      return res.status(403).json({
+        success: false,
+        message: "Only customers can access customer bookings",
+      });
+    }
     const bookings = await Booking.find({
       customer: req.user.userId,
     })

@@ -655,9 +655,57 @@ const createWorkerProfile = async (req, res) => {
   }
 };
 
+const updateWorkerAvailability = async (req, res) => {
+  try {
+    if (req.user.role !== "worker") {
+      return res.status(403).json({
+        success: false,
+        message: "Only workers can update availability",
+      });
+    }
+
+    const { workingHours, isAvailable } = req.body;
+
+    const workerProfile = await WorkerProfile.findOne({
+      user: req.user.userId,
+    });
+
+    if (!workerProfile) {
+      return res.status(404).json({
+        success: false,
+        message: "Worker profile not found",
+      });
+    }
+
+    if (workingHours !== undefined) {
+      workerProfile.workingHours = workingHours;
+    }
+
+    if (isAvailable !== undefined) {
+      workerProfile.isAvailable = isAvailable;
+    }
+
+    await workerProfile.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Worker availability updated successfully",
+      workerProfile,
+    });
+  } catch (error) {
+    console.error("Update Worker Availability Error:", error.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to update worker availability",
+    });
+  }
+};
+
 module.exports = {
   getWorkers,
   getNearbyWorkers,
   getWorkerById,
   createWorkerProfile,
+  updateWorkerAvailability,
 };

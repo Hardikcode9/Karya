@@ -25,6 +25,12 @@ const bookingSchema = new mongoose.Schema(
       required: true,
     },
 
+    duration: {
+      type: Number,
+      required: true,
+      min: 15,
+    },
+
     address: {
       type: String,
       required: true,

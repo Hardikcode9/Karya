@@ -11,13 +11,43 @@ const createBooking = async (req, res) => {
         message: "Only customers can create bookings",
       });
     }
-    const { worker, service, scheduledDate, address, notes } = req.body;
+    const {
+  worker,
+  service,
+  scheduledDate,
+  duration,
+  address,
+  notes,
+} = req.body;
 
     // Basic validation
-    if (!worker || !service || !scheduledDate || !address) {
+    if (!worker || !service || !scheduledDate || !duration || !address) {
       return res.status(400).json({
         success: false,
-        message: "Worker, service, scheduled date and address are required",
+        message: "Worker, service, scheduled date, duration and address are required",
+      });
+    }
+
+    if (!Number.isFinite(Number(duration))) {
+      return res.status(400).json({
+        success: false,
+        message: "Duration must be a valid number",
+      });
+    }
+
+    if (Number(duration) < 15) {
+      return res.status(400).json({
+        success: false,
+        message: "Duration must be at least 15 minutes",
+      });
+    }
+
+    const bookingDate = new Date(scheduledDate);
+
+    if (Number.isNaN(bookingDate.getTime())) {
+      return res.status(400).json({
+        success: false,
+        message: "Scheduled date must be a valid date",
       });
     }
 
@@ -43,6 +73,48 @@ const createBooking = async (req, res) => {
       });
     }
 
+    const dayNames = [
+  "sunday",
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+];
+
+const bookingDay = dayNames[bookingDate.getDay()];
+const hours = workerProfile.workingHours?.[bookingDay];
+
+if (!hours || !hours.start || !hours.end) {
+  return res.status(400).json({
+    success: false,
+    message: "Worker is not available on this day",
+  });
+}
+
+const bookingStartMinutes =
+  bookingDate.getHours() * 60 + bookingDate.getMinutes();
+
+const [startHour, startMinute] = hours.start.split(":").map(Number);
+const [endHour, endMinute] = hours.end.split(":").map(Number);
+
+const workingStartMinutes = startHour * 60 + startMinute;
+const workingEndMinutes = endHour * 60 + endMinute;
+
+const bookingEndMinutes =
+  bookingStartMinutes + Number(duration);
+
+if (
+  bookingStartMinutes < workingStartMinutes ||
+  bookingEndMinutes > workingEndMinutes
+) {
+  return res.status(400).json({
+    success: false,
+    message: "Booking time is outside worker working hours",
+  });
+}
+
     // Make sure selected service belongs to the worker
     if (workerProfile.service.toString() !== service) {
       return res.status(400).json({
@@ -51,16 +123,45 @@ const createBooking = async (req, res) => {
       });
     }
 
+    const newBookingStart = bookingDate;
+const newBookingEnd = new Date(
+  bookingDate.getTime() + Number(duration) * 60 * 1000
+);
+
+const existingBooking = await Booking.findOne({
+  worker,
+  status: { $in: ["pending", "accepted", "in_progress"] },
+  scheduledDate: { $lt: newBookingEnd },
+  $expr: {
+    $gt: [
+      {
+        $add: [
+          { $toLong: "$scheduledDate" },
+          { $multiply: ["$duration", 60 * 1000] },
+        ],
+      },
+      newBookingStart.getTime(),
+    ],
+  },
+});
+
+if (existingBooking) {
+  return res.status(409).json({
+    success: false,
+    message: "Worker is already booked during this time",
+  });
+}
+
     const booking = await Booking.create({
       customer: req.user.userId,
       worker,
       service,
       scheduledDate,
+      duration,
       address,
       notes,
       price: workerProfile.pricePerService,
     });
-
     const populatedBooking = await Booking.findById(booking._id)
       .populate("customer", "name phone")
       .populate({

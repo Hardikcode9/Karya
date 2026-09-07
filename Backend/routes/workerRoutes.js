@@ -4,13 +4,16 @@ const {
   getWorkers,
   getNearbyWorkers,
   getWorkerById,
-  createWorkerProfile
+  createWorkerProfile,
+  updateWorkerAvailability,
 } = require("../controllers/workerController");
 const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
 router.post("/profile", authMiddleware, createWorkerProfile);
+
+router.patch("/availability", authMiddleware, updateWorkerAvailability);
 
 // GET /api/workers/nearby
 router.get("/nearby", authMiddleware, getNearbyWorkers);

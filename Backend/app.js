@@ -16,6 +16,7 @@ const paymentRoutes = require("./routes/paymentRoutes");
 const ratingRoutes = require("./routes/ratingRoutes");
 const commissionRoutes = require("./routes/commissionRoutes");
 const invoiceRoutes = require("./routes/invoiceRoutes");
+const shgRoutes = require("./routes/shgroutes");
 
 const app = express();
 

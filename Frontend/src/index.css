@@ -1,0 +1,156 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Manrope:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --surface-0: #FBF7EE;
+    --surface-1: #FFFFFF;
+    --surface-2: #F6F0E3;
+    --surface-3: #EFE8D6;
+    --brand-olive: #526B3C;
+    --brand-clay: #B08D6E;
+  }
+
+  .dark {
+    --surface-0: #111611;
+    --surface-1: #182017;
+    --surface-2: #202A1F;
+    --surface-3: #2A3629;
+    --brand-olive: #6F8B5B;
+    --brand-clay: #D3A376;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-cream text-charcoal font-sans antialiased transition-colors duration-200 selection:bg-olive-300 selection:text-olive-950;
+    overflow-x: hidden;
+  }
+
+  .dark body {
+    @apply bg-dark-bg text-dark-text selection:bg-olive-700 selection:text-cream;
+  }
+
+  :focus-visible {
+    outline: 2px solid #526B3C;
+    outline-offset: 3px;
+    border-radius: 8px;
+  }
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  
+  .container-kare {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .container-app {
+    @apply max-w-inner mx-auto px-4 sm:px-6;
+  }
+
+  /* Shimmer effect for skeleton loading */
+  .skeleton-shimmer {
+    position: relative;
+    overflow: hidden;
+    background-color: rgba(68, 63, 53, 0.08);
+  }
+  .dark .skeleton-shimmer {
+    background-color: rgba(235, 230, 218, 0.08);
+  }
+  .skeleton-shimmer::after {
+    position: absolute;
+    top: 0; right: 0; bottom: 0; left: 0;
+    transform: translateX(-100%);
+    background-image: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0,
+      rgba(255, 255, 255, 0.35) 20%,
+      rgba(255, 255, 255, 0.6) 60%,
+      rgba(255, 255, 255, 0)
+    );
+    animation: shimmer 2s infinite;
+    content: '';
+  }
+  .dark .skeleton-shimmer::after {
+    background-image: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0,
+      rgba(255, 255, 255, 0.08) 20%,
+      rgba(255, 255, 255, 0.15) 60%,
+      rgba(255, 255, 255, 0)
+    );
+  }
+
+  /* Glassmorphism surfaces */
+  .glass-pill {
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    background: rgba(251, 247, 238, 0.85);
+    border: 1px solid rgba(42, 38, 32, 0.08);
+  }
+  .dark .glass-pill {
+    background: rgba(24, 32, 23, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .glass-dock {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: rgba(255, 255, 255, 0.88);
+    border: 1px solid rgba(42, 38, 32, 0.08);
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.15);
+  }
+  .dark .glass-dock {
+    background: rgba(24, 32, 23, 0.90);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.45);
+  }
+
+  /* Subtle noise pattern */
+  .noise-card {
+    background-image: radial-gradient(rgba(42,38,32,0.035) 1px, transparent 1px);
+    background-size: 3px 3px;
+  }
+  .dark .noise-card {
+    background-image: radial-gradient(rgba(235,230,218,0.04) 1px, transparent 1px);
+    background-size: 3px 3px;
+  }
+
+  /* Card theme utilities */
+  .app-card {
+    @apply bg-cream-card dark:bg-dark-card border border-charcoal/5 dark:border-dark-border transition-all duration-200;
+  }
+  .app-card-hover {
+    @apply hover:border-olive-400/40 dark:hover:border-olive-500/40 hover:shadow-elevation-2 dark:hover:shadow-darkGlow;
+  }
+
+  /* Safe area padding for mobile notches / home bars */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+  }
+
+  /* Hide scrollbars for clean horizontal scrollers */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

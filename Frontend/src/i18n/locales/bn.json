@@ -1,0 +1,13 @@
+{
+  "nav": {
+    "home": "হোম",
+    "about": "পরিচিতি",
+    "services": "সেবা",
+    "howItWorks": "যেভাবে কাজ করে",
+    "work": "কাজ",
+    "resources": "রিসোর্স",
+    "contact": "যোগাযোগ",
+    "getStarted": "শুরু করুন",
+    "login": "লগ ইন"
+  }
+}

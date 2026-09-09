@@ -1,0 +1,37 @@
+{
+  "nav": {
+    "home": "होम",
+    "about": "परिचय",
+    "services": "सेवाएं",
+    "howItWorks": "यह कैसे काम करता है",
+    "work": "काम",
+    "shgs": "एसएचजी बाज़ार",
+    "resources": "संसाधन",
+    "contact": "संपर्क करें",
+    "getStarted": "शुरू करें",
+    "login": "लॉग इन करें"
+  },
+  "hero": {
+    "eyebrow": "ग्रामीण सेवाएं, अब आसानी से मिलें",
+    "titleLine1": "स्थानीय हुनर।",
+    "titleLine2": "बेहतर अवसर।",
+    "subtitle": "Karya ग्रामीण श्रमिकों, स्वयं सहायता समूहों और स्थानीय ग्राहकों को एक भरोसेमंद, बहुभाषी सेवा मंच के ज़रिए जोड़ता है।",
+    "ctaPrimary": "सेवा खोजें",
+    "ctaSecondary": "अपना हुनर पेश करें",
+    "floatingCard1Title": "भरोसेमंद स्थानीय सेवाएं",
+    "floatingCard1Sub": "2,500+ श्रमिक जुड़े हुए",
+    "floatingCard2Title": "आपके पास उपलब्ध",
+    "floatingCard2Item1": "सत्यापित श्रमिक",
+    "floatingCard2Item2": "स्थानीय मूल्य"
+  },
+  "footer": {
+    "tagline": "स्थानीय हुनर। बेहतर अवसर। मज़बूत समुदाय।",
+    "quickLinks": "त्वरित लिंक",
+    "forCommunities": "समुदायों के लिए",
+    "connect": "जुड़ें",
+    "findServices": "सेवाएं खोजें",
+    "offerSkills": "हुनर पेश करें",
+    "joinSHG": "SHG से जुड़ें",
+    "rights": "सर्वाधिकार सुरक्षित।"
+  }
+}

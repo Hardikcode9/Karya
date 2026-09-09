@@ -1,0 +1,37 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "services": "Services",
+    "howItWorks": "How it works",
+    "work": "Work",
+    "shgs": "SHG Store",
+    "resources": "Resources",
+    "contact": "Contact",
+    "getStarted": "Get started",
+    "login": "Log in"
+  },
+  "hero": {
+    "eyebrow": "Rural services, made findable",
+    "titleLine1": "Local skills.",
+    "titleLine2": "Better opportunities.",
+    "subtitle": "Karya connects rural workers, Self-Help Groups and local customers through a trusted, multilingual and accessible service marketplace.",
+    "ctaPrimary": "Find a service",
+    "ctaSecondary": "Offer your skills",
+    "floatingCard1Title": "Trusted local services",
+    "floatingCard1Sub": "2,500+ workers connected",
+    "floatingCard2Title": "Available near you",
+    "floatingCard2Item1": "Verified workers",
+    "floatingCard2Item2": "Local pricing"
+  },
+  "footer": {
+    "tagline": "Local skills. Better opportunities. Stronger communities.",
+    "quickLinks": "Quick links",
+    "forCommunities": "For communities",
+    "connect": "Connect",
+    "findServices": "Find services",
+    "offerSkills": "Offer skills",
+    "joinSHG": "Join an SHG",
+    "rights": "All rights reserved."
+  }
+}

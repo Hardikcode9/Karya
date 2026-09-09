@@ -8,11 +8,28 @@ const bookingSchema = new mongoose.Schema(
       required: true,
     },
 
-    worker: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "WorkerProfile",
-      required: true,
-    },
+  worker: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "WorkerProfile",
+},
+
+shg: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "SHGProfile",
+},
+
+providerType: {
+  type: String,
+  enum: ["worker", "shg"],
+  default: "worker",
+},
+
+assignedWorkers: [
+  {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "WorkerProfile",
+  },
+],
 
     service: {
       type: mongoose.Schema.Types.ObjectId,

@@ -1,24 +1,68 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AuthContext } from "./contexts";
+import api from "../utils/api";
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const login = async ({ role, email }) => {
-    setUser({ role, name: "Demo User", email: email || "demo@example.com" });
-    return { role };
+  useEffect(() => {
+    // Check for stored token on load
+    const token = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user");
+    
+    if (token && storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (e) {
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
+      }
+    }
+    setLoading(false);
+  }, []);
+
+  const login = async ({ email, password }) => {
+    try {
+      const response = await api.post("/auth/login", { email, password });
+      const { token, user: userData } = response.data;
+      
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(userData));
+      setUser(userData);
+      
+      return userData;
+    } catch (error) {
+      console.error("Login failed:", error);
+      throw error;
+    }
   };
 
   const register = async (data) => {
-    setUser({ role: data.role, name: data.name || "New User", email: data.email });
-    return data;
+    try {
+      const response = await api.post("/auth/register", data);
+      
+      // Some backends return token on register, if not, we can just return the user
+      // Assuming the backend doesn't return a token on register directly based on authController.js
+      // The user will need to login after register or we login them in automatically if token is returned.
+      // Wait, let's check authController.js registerUser. It returns user object but NO token.
+      
+      return response.data;
+    } catch (error) {
+      console.error("Registration failed:", error);
+      throw error;
+    }
   };
 
-  const logout = () => setUser(null);
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setUser(null);
+  };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
-      {children}
+    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+      {!loading && children}
     </AuthContext.Provider>
   );
 }

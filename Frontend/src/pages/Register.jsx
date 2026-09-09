@@ -43,6 +43,8 @@ export default function Register() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    phone: "",
+    password: "",
     village: "",
     skillOrCatalog: "",
     aadhaarOrReg: "",
@@ -57,8 +59,8 @@ export default function Register() {
   const handleNextStep = (e) => {
     e.preventDefault();
     if (step === 2) {
-      if (!formData.name || !formData.email) {
-        toast.error("Please provide your name and email address");
+      if (!formData.name || !formData.email || !formData.phone || !formData.password) {
+        toast.error("Please provide name, email, phone and password");
         return;
       }
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
@@ -71,15 +73,18 @@ export default function Register() {
 
   const handleFinish = async () => {
     setLoading(true);
-    setTimeout(async () => {
+    try {
       await register({ role, ...formData });
-      setLoading(false);
       setRegistered(true);
-      toast.success("Account created successfully!");
+      toast.success("Account created! Please log in.");
       setTimeout(() => {
-        navigate(role === "worker" ? "/worker" : role === "shg" ? "/shg" : "/customer");
-      }, 1200);
-    }, 800);
+        navigate("/login");
+      }, 1500);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Registration failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -223,6 +228,24 @@ export default function Register() {
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 leftIcon={Mail}
+                required
+              />
+
+              <Input
+                label="Phone Number"
+                type="tel"
+                placeholder="e.g. 9876543210"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                required
+              />
+
+              <Input
+                label="Password"
+                type="password"
+                placeholder="••••••••"
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 required
               />
 

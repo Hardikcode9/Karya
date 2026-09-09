@@ -47,13 +47,25 @@ export default function Login() {
       toast.error("Please enter both email and password");
       return;
     }
+    
+    if (loginMethod === "otp") {
+      toast.error("OTP login is not currently supported. Please use Password Login.");
+      return;
+    }
+
     setLoading(true);
-    setTimeout(async () => {
-      await login({ role, email: email || "user@example.com" });
+    try {
+      const userData = await login({ email, password });
+      toast.success(`Logged in as ${userData?.role?.toUpperCase() || role.toUpperCase()}`);
+      
+      const userRole = userData?.role || role;
+      const rolePath = roles.find((r) => r.id === userRole)?.path || "/customer";
+      navigate(rolePath);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Invalid credentials");
+    } finally {
       setLoading(false);
-      toast.success(`Logged in as ${role.toUpperCase()}`);
-      navigate(roles.find((r) => r.id === role).path);
-    }, 600);
+    }
   };
 
   return (

@@ -1,8 +1,10 @@
+const mongoose = require("mongoose");
 const Service = require("../models/Service");
 
 // Get services with optional search/category filters
 const getServices = async (req, res) => {
   try {
+
     const { search, category } = req.query;
 
     const filter = {
@@ -25,8 +27,7 @@ const getServices = async (req, res) => {
       };
     }
 
-    const services = await Service.find(filter)
-      .sort({ name: 1 });
+    const services = await Service.find(filter).sort({ name: 1 });
 
     res.status(200).json({
       success: true,
@@ -89,7 +90,29 @@ const createService = async (req, res) => {
 
 const getServiceById = async (req, res) => {
   try {
-    const service = await Service.findById(req.params.id);
+    const { id } = req.params;
+    let service;
+
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      service = await Service.findById(id);
+    }
+
+    if (!service) {
+      const mockMap = {
+        s1: "Plumbing",
+        s2: "Electrical",
+        s3: "Carpentry",
+        s4: "Cleaning",
+        s5: "Construction",
+        s6: "Farming Help",
+        s7: "Transportation",
+        s8: "Household Work",
+      };
+      const searchName = mockMap[id] || id;
+      service = await Service.findOne({
+        name: { $regex: searchName, $options: "i" },
+      });
+    }
 
     if (!service) {
       return res.status(404).json({

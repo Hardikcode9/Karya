@@ -9,9 +9,17 @@ const {
   updatePaymentStatus,
   confirmCashPayment,
   getCustomerPayments,
+  createRazorpayOrder,
+  verifyPayment,
 } = require("../controllers/paymentController");
 
-// Create payment
+// Create Razorpay Order
+router.post("/create-order", authMiddleware, createRazorpayOrder);
+
+// Verify Razorpay Payment Signature
+router.post("/verify", authMiddleware, verifyPayment);
+
+// Legacy/direct payment creation
 router.post("/", authMiddleware, createPayment);
 
 // Customer payment history

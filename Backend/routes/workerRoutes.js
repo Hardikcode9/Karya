@@ -11,17 +11,13 @@ const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
+// Public browsing routes
+router.get("/nearby", getNearbyWorkers);
+router.get("/", getWorkers);
+router.get("/:id", getWorkerById);
+
+// Protected routes
 router.post("/profile", authMiddleware, createWorkerProfile);
-
 router.patch("/availability", authMiddleware, updateWorkerAvailability);
-
-// GET /api/workers/nearby
-router.get("/nearby", authMiddleware, getNearbyWorkers);
-
-// GET /api/workers
-router.get("/", authMiddleware, getWorkers);
-
-// GET /api/workers/:id 
-router.get("/:id", authMiddleware, getWorkerById);
 
 module.exports = router;

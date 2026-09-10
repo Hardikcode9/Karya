@@ -2,10 +2,13 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X, Trash2, ShoppingBag, Plus, Minus, ArrowRight,
-  CheckCircle2, ShieldCheck, Tag
+  CheckCircle2, ShieldCheck, Tag, CreditCard
 } from "lucide-react";
 import { useCart } from "../../hooks/useCart";
 import { useOffline } from "../../hooks/useOffline";
+import { useAuth } from "../../hooks/useAuth";
+import { useToast } from "../../hooks/useToast";
+import { processRazorpayPayment } from "../../utils/razorpay";
 import Button from "../ui/Button";
 
 export default function CartDrawer() {
@@ -19,10 +22,14 @@ export default function CartDrawer() {
     totalAmount,
   } = useCart();
   const { queueAction, isOnline } = useOffline();
+  const { user } = useAuth();
+  const toast = useToast();
 
   const [coupon, setCoupon] = useState("");
   const [discount, setDiscount] = useState(0);
   const [checkedOut, setCheckedOut] = useState(false);
+  const [processingPayment, setProcessingPayment] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("online"); // 'online' | 'cash'
 
   if (!isCartOpen) return null;
 
@@ -33,22 +40,60 @@ export default function CartDrawer() {
     e.preventDefault();
     if (coupon.trim().toUpperCase() === "KARYA50" || coupon.trim().toUpperCase() === "GRAMIN") {
       setDiscount(50);
+      toast.success("Rural discount applied: ₹50 OFF");
     } else {
       setDiscount(0);
+      toast.error("Invalid coupon code");
     }
   };
 
   const handleCheckout = async () => {
-    const orderPayload = {
-      type: "CART_CHECKOUT",
-      items,
-      subtotal: totalAmount,
-      discount,
-      total: finalTotal,
-      createdAt: new Date().toISOString(),
-    };
-    await queueAction(orderPayload);
-    setCheckedOut(true);
+    if (paymentMethod === "cash") {
+      const orderPayload = {
+        type: "CART_CHECKOUT",
+        items,
+        subtotal: totalAmount,
+        discount,
+        total: finalTotal,
+        paymentMethod: "cash",
+        createdAt: new Date().toISOString(),
+      };
+      await queueAction(orderPayload);
+      setCheckedOut(true);
+      toast.success("Order placed with Pay on Service Delivery");
+      return;
+    }
+
+    // Process via Razorpay Payment Gateway
+    setProcessingPayment(true);
+    // Use first item's id or generate transaction order ID
+    const sampleBookingId = items[0]?.bookingId || items[0]?.id;
+
+    processRazorpayPayment({
+      bookingId: sampleBookingId,
+      paymentMethod: "upi",
+      user,
+      onSuccess: async (verifiedData) => {
+        setProcessingPayment(false);
+        const orderPayload = {
+          type: "CART_CHECKOUT",
+          items,
+          subtotal: totalAmount,
+          discount,
+          total: finalTotal,
+          paymentMethod: "online",
+          transactionId: verifiedData.payment?.transactionId,
+          createdAt: new Date().toISOString(),
+        };
+        await queueAction(orderPayload);
+        setCheckedOut(true);
+        toast.success("Payment successful! Gateway transaction verified.");
+      },
+      onError: (errMessage) => {
+        setProcessingPayment(false);
+        toast.error(errMessage || "Payment cancelled or failed");
+      },
+    });
   };
 
   const handleClose = () => {
@@ -220,6 +265,37 @@ export default function CartDrawer() {
           {/* Footer & Checkout button */}
           {!checkedOut && items.length > 0 && (
             <div className="p-5 sm:p-6 bg-cream-card dark:bg-dark-surface border-t border-charcoal/10 dark:border-dark-border space-y-3">
+              {/* Payment Method Selector */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-charcoal/60 dark:text-dark-muted">
+                  Select Payment Method
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("online")}
+                    className={`py-2 px-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+                      paymentMethod === "online"
+                        ? "bg-olive-700 text-cream border-olive-700 shadow-xs"
+                        : "bg-cream dark:bg-dark-bg text-charcoal/70 dark:text-dark-muted border-charcoal/15 dark:border-dark-border"
+                    }`}
+                  >
+                    <CreditCard size={14} /> Razorpay Gateway
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("cash")}
+                    className={`py-2 px-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+                      paymentMethod === "cash"
+                        ? "bg-olive-700 text-cream border-olive-700 shadow-xs"
+                        : "bg-cream dark:bg-dark-bg text-charcoal/70 dark:text-dark-muted border-charcoal/15 dark:border-dark-border"
+                    }`}
+                  >
+                    Pay on Delivery
+                  </button>
+                </div>
+              </div>
+
               <div className="space-y-1.5 text-xs text-charcoal/70 dark:text-dark-muted">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
@@ -241,13 +317,19 @@ export default function CartDrawer() {
                 </div>
               </div>
 
-              <Button onClick={handleCheckout} className="w-full py-3">
-                Checkout ({items.length} items) <ArrowRight size={16} />
+              <Button
+                onClick={handleCheckout}
+                loading={processingPayment}
+                className="w-full py-3"
+              >
+                {paymentMethod === "online"
+                  ? `Pay ₹${finalTotal} via Gateway`
+                  : `Confirm Order (₹${finalTotal})`} <ArrowRight size={16} />
               </Button>
 
               <div className="flex items-center justify-center gap-1.5 text-[11px] text-charcoal/50 dark:text-dark-muted text-center pt-1">
                 <ShieldCheck size={13} className="text-olive-700 dark:text-olive-400" />
-                Aadhaar verified providers & local cluster guarantee
+                256-bit encrypted Razorpay SSL Gateway & Village Guarantee
               </div>
             </div>
           )}

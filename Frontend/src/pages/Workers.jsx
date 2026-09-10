@@ -1,18 +1,41 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useOutletContext } from "react-router-dom";
 import {
   Search, MapPin, ShieldCheck, SlidersHorizontal,
-  Map, List, ShoppingBag, Star
+  Map, List, ShoppingBag, Star, AlertCircle
 } from "lucide-react";
 import SectionHeading from "../components/ui/SectionHeading";
 import Rating from "../components/ui/Rating";
 import Button from "../components/ui/Button";
 import ImageTile from "../components/ui/ImageTile";
 import GeolocationMap from "../components/map/GeolocationMap";
-import { workers } from "../data/mockData";
+import { workers as mockWorkers } from "../data/mockData";
 import { useCart } from "../hooks/useCart";
+import api from "../utils/api";
+
+const mapWorkerData = (w) => ({
+  id: w._id || w.id,
+  name: w.user?.name || w.name || "Specialist Worker",
+  role: w.service?.name || w.role || "Technician",
+  village: w.village || "Local District",
+  distanceKm: w.distanceInKm ?? w.distanceKm ?? 3.5,
+  rating: w.rating || 4.5,
+  skills: w.skills && w.skills.length > 0 ? w.skills : [w.service?.name || "Maintenance"],
+  price: w.pricePerService || w.price || 400,
+  priceUnit: w.priceUnit || "visit",
+  matchPercent: w.matchScore ? Math.round(w.matchScore) : (w.matchPercent || 92),
+  verified: w.verified || { skill: true, phone: true, shg: false },
+  completedJobs: w.totalReviews || w.completedJobs || 18,
+  experienceYears: w.experience || w.experienceYears || 4,
+  bio: w.bio || "Experienced local trade specialist available for house visits.",
+  phone: w.user?.phone || w.phone || "",
+});
 
 export default function Workers() {
+  const [workersList, setWorkersList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
   const [query, setQuery] = useState("");
   const [maxDistance, setMaxDistance] = useState(25);
   const [verifiedOnly, setVerifiedOnly] = useState(false);
@@ -23,7 +46,31 @@ export default function Workers() {
   const { addItem } = useCart();
   const outletContext = useOutletContext();
 
-  const filtered = workers
+  useEffect(() => {
+    const fetchWorkers = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const response = await api.get("/workers");
+        if (response.data && response.data.workers && response.data.workers.length > 0) {
+          setWorkersList(response.data.workers.map(mapWorkerData));
+        } else {
+          // Fallback to mock data if DB has no worker profiles yet
+          setWorkersList(mockWorkers.map(mapWorkerData));
+        }
+      } catch (err) {
+        console.error("Error fetching workers from backend:", err);
+        // Fallback to mock data on connection failure
+        setWorkersList(mockWorkers.map(mapWorkerData));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWorkers();
+  }, []);
+
+  const filtered = workersList
     .filter((w) => {
       const q = query.toLowerCase();
       const matchesQuery =
@@ -32,7 +79,7 @@ export default function Workers() {
         w.name.toLowerCase().includes(q) ||
         w.village.toLowerCase().includes(q);
       const matchesDistance = w.distanceKm <= maxDistance;
-      const matchesVerified = !verifiedOnly || (w.verified.skill && w.verified.phone);
+      const matchesVerified = !verifiedOnly || (w.verified?.skill && w.verified?.phone);
       const matchesRating = w.rating >= minRating;
       return matchesQuery && matchesDistance && matchesVerified && matchesRating;
     })
@@ -54,6 +101,7 @@ export default function Workers() {
 
           <div className="flex items-center bg-cream-card dark:bg-dark-card border border-charcoal/10 dark:border-dark-border rounded-2xl p-1 shadow-xs self-start md:self-auto">
             <button
+              type="button"
               onClick={() => setViewMode("list")}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
                 viewMode === "list"
@@ -64,6 +112,7 @@ export default function Workers() {
               <List size={15} /> Card View
             </button>
             <button
+              type="button"
               onClick={() => setViewMode("map")}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
                 viewMode === "map"
@@ -101,6 +150,7 @@ export default function Workers() {
               </select>
 
               <button
+                type="button"
                 onClick={() => setVerifiedOnly((v) => !v)}
                 className={`px-3 py-2 rounded-xl border flex items-center gap-1.5 transition-all ${
                   verifiedOnly
@@ -112,6 +162,7 @@ export default function Workers() {
               </button>
 
               <button
+                type="button"
                 onClick={() => setMinRating((v) => (v === 4.5 ? 0 : 4.5))}
                 className={`px-3 py-2 rounded-xl border flex items-center gap-1.5 transition-all ${
                   minRating === 4.5
@@ -143,7 +194,12 @@ export default function Workers() {
       </section>
 
       {/* View Mode: Map or Cards */}
-      {viewMode === "map" ? (
+      {loading ? (
+        <section className="container-kare mt-12 text-center py-12">
+          <div className="inline-block w-8 h-8 border-3 border-olive-700 border-t-transparent rounded-full animate-spin mb-3"></div>
+          <p className="text-sm text-charcoal/60 dark:text-dark-muted">Loading specialists from backend...</p>
+        </section>
+      ) : viewMode === "map" ? (
         <section className="container-kare mt-10">
           <GeolocationMap
             onSelectWorker={(w) => {
@@ -237,3 +293,4 @@ export default function Workers() {
     </div>
   );
 }
+

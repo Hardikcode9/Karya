@@ -87,8 +87,35 @@ const createService = async (req, res) => {
   }
 };
 
+const getServiceById = async (req, res) => {
+  try {
+    const service = await Service.findById(req.params.id);
+
+    if (!service) {
+      return res.status(404).json({
+        success: false,
+        message: "Service not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      service,
+    });
+  } catch (error) {
+    console.error("Get Service By Id Error:", error.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch service",
+    });
+  }
+};
+
 module.exports = {
   getServices,
+  getServiceById,
   createService,
 };
+
 

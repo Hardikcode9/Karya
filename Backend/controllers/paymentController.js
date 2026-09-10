@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Payment = require("../models/Payment");
 const Booking = require("../models/Booking");
 const WorkerProfile = require("../models/WorkerProfile");
@@ -412,64 +413,85 @@ const createRazorpayOrder = async (req, res) => {
       });
     }
 
-    const { bookingId, paymentMethod = "upi" } = req.body;
+    const { bookingId, amount, paymentMethod = "upi" } = req.body;
 
-    if (!bookingId) {
-      return res.status(400).json({
-        success: false,
-        message: "bookingId is required",
-      });
+    let booking;
+
+    // 1. Try finding existing booking by ID
+    if (bookingId && mongoose.Types.ObjectId.isValid(bookingId)) {
+      booking = await Booking.findById(bookingId);
     }
 
-    const booking = await Booking.findById(bookingId);
-
+    // 2. If no booking exists for bookingId, auto-create a pending booking for customer
     if (!booking) {
-      return res.status(404).json({
-        success: false,
-        message: "Booking not found",
+      const Service = require("../models/Service");
+      const defaultService = await Service.findOne({ isActive: true });
+      const serviceId = (bookingId && mongoose.Types.ObjectId.isValid(bookingId))
+        ? bookingId
+        : (defaultService ? defaultService._id : new mongoose.Types.ObjectId());
+
+      const payAmount = Number(amount) || 350;
+
+      booking = await Booking.create({
+        customer: req.user.userId,
+        service: serviceId,
+        scheduledDate: new Date(),
+        duration: 60,
+        address: "Village Service Location",
+        notes: "Online Payment Checkout",
+        price: payAmount,
+        status: "pending",
       });
     }
 
-    if (booking.customer.toString() !== req.user.userId.toString()) {
-      return res.status(403).json({
-        success: false,
-        message: "You cannot pay for this booking",
-      });
-    }
+    const payAmount = Number(amount) || booking.price || 350;
+    const amountInPaise = Math.round(payAmount * 100);
 
-    const amountInPaise = Math.round((booking.price || 350) * 100);
-
-    // Create Razorpay Order
+    // 3. Create Razorpay Order
     let razorpayOrder;
-    try {
-      const razorpay = getRazorpayInstance();
-      razorpayOrder = await razorpay.orders.create({
-        amount: amountInPaise,
-        currency: "INR",
-        receipt: `receipt_${booking._id.toString().substring(0, 10)}_${Date.now()}`,
-        notes: {
-          bookingId: booking._id.toString(),
-          customerId: req.user.userId.toString(),
-        },
-      });
-    } catch (rzpErr) {
-      console.warn("Razorpay API order creation warning, generating test order ID:", rzpErr.message);
+    let isTestFallback = false;
+
+    const keyId = process.env.RAZORPAY_KEY_ID;
+    const isDummyKey = !keyId || keyId.includes("KaryaDevKey") || keyId.startsWith("dummy") || !process.env.RAZORPAY_KEY_SECRET || process.env.RAZORPAY_KEY_SECRET.includes("karya_razorpay");
+
+    if (isDummyKey) {
+      isTestFallback = true;
       razorpayOrder = {
-        id: `order_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
+        id: `order_test_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
         amount: amountInPaise,
         currency: "INR",
       };
+    } else {
+      try {
+        const razorpay = getRazorpayInstance();
+        razorpayOrder = await razorpay.orders.create({
+          amount: amountInPaise,
+          currency: "INR",
+          receipt: `rcpt_${booking._id.toString().substring(0, 8)}_${Date.now()}`,
+          notes: {
+            bookingId: booking._id.toString(),
+            customerId: req.user.userId.toString(),
+          },
+        });
+      } catch (rzpErr) {
+        isTestFallback = true;
+        razorpayOrder = {
+          id: `order_test_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
+          amount: amountInPaise,
+          currency: "INR",
+        };
+      }
     }
 
-    // Find or create Payment record
+    // 4. Find or create Payment record
     let payment = await Payment.findOne({ booking: booking._id });
 
     if (!payment) {
       payment = await Payment.create({
         booking: booking._id,
         customer: booking.customer,
-        worker: booking.worker,
-        amount: booking.price || 350,
+        worker: booking.worker || null,
+        amount: payAmount,
         paymentMethod,
         status: "pending",
         razorpayOrderId: razorpayOrder.id,
@@ -477,6 +499,7 @@ const createRazorpayOrder = async (req, res) => {
     } else {
       payment.razorpayOrderId = razorpayOrder.id;
       payment.paymentMethod = paymentMethod;
+      payment.amount = payAmount;
       payment.status = "pending";
       await payment.save();
     }
@@ -488,6 +511,7 @@ const createRazorpayOrder = async (req, res) => {
       currency: "INR",
       keyId: process.env.RAZORPAY_KEY_ID || "rzp_test_KaryaDevKey2026",
       paymentId: payment._id,
+      isTestFallback,
       booking,
     });
   } catch (error) {

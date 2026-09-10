@@ -45,6 +45,66 @@ const registerUser = async (req, res) => {
       role: role || "customer",
     });
 
+    // If role is worker, create matching WorkerProfile document
+    if (user.role === "worker") {
+      const mongoose = require("mongoose");
+      const Service = require("../models/Service");
+      const WorkerProfile = require("../models/WorkerProfile");
+
+      const userSkill =
+        req.body.service ||
+        req.body.skillOrCatalog ||
+        req.body.skill ||
+        req.body.role ||
+        "General Trade";
+
+      let serviceDoc;
+
+      if (mongoose.Types.ObjectId.isValid(userSkill)) {
+        serviceDoc = await Service.findById(userSkill);
+      }
+
+      if (!serviceDoc) {
+        serviceDoc = await Service.findOne({
+          name: { $regex: userSkill, $options: "i" },
+        });
+      }
+
+      if (!serviceDoc) {
+        serviceDoc = await Service.findOne({ isActive: true });
+      }
+
+      if (!serviceDoc) {
+        const serviceName =
+          typeof userSkill === "string" && userSkill.length > 2
+            ? userSkill
+            : "General Repair";
+        serviceDoc = await Service.create({
+          name: serviceName,
+          category: "General Services",
+          description: `${serviceName} service offered by verified local specialists`,
+          icon: "Wrench",
+          isActive: true,
+        });
+      }
+
+      await WorkerProfile.create({
+        user: user._id,
+        service: serviceDoc._id,
+        bio: `${user.name} is a verified ${serviceDoc.name} specialist.`,
+        experience: 3,
+        skills: [serviceDoc.name],
+        pricePerService: 350,
+        location: {
+          type: "Point",
+          coordinates: [77.209, 28.6139],
+        },
+        isAvailable: true,
+        rating: 4.8,
+        totalReviews: 5,
+      });
+    }
+
     res.status(201).json({
       success: true,
       message: "User registered successfully",

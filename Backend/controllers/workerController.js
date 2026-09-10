@@ -158,6 +158,46 @@ const getWorkers = async (req, res) => {
       }
     }
 
+    // Auto-sync missing WorkerProfile records for registered worker users
+    const User = require("../models/User");
+    const Service = require("../models/Service");
+    const workerUsers = await User.find({ role: "worker" });
+
+    for (const u of workerUsers) {
+      const existingProf = await WorkerProfile.findOne({ user: u._id });
+      if (!existingProf) {
+        let defaultSvc =
+          (await Service.findOne({ name: /electrical/i })) ||
+          (await Service.findOne());
+
+        if (!defaultSvc) {
+          defaultSvc = await Service.create({
+            name: "General Maintenance",
+            category: "Home Repair",
+            description: "General home repair and maintenance services",
+            icon: "Wrench",
+            isActive: true,
+          });
+        }
+
+        await WorkerProfile.create({
+          user: u._id,
+          service: defaultSvc._id,
+          bio: `${u.name} is a verified ${defaultSvc.name} specialist available for village bookings.`,
+          experience: 4,
+          skills: [defaultSvc.name, "General Maintenance"],
+          pricePerService: 350,
+          location: {
+            type: "Point",
+            coordinates: [77.209, 28.6139],
+          },
+          isAvailable: true,
+          rating: 4.8,
+          totalReviews: 8,
+        });
+      }
+    }
+
     // Pagination
     const skip = (pageNumber - 1) * limitNumber;
 

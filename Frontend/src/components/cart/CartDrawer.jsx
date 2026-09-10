@@ -71,6 +71,7 @@ export default function CartDrawer() {
 
     processRazorpayPayment({
       bookingId: sampleBookingId,
+      amount: finalTotal,
       paymentMethod: "upi",
       user,
       onSuccess: async (verifiedData) => {

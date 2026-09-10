@@ -18,7 +18,6 @@ const paymentSchema = new mongoose.Schema(
     worker: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "WorkerProfile",
-      required: true,
     },
 
     amount: {

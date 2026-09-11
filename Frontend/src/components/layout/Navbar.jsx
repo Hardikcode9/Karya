@@ -123,16 +123,19 @@ export default function Navbar({ onOpenEmergency, onOpenContact }) {
             </NavLink>
           ))}
 
-          {/* Contact Trigger */}
-          {onOpenContact && (
-            <button
-              type="button"
-              onClick={onOpenContact}
-              className="text-sm font-semibold text-charcoal/70 dark:text-dark-muted hover:text-charcoal dark:hover:text-dark-text transition-colors py-1 cursor-pointer whitespace-nowrap"
-            >
-              {t("nav.contact") || "Contact"}
-            </button>
-          )}
+          {/* Contact Page Link */}
+          <NavLink
+            to="/contact"
+            className={({ isActive }) =>
+              `text-sm font-semibold transition-colors duration-200 py-1 whitespace-nowrap ${
+                isActive
+                  ? "text-olive-800 dark:text-olive-300 font-bold"
+                  : "text-charcoal/70 dark:text-dark-muted hover:text-charcoal dark:hover:text-dark-text"
+              }`
+            }
+          >
+            {t("nav.contact") || "Contact"}
+          </NavLink>
         </nav>
 
         {/* Right Side: Tools, Actions & Profile */}
@@ -308,18 +311,19 @@ export default function Navbar({ onOpenEmergency, onOpenContact }) {
                   </NavLink>
                 ))}
 
-                {onOpenContact && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onOpenContact();
-                      setOpen(false);
-                    }}
-                    className="px-4 py-2.5 rounded-2xl text-sm font-semibold text-charcoal/80 dark:text-dark-muted hover:bg-ivory dark:hover:bg-dark-card text-left transition-colors"
-                  >
-                    {t("nav.contact") || "Contact"}
-                  </button>
-                )}
+                <NavLink
+                  to="/contact"
+                  onClick={() => setOpen(false)}
+                  className={({ isActive }) =>
+                    `px-4 py-2.5 rounded-2xl text-sm font-semibold transition-colors ${
+                      isActive
+                        ? "bg-olive-100 dark:bg-olive-900/50 text-olive-800 dark:text-olive-300 font-bold"
+                        : "text-charcoal/80 dark:text-dark-muted hover:bg-ivory dark:hover:bg-dark-card"
+                    }`
+                  }
+                >
+                  {t("nav.contact") || "Contact"}
+                </NavLink>
               </div>
 
               <div className="h-px bg-charcoal/10 dark:bg-dark-border my-1" />

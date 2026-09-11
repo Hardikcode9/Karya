@@ -275,32 +275,73 @@ export default function SHGs() {
       {page === "home" && (
         <div className="container-kare space-y-12">
           {/* Hero Banner */}
-          <div className="relative rounded-[2.5rem] overflow-hidden p-8 sm:p-14 bg-gradient-to-br from-olive-950 via-olive-900 to-charcoal text-cream shadow-elevation-2">
+          <div className="relative rounded-[2.5rem] overflow-hidden p-6 sm:p-10 lg:p-12 bg-gradient-to-br from-olive-950 via-olive-900 to-charcoal text-cream shadow-elevation-2">
             <div className="absolute -right-20 -bottom-20 w-96 h-96 rounded-full bg-olive-600/20 blur-3xl pointer-events-none" />
-            <div className="relative z-10 max-w-2xl space-y-5">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 text-olive-300 text-xs font-semibold backdrop-blur">
-                <Sparkles size={13} />
-                <span>Zero-Middleman Direct Handicraft Channel</span>
+            <div className="relative z-10 grid lg:grid-cols-[1.15fr_0.85fr] items-center gap-8 lg:gap-12">
+              {/* Left Side Content */}
+              <div className="space-y-5">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 text-olive-300 text-xs font-semibold backdrop-blur">
+                  <Sparkles size={13} />
+                  <span>Zero-Middleman Direct Handicraft Channel</span>
+                </div>
+                <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-light leading-tight text-white">
+                  Treasures from Bharat's rural soil, crafted with generational pride.
+                </h2>
+                <p className="text-cream/75 text-xs sm:text-sm lg:text-base leading-relaxed">
+                  Every purchase sends 100% of fair value directly to village Self-Help Group bank accounts. Zero corporate margins, zero deductions.
+                </p>
+                <div className="flex flex-wrap items-center gap-3 pt-2">
+                  <button
+                    onClick={() => openCategory("All")}
+                    className="px-6 py-3 rounded-full bg-olive-600 hover:bg-olive-500 text-cream text-xs sm:text-sm font-bold shadow-sm transition-transform active:scale-95 cursor-pointer"
+                  >
+                    Explore All Products ({PRODUCTS.length})
+                  </button>
+                  <button
+                    onClick={() => openCategory("Organic & Farm Produce")}
+                    className="px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 text-cream text-xs sm:text-sm font-bold backdrop-blur transition-colors cursor-pointer"
+                  >
+                    Organic Farm Goods →
+                  </button>
+                </div>
               </div>
-              <h2 className="font-display text-3xl sm:text-5xl font-light leading-tight text-white">
-                Treasures from Bharat's rural soil, crafted with generational pride.
-              </h2>
-              <p className="text-cream/75 text-sm sm:text-base leading-relaxed">
-                Every purchase sends 100% of fair value directly to village Self-Help Group bank accounts. Zero corporate margins, zero deductions.
-              </p>
-              <div className="flex flex-wrap items-center gap-3 pt-2">
-                <button
-                  onClick={() => openCategory("All")}
-                  className="px-6 py-3 rounded-full bg-olive-600 hover:bg-olive-500 text-cream text-xs sm:text-sm font-bold shadow-sm transition-transform active:scale-95"
-                >
-                  Explore All Products ({PRODUCTS.length})
-                </button>
-                <button
-                  onClick={() => openCategory("Organic & Farm Produce")}
-                  className="px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 text-cream text-xs sm:text-sm font-bold backdrop-blur transition-colors"
-                >
-                  Organic Farm Goods →
-                </button>
+
+              {/* Right Side: Village Artisans Image Showcase (Inside the Box) */}
+              <div className="relative w-full max-w-lg mx-auto lg:max-w-none group">
+                {/* Ambient glow behind image */}
+                <div className="absolute -inset-1.5 bg-gradient-to-tr from-olive-600/40 to-amber-600/30 rounded-[2rem] blur-xl opacity-75 group-hover:opacity-100 transition duration-500 pointer-events-none" />
+
+                <div className="relative rounded-[2rem] overflow-hidden border-2 border-white/20 bg-charcoal/50 shadow-elevation-3 aspect-[4/3] sm:aspect-[16/11]">
+                  <img
+                    src="https://images.unsplash.com/photo-1606293926075-69a00dbfde81?auto=format&fit=crop&w=800&q=80"
+                    alt="Rural Indian Village Artisans Handcrafting Terracotta Pottery and Handloom"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                    loading="lazy"
+                  />
+                  {/* Subtle contrast gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent pointer-events-none" />
+
+                  {/* Top Floating Badge */}
+                  <div className="absolute top-3.5 right-3.5 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white text-[11px] font-bold shadow-xs">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>Women-Led SHGs</span>
+                  </div>
+
+                  {/* Bottom Text Overlay */}
+                  <div className="absolute bottom-4 left-4 right-4 text-white">
+                    <span className="inline-block px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-olive-700/90 text-white mb-1">
+                      Village Cooperatives
+                    </span>
+                    <h3 className="font-display text-base sm:text-lg font-semibold text-white leading-snug">
+                      Handmade Pottery, Khadi Weaves & Heritage Preserves
+                    </h3>
+                    <p className="text-[11px] text-cream/75 mt-0.5 flex items-center gap-1.5">
+                      <span>📍 Sonipur & Rampura Panchayats</span>
+                      <span>•</span>
+                      <span>100% Fair-Trade Direct</span>
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

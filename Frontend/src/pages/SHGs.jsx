@@ -270,68 +270,6 @@ export default function SHGs() {
         </div>
       )}
 
-      {/* Internal Store Sub-Header */}
-      <div className="container-kare mb-8">
-        <div className="rounded-3xl p-4 sm:p-6 bg-white dark:bg-dark-card border border-charcoal/10 dark:border-dark-border shadow-elevation-1 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-olive-700 text-cream flex items-center justify-center font-display font-bold text-xl shadow-xs">
-              ग
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-charcoal dark:text-dark-text">
-                  Gyaanshrot SHG Collective Store
-                </h1>
-                <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">
-                  <ShieldCheck size={11} />
-                  <span>0% Commission</span>
-                </span>
-              </div>
-              <p className="text-xs text-charcoal/60 dark:text-dark-muted mt-0.5">
-                Connecting rural Self-Help Groups, women federations & artisans directly with conscious buyers.
-              </p>
-            </div>
-          </div>
-
-          {/* Internal Navigation Tabs */}
-          <div className="flex flex-wrap items-center gap-1.5 self-start md:self-auto bg-cream dark:bg-dark-surface p-1 rounded-2xl border border-charcoal/5 dark:border-dark-border">
-            {[
-              { id: "home", label: "Featured" },
-              { id: "shop", label: "Artisan Catalog" },
-              { id: "about", label: "Mission" },
-              { id: "blog", label: "Artisan Stories" },
-              { id: "admin", label: "Seller Hub" },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => { setPage(tab.id); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                  page === tab.id
-                    ? "bg-olive-700 text-cream shadow-xs"
-                    : "text-charcoal/70 dark:text-dark-muted hover:text-charcoal dark:hover:text-dark-text"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-
-            {/* Open Navbar Cart Trigger */}
-            <button
-              onClick={() => setIsCartOpen(true)}
-              className="relative flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-olive-100 dark:bg-olive-900/60 text-olive-900 dark:text-olive-300 hover:bg-olive-200 transition-all shadow-xs"
-              title="Open Navbar Cart"
-            >
-              <ShoppingBag size={14} />
-              <span>Cart</span>
-              {totalCount > 0 && (
-                <span className="w-5 h-5 rounded-full bg-olive-700 text-cream text-[10px] font-black flex items-center justify-center animate-bounce">
-                  {totalCount}
-                </span>
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
 
       {/* VIEW: HOME / FEATURED */}
       {page === "home" && (

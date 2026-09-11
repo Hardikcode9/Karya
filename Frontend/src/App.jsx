@@ -1,4 +1,6 @@
-import { Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { Routes, Route, useLocation } from "react-router-dom";
+import { retriggerGoogleTranslate } from "./utils/googleTranslate";
 import {
   LayoutDashboard, ClipboardList, CalendarCheck, Wallet, Star, User,
   Inbox, Briefcase, Settings2, Clock, IndianRupee,
@@ -76,6 +78,12 @@ const adminNav = [
 ];
 
 export default function App() {
+  const location = useLocation();
+
+  useEffect(() => {
+    retriggerGoogleTranslate();
+  }, [location.pathname]);
+
   return (
     <Routes>
       <Route element={<PublicLayout />}>

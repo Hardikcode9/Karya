@@ -154,3 +154,57 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ==========================================================================
+   Google Translate Seamless Theme & Layout Shield
+   Completely hide Google's injected top translation navigation bar
+   ========================================================================== */
+
+html, body {
+  top: 0px !important;
+  position: static !important;
+}
+
+/* Hide all variants of Google Translate top bar / frames / banners */
+iframe.skiptranslate,
+body > .skiptranslate,
+body > iframe.skiptranslate,
+.goog-te-banner-frame,
+.goog-te-banner-frame.skiptranslate,
+iframe.goog-te-banner-frame,
+.VIpgJd-ZVi9od-aZ2wEe-wOHMyf,
+.VIpgJd-ZVi9od-OR9Gae-sMIugc,
+.VIpgJd-yAWNEb-L7lbkb,
+#goog-gt-tt,
+.goog-te-balloon-frame,
+.goog-tooltip,
+.goog-te-spinner-pos {
+  display: none !important;
+  visibility: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  height: 0 !important;
+  width: 0 !important;
+  max-height: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  border: none !important;
+}
+
+.goog-text-highlight {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+#google_translate_element {
+  position: absolute !important;
+  left: -9999px !important;
+  top: -9999px !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+}
+

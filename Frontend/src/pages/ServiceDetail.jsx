@@ -8,6 +8,7 @@ import Rating from "../components/ui/Rating";
 import Button from "../components/ui/Button";
 import ImageTile from "../components/ui/ImageTile";
 import api from "../utils/api";
+import { getServiceImage } from "../utils/serviceImages";
 
 export default function ServiceDetail() {
   const { serviceId } = useParams();
@@ -76,13 +77,38 @@ export default function ServiceDetail() {
         <Link to="/services" className="inline-flex items-center gap-1.5 text-sm text-charcoal/50 dark:text-dark-muted hover:text-charcoal dark:hover:text-dark-text mb-6">
           <ArrowLeft size={15} /> Back to services
         </Link>
-        <div className="flex items-center gap-4">
-          <span className="w-14 h-14 rounded-2xl bg-olive-100 dark:bg-olive-950/60 text-olive-700 dark:text-olive-300 flex items-center justify-center">
-            <Icon name={service.icon || "Briefcase"} size={24} />
-          </span>
-          <div>
-            <h1 className="font-display text-3xl sm:text-4xl text-charcoal dark:text-dark-text">{service.name}</h1>
-            <p className="text-charcoal/55 dark:text-dark-muted text-sm mt-1">{service.description || "Verified local trade specialists available"}</p>
+        {/* Service Hero Banner with relevant service image */}
+        <div className="relative w-full h-56 sm:h-72 rounded-3xl overflow-hidden border border-charcoal/10 dark:border-dark-border shadow-elevation-1">
+          <img
+            src={getServiceImage(service)}
+            alt={service.name}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
+          <div className="absolute bottom-6 left-6 right-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <span className="w-14 h-14 rounded-2xl bg-white/90 dark:bg-dark-card/90 backdrop-blur-md text-olive-700 dark:text-olive-300 flex items-center justify-center shadow-md">
+                <Icon name={service.icon || "Briefcase"} size={26} />
+              </span>
+              <div>
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-olive-700 text-white mb-1.5 inline-block">
+                  {service.category || "Village Service"}
+                </span>
+                <h1 className="font-display text-2xl sm:text-4xl text-white font-bold">{service.name}</h1>
+                <p className="text-white/85 text-xs sm:text-sm mt-0.5 max-w-xl">
+                  {service.description || "Verified local trade specialists and equipment available"}
+                </p>
+              </div>
+            </div>
+            <div className="bg-white/95 dark:bg-dark-card/95 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 shadow-md shrink-0 flex items-center gap-3 self-start sm:self-auto">
+              <div>
+                <span className="text-[10px] uppercase tracking-wider text-charcoal/50 dark:text-dark-muted font-medium">Standard Rate</span>
+                <p className="text-base font-bold text-charcoal dark:text-dark-text font-display">
+                  ₹{service.price || service.basePrice || 350}
+                  <span className="text-xs font-normal text-charcoal/50 dark:text-dark-muted">/{service.priceUnit || "visit"}</span>
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>

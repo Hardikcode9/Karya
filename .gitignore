@@ -1,0 +1,113 @@
+# ==============================================================================
+# Karya Project - Master .gitignore
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Environment & Secret Files (CRITICAL: Never commit credentials to Git)
+# ------------------------------------------------------------------------------
+.env
+.env.*
+*.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+Backend/.env
+Frontend/.env
+Backend/.env.*
+Frontend/.env.*
+
+# Keep environment template files tracked
+!.env.example
+!Backend/.env.example
+!Frontend/.env.example
+
+# ------------------------------------------------------------------------------
+# 2. Dead Code, Temporary Dumps & Scratch Artifacts
+# ------------------------------------------------------------------------------
+# Backup and temporary editor files
+*.bak
+*.old
+*.orig
+*.tmp
+*.temp
+*~
+*.swp
+*.swo
+
+# Dead scratch directories and local test scripts
+scratch/
+tmp/
+temp/
+*.scratch.*
+test-dump/
+test-results/
+
+# Dead / unused merge & patch conflict artifacts
+*.patch
+*.diff
+*.rej
+
+# Accidental command files (e.g., mistyped command artifacts)
+git
+
+# ------------------------------------------------------------------------------
+# 3. Dependencies & Package Manager Artifacts
+# ------------------------------------------------------------------------------
+node_modules/
+*/node_modules/
+.pnp/
+.pnp.js
+.npm/
+
+# ------------------------------------------------------------------------------
+# 4. Logs & Debugging Output
+# ------------------------------------------------------------------------------
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+debug.log
+
+# ------------------------------------------------------------------------------
+# 5. Build, Bundler & Distribution Outputs
+# ------------------------------------------------------------------------------
+dist/
+dist-ssr/
+build/
+out/
+.cache/
+.vite/
+*/dist/
+*/build/
+
+# ------------------------------------------------------------------------------
+# 6. Test Coverage & Profiling Dumps
+# ------------------------------------------------------------------------------
+coverage/
+.nyc_output/
+*.lcov
+*.coverage
+
+# ------------------------------------------------------------------------------
+# 7. Operating System & IDE Specific Files
+# ------------------------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Visual Studio Code / IntelliJ IDEA
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln

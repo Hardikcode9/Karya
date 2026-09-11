@@ -1,2 +1,26 @@
+# Dependencies
 node_modules/
+
+# Environment variables
 .env
+.env.*
+*.env
+!.env.example
+
+# Logs & debugging
+logs/
+*.log
+npm-debug.log*
+
+# Dead code & temporary artifacts
+*.bak
+*.tmp
+*.temp
+*~
+*.swp
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

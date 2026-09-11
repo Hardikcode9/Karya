@@ -1,14 +1,23 @@
-export default function Logo({ light = false, className = "" }) {
+export default function Logo({ light = false, className = "", imgClassName = "" }) {
   return (
-    <span className={`inline-flex items-center gap-2 select-none ${className}`}>
+    <span className={`inline-flex items-center gap-2.5 select-none ${className}`}>
+      <img
+        src="/icons/logo.png"
+        alt="Karya Logo"
+        className={`w-8 h-8 sm:w-9 sm:h-9 object-contain rounded-full shadow-2xs ${imgClassName}`}
+        onError={(e) => {
+          if (!e.currentTarget.dataset.fallback) {
+            e.currentTarget.dataset.fallback = "true";
+            e.currentTarget.src = "/icons/logo.jpeg";
+          }
+        }}
+      />
       <span
-        className={`w-8 h-8 rounded-full flex items-center justify-center font-display text-base ${
-          light ? "bg-cream text-olive-900" : "bg-olive-700 text-cream"
+        translate="no"
+        className={`font-display text-xl sm:text-2xl font-bold tracking-tight notranslate ${
+          light ? "text-cream" : "text-charcoal dark:text-dark-text"
         }`}
       >
-        K
-      </span>
-      <span className={`font-display text-xl tracking-tight ${light ? "text-cream" : "text-charcoal"}`}>
         Karya
       </span>
     </span>

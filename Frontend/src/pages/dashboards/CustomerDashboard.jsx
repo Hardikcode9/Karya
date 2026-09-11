@@ -37,9 +37,9 @@ export default function CustomerDashboard() {
             <Button as={Link} to="/services" size="md" icon>
               Book New Service
             </Button>
-            <Button as={Link} to="/workers" variant="dark" size="md">
+            <Button as={Link} to="/services" variant="dark" size="md">
               <Search size={15} />
-              <span>Browse Map</span>
+              <span>Browse Services</span>
             </Button>
           </div>
         </div>
@@ -113,7 +113,7 @@ export default function CustomerDashboard() {
             </p>
           </div>
           <Link
-            to="/workers"
+            to="/services"
             className="text-xs font-bold text-olive-700 dark:text-olive-400 hover:underline flex items-center gap-1"
           >
             <span>View All</span>

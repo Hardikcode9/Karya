@@ -103,7 +103,7 @@ export default function App() {
         <Route path="/work/:projectId" element={<RequireAuth><WorkDetail /></RequireAuth>} />
         <Route path="/resources" element={<RequireAuth><Resources /></RequireAuth>} />
         <Route path="/resources/:resourceId" element={<RequireAuth><ResourceDetail /></RequireAuth>} />
-        <Route path="/contact" element={<RequireAuth><Contact /></RequireAuth>} />
+        <Route path="/contact" element={<Contact />} />
       </Route>
 
       <Route path="/login" element={<Login />} />

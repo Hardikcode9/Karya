@@ -17,6 +17,7 @@ const ratingRoutes = require("./routes/ratingRoutes");
 const commissionRoutes = require("./routes/commissionRoutes");
 const invoiceRoutes = require("./routes/invoiceRoutes");
 const shgRoutes = require("./routes/shgroutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 
 const app = express();
 
@@ -34,6 +35,8 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/ratings", ratingRoutes);
 app.use("/api/commissions", commissionRoutes);
 app.use("/api/invoices", invoiceRoutes);
+app.use("/api/shg", shgRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 app.get("/", (req, res) => {
   res.json({

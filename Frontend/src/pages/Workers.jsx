@@ -9,12 +9,12 @@ import Rating from "../components/ui/Rating";
 import Button from "../components/ui/Button";
 import ImageTile from "../components/ui/ImageTile";
 import GeolocationMap from "../components/map/GeolocationMap";
-import { workers as mockWorkers } from "../data/mockData";
 import { useCart } from "../hooks/useCart";
 import api from "../utils/api";
 
 const mapWorkerData = (w) => ({
   id: w._id || w.id,
+  serviceId: w.service?._id || w.serviceId || null,
   name: w.user?.name || w.name || "Specialist Worker",
   role: w.service?.name || w.role || "Technician",
   village: w.village || "Local District",
@@ -55,13 +55,11 @@ export default function Workers() {
         if (response.data && response.data.workers && response.data.workers.length > 0) {
           setWorkersList(response.data.workers.map(mapWorkerData));
         } else {
-          // Fallback to mock data if DB has no worker profiles yet
-          setWorkersList(mockWorkers.map(mapWorkerData));
+          setWorkersList([]);
         }
       } catch (err) {
         console.error("Error fetching workers from backend:", err);
-        // Fallback to mock data on connection failure
-        setWorkersList(mockWorkers.map(mapWorkerData));
+        setWorkersList([]);
       } finally {
         setLoading(false);
       }

@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import { useOutletContext, useSearchParams } from "react-router-dom";
-import { Search, Map, List, AlertCircle } from "lucide-react";
+import { Search, Map as MapIcon, List, AlertCircle } from "lucide-react";
 import SectionHeading from "../components/ui/SectionHeading";
 import ServiceCard from "../components/ui/ServiceCard";
 import GeolocationMap from "../components/map/GeolocationMap";
 import api from "../utils/api";
 import { useCart } from "../hooks/useCart";
-import { allServices } from "../data/mockData";
 
 export default function Services() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -25,27 +24,10 @@ export default function Services() {
       try {
         const response = await api.get("/services");
         const backendList = (response.data && response.data.services) || [];
-
-        // Build a map of backend services by lowercase name
-        const bMap = new Map();
-        backendList.forEach((s) => {
-          if (s && s.name) bMap.set(s.name.toLowerCase().trim(), s);
-        });
-
-        // Merge: Include backend services and any catalogue services (SHG, Community) not in DB
-        const merged = [...backendList];
-        allServices.forEach((ms) => {
-          const key = ms.name.toLowerCase().trim();
-          if (!bMap.has(key)) {
-            merged.push(ms);
-          }
-        });
-
-        setServices(merged.length > 0 ? merged : allServices);
+        setServices(backendList);
       } catch (err) {
         console.error("Error fetching services:", err);
-        // Fallback gracefully to allServices
-        setServices(allServices);
+        setServices([]);
       } finally {
         setLoading(false);
       }
@@ -95,7 +77,7 @@ export default function Services() {
                   : "text-charcoal/60 dark:text-dark-muted hover:text-charcoal dark:hover:text-dark-text"
               }`}
             >
-              <Map size={15} /> Geolocation Map
+              <MapIcon size={15} /> Geolocation Map
             </button>
           </div>
         </div>

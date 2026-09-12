@@ -1,164 +1,123 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import {
   Inbox, Phone, MapPin, CheckCircle2, Clock, AlertCircle,
   XCircle, IndianRupee, Navigation, Search, Filter, Check,
   X, Sparkles, ChevronRight, ShieldCheck, Calendar, User,
   RefreshCw, Volume2, ArrowRight, HelpCircle, Briefcase,
-  Copy, ExternalLink, MessageCircle, Star, FileText
+  Copy, ExternalLink, MessageCircle, Star, FileText, Loader2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "../../hooks/useToast";
+import api from "../../utils/api";
 
 const STORAGE_KEY = "karya_worker_requests_v1";
 
-const INITIAL_REQUESTS = [
-  {
-    id: "req-101",
-    jobTitle: "School Uniform Stitching & Alteration",
-    jobTitleHi: "स्कूल ड्रेस सिलाई व नाप सही करना",
-    category: "Tailoring",
-    categoryHi: "सिलाई कार्य",
-    customerName: "Sanjay Verma",
-    customerPhone: "+91 98765 43210",
-    villageName: "Rampur Village, Near East Gate",
-    villageNameHi: "रामपुर गांव, पूर्वी गेट के पास",
-    distance: "1.8 km",
-    timing: "Today, 4:00 PM",
-    timingHi: "आज शाम 4:00 बजे",
-    amount: 550,
+const INITIAL_REQUESTS = [];
+
+// Map backend booking status to the UI status used by the cards
+const mapBackendStatus = (status) => {
+  switch (status) {
+    case "pending": return "pending";
+    case "accepted":
+    case "in_progress": return "active";
+    case "completed": return "completed";
+    case "rejected":
+    case "cancelled": return "declined";
+    default: return "pending";
+  }
+};
+
+// Map a backend booking object to the UI card shape
+const mapBookingToRequest = (b) => {
+  const scheduledDate = b.scheduledDate ? new Date(b.scheduledDate) : null;
+  let timing = "Scheduled";
+  if (scheduledDate) {
+    const now = new Date();
+    const diffMs = scheduledDate - now;
+    const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) timing = `Today, ${scheduledDate.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}`;
+    else if (diffDays === 1) timing = `Tomorrow, ${scheduledDate.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}`;
+    else if (diffDays === -1) timing = "Yesterday";
+    else if (diffDays < -1) timing = `${Math.abs(diffDays)} days ago`;
+    else timing = scheduledDate.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+  }
+
+  return {
+    id: b._id,
+    jobTitle: `${b.service?.name || "Service"} Request`,
+    jobTitleHi: "",
+    category: b.service?.category || "Service",
+    categoryHi: "",
+    customerName: b.customer?.name || "Customer",
+    customerPhone: b.customer?.phone ? `+91 ${b.customer.phone}` : "",
+    villageName: b.address || "Local Area",
+    villageNameHi: "",
+    distance: "Nearby",
+    timing,
+    timingHi: "",
+    amount: b.price || 0,
     paymentMode: "Cash or UPI on Completion",
     paymentModeHi: "काम पूरा होने पर नकद या UPI",
-    status: "pending", // "pending" | "active" | "completed" | "declined"
+    status: mapBackendStatus(b.status),
     isUrgent: false,
-    description: "2 pairs of secondary school uniforms (shirts + trousers) require urgent fitting adjustments and button stitching.",
-    descriptionHi: "2 जोड़ी स्कूल ड्रेस की फिटिंग और बटन सिलाई करानी है।",
-    acceptedAt: null,
-    completedAt: null,
+    description: b.notes || `${b.service?.name || "Service"} booking - Duration: ${b.duration || 60} minutes`,
+    descriptionHi: "",
+    acceptedAt: b.status === "accepted" || b.status === "in_progress" ? new Date(b.updatedAt).toLocaleString("en-IN") : null,
+    completedAt: b.status === "completed" ? new Date(b.updatedAt).toLocaleString("en-IN") : null,
     rating: null,
     reviewText: null,
-  },
-  {
-    id: "req-102",
-    jobTitle: "Emergency Zipper & Cloth Tear Repair",
-    jobTitleHi: "चेन मरम्मत और कपड़ा सिलाई (तत्काल)",
-    category: "Tailoring / Urgent",
-    categoryHi: "तत्काल सिलाई",
-    customerName: "Anjali Devi",
-    customerPhone: "+91 94123 78901",
-    villageName: "Greenfields Ward 3, Near Water Tank",
-    villageNameHi: "ग्रीनफील्ड्स वार्ड 3, पानी की टंकी के पास",
-    distance: "0.8 km",
-    timing: "Immediate / Today",
-    timingHi: "तुरंत / आज ही",
-    amount: 750,
-    paymentMode: "Direct Village UPI Payout",
-    paymentModeHi: "सीधा UPI भुगतान",
-    status: "pending",
-    isUrgent: true,
-    description: "Heavy wedding lehenga side zipper jammed and hem torn. Urgent repair needed before evening family event.",
-    descriptionHi: "शादी के लहंगे की चेन अटक गई है और किनारा फट गया है। शाम के कार्यक्रम से पहले तुरंत ठीक करना है।",
-    acceptedAt: null,
-    completedAt: null,
-    rating: null,
-    reviewText: null,
-  },
-  {
-    id: "req-103",
-    jobTitle: "Festival Kurta Pajama Stitching",
-    jobTitleHi: "त्योहार कुर्ता पजामा सिलाई",
-    category: "Tailoring",
-    categoryHi: "सिलाई कार्य",
-    customerName: "Manoj Singh (Gram Panchayat Office)",
-    customerPhone: "+91 98321 65498",
-    villageName: "Gram Panchayat Bhavan, Block B",
-    villageNameHi: "ग्राम पंचायत भवन, ब्लॉक बी",
-    distance: "2.5 km",
-    timing: "Tomorrow, 10:00 AM",
-    timingHi: "कल सुबह 10:00 बजे",
-    amount: 400,
-    paymentMode: "Panchayat Direct Bank Transfer",
-    paymentModeHi: "पंचायत बैंक खाता ट्रांसफर",
-    status: "active",
-    isUrgent: false,
-    description: "Traditional white khadi cotton kurta pajama stitching with reinforced pockets and interlock seams. Cloth already delivered.",
-    descriptionHi: "सफेद खादी कॉटन कुर्ता पजामा सिलाई। कपड़ा पहले ही दिया जा चुका है।",
-    acceptedAt: "Today, 11:30 AM",
-    completedAt: null,
-    rating: null,
-    reviewText: null,
-  },
-  {
-    id: "req-104",
-    jobTitle: "3 Blouse Alterations & Fall-Pico Work",
-    jobTitleHi: "3 ब्लाउज फिटिंग और साड़ी फॉल-पिको",
-    category: "Tailoring",
-    categoryHi: "सिलाई कार्य",
-    customerName: "Sunita Devi (SHG Federation)",
-    customerPhone: "+91 97654 32189",
-    villageName: "Rampur West, House #42",
-    villageNameHi: "रामपुर पश्चिम, मकान नं. 42",
-    distance: "1.2 km",
-    timing: "Yesterday",
-    timingHi: "कल",
-    amount: 650,
-    paymentMode: "Cash Handover Received",
-    paymentModeHi: "नकद भुगतान प्राप्त हुआ",
-    status: "completed",
-    isUrgent: false,
-    description: "3 silk sarees fall-pico attachment and 2 festive blouse chest/armhole size alterations.",
-    descriptionHi: "3 रेशमी साड़ियों पर फॉल-पिको और 2 ब्लाउज की फिटिंग।",
-    acceptedAt: "Yesterday, 09:00 AM",
-    completedAt: "Yesterday, 06:30 PM",
-    rating: 5.0,
-    reviewText: "बहुत ही सुंदर और मजबूत सिलाई की। समय पर काम पूरा किया!",
-  },
-  {
-    id: "req-105",
-    jobTitle: "Curtain Hemming & 6 Cushion Covers",
-    jobTitleHi: "पर्दे की सिलाई व 6 कुशन कवर",
-    category: "Home Furnishing",
-    categoryHi: "घरेलू साज-सज्जा",
-    customerName: "Ramesh Kumar",
-    customerPhone: "+91 91234 56780",
-    villageName: "Adarsh Colony, Near Primary School",
-    villageNameHi: "आदर्श कॉलोनी, प्राथमिक विद्यालय के पास",
-    distance: "3.1 km",
-    timing: "3 Days ago",
-    timingHi: "3 दिन पहले",
-    amount: 1200,
-    paymentMode: "Direct UPI Received",
-    paymentModeHi: "UPI भुगतान प्राप्त हुआ",
-    status: "completed",
-    isUrgent: false,
-    description: "Living room curtains height alteration and 6 cotton cushion zip covers made with border piping.",
-    descriptionHi: "कमरे के पर्दों की ऊंचाई सही करना और 6 नए कुशन कवर तैयार करना।",
-    acceptedAt: "3 Days ago",
-    completedAt: "2 Days ago",
-    rating: 4.9,
-    reviewText: "Best local artisan! Very reasonable rate and clean finishing.",
-  }
-];
+  };
+};
 
 export default function WorkerRequests() {
   const toast = useToast();
+  const [requests, setRequests] = useState([]);
+  const [apiLoading, setApiLoading] = useState(true);
+  const [apiError, setApiError] = useState("");
 
-  // Load persisted requests or default
-  const [requests, setRequests] = useState(() => {
+  // Fetch real bookings from backend
+  const fetchBookings = useCallback(async () => {
+    setApiLoading(true);
+    setApiError("");
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
-    } catch {
-      // ignore
+      const response = await api.get("/bookings/worker");
+      if (response.data?.bookings?.length > 0) {
+        setRequests(response.data.bookings.map(mapBookingToRequest));
+      } else {
+        // No bookings from backend, show empty state (NOT dummy data)
+        setRequests([]);
+      }
+    } catch (err) {
+      console.error("Failed to fetch worker bookings:", err);
+      // Fallback to INITIAL_REQUESTS only if API is unreachable
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          setRequests(JSON.parse(saved));
+        } else {
+          setRequests([]);
+        }
+      } catch {
+        setRequests([]);
+      }
+      setApiError("Could not reach backend. Showing cached data.");
+    } finally {
+      setApiLoading(false);
     }
-    return INITIAL_REQUESTS;
-  });
+  }, []);
 
-  // Save changes to localStorage
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(requests));
-    } catch {
-      // ignore
+    fetchBookings();
+  }, [fetchBookings]);
+
+  // Save to localStorage as cache
+  useEffect(() => {
+    if (requests.length > 0) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(requests));
+      } catch {
+        // ignore
+      }
     }
   }, [requests]);
 
@@ -203,54 +162,65 @@ export default function WorkerRequests() {
     });
   }, [requests, activeFilter, searchQuery]);
 
-  // Action: Accept Request
-  const handleAccept = (id) => {
-    setRequests((prev) =>
-      prev.map((req) =>
-        req.id === id
-          ? {
-              ...req,
-              status: "active",
-              acceptedAt: "Just now (अभी)"
-            }
-          : req
-      )
-    );
-    toast.success("काम स्वीकार कर लिया गया! (Job Accepted!) Customer notified via SMS.");
+  // Action: Accept Request — calls backend API
+  const handleAccept = async (id) => {
+    try {
+      await api.patch(`/bookings/${id}/status`, { status: "accepted" });
+      setRequests((prev) =>
+        prev.map((req) =>
+          req.id === id
+            ? { ...req, status: "active", acceptedAt: "Just now (अभी)" }
+            : req
+        )
+      );
+      toast.success("काम स्वीकार कर लिया गया! (Job Accepted!) Customer notified.");
+    } catch (err) {
+      console.error("Accept error:", err);
+      toast.error(err.response?.data?.message || "Failed to accept. Please try again.");
+    }
   };
 
-  // Action: Decline Request
-  const handleDecline = (id) => {
-    setRequests((prev) =>
-      prev.map((req) =>
-        req.id === id
-          ? {
-              ...req,
-              status: "declined"
-            }
-          : req
-      )
-    );
-    toast.info("अनुरोध अस्वीकार कर दिया गया (Request Declined).");
+  // Action: Decline Request — calls backend API
+  const handleDecline = async (id) => {
+    try {
+      await api.patch(`/bookings/${id}/status`, { status: "rejected" });
+      setRequests((prev) =>
+        prev.map((req) =>
+          req.id === id
+            ? { ...req, status: "declined" }
+            : req
+        )
+      );
+      toast.info("अनुरोध अस्वीकार कर दिया गया (Request Declined).");
+    } catch (err) {
+      console.error("Decline error:", err);
+      toast.error(err.response?.data?.message || "Failed to decline. Please try again.");
+    }
   };
 
-  // Action: Mark as Completed
-  const handleComplete = (id) => {
-    setRequests((prev) =>
-      prev.map((req) =>
-        req.id === id
-          ? {
-              ...req,
-              status: "completed",
-              completedAt: "Just now (अभी)",
-              rating: 5.0,
-              reviewText: "Customer marked work verified & completed with direct payment."
-            }
-          : req
-      )
-    );
-    setConfirmCompleteModal(null);
-    toast.success("बधाई! काम पूरा हुआ और कमाई जुड़ गई (Work Marked Done & Paid!)");
+  // Action: Mark as Completed — calls backend API
+  const handleComplete = async (id) => {
+    try {
+      await api.patch(`/bookings/${id}/status`, { status: "completed" });
+      setRequests((prev) =>
+        prev.map((req) =>
+          req.id === id
+            ? {
+                ...req,
+                status: "completed",
+                completedAt: "Just now (अभी)",
+                rating: 5.0,
+                reviewText: "Customer marked work verified & completed with direct payment."
+              }
+            : req
+        )
+      );
+      setConfirmCompleteModal(null);
+      toast.success("बधाई! काम पूरा हुआ और कमाई जुड़ गई (Work Marked Done & Paid!)");
+    } catch (err) {
+      console.error("Complete error:", err);
+      toast.error(err.response?.data?.message || "Failed to complete. Please try again.");
+    }
   };
 
   // Copy phone number to clipboard
@@ -302,6 +272,7 @@ export default function WorkerRequests() {
             <button
               type="button"
               onClick={() => {
+                fetchBookings();
                 toast.success("नए अनुरोध ताज़ा किए गए (Radius Refreshed!)");
               }}
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-white dark:bg-dark-surface text-charcoal dark:text-dark-text border border-charcoal/15 dark:border-dark-border hover:bg-charcoal/5 dark:hover:bg-dark-card transition-colors cursor-pointer"

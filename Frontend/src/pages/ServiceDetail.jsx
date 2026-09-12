@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useOutletContext } from "react-router-dom";
 import { ArrowLeft, MapPin, AlertCircle } from "lucide-react";
-import { allServices, workers } from "../data/mockData";
-import { rankWorkers } from "../utils/matching";
 import Icon from "../components/ui/Icon";
 import Rating from "../components/ui/Rating";
 import Button from "../components/ui/Button";
@@ -13,41 +11,93 @@ import { getServiceImage } from "../utils/serviceImages";
 
 export default function ServiceDetail() {
   const { serviceId } = useParams();
+  const outletContext = useOutletContext();
   const [service, setService] = useState(null);
+  const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchService = async () => {
+    const fetchServiceAndWorkers = async () => {
       setLoading(true);
       setError("");
       try {
+        // Fetch the service
         const response = await api.get(`/services/${serviceId}`);
+        let fetchedService = null;
+
         if (response.data && response.data.service) {
-          setService(response.data.service);
+          fetchedService = response.data.service;
         } else {
-          // Fallback to mock data if ID matches mock ID
-          const mockMatch = allServices.find((s) => s.id === serviceId);
-          if (mockMatch) {
-            setService(mockMatch);
+          setError("Service not found.");
+          setLoading(false);
+          return;
+        }
+
+        setService(fetchedService);
+
+        // Fetch real workers for this service from the backend
+        try {
+          const workersResponse = await api.get("/workers", {
+            params: { service: fetchedService._id, limit: 50 },
+          });
+
+          if (workersResponse.data?.workers?.length > 0) {
+            const backendWorkers = workersResponse.data.workers.map((w) => ({
+              id: w._id,
+              serviceId: w.service?._id || fetchedService._id,
+              name: w.user?.name || "Specialist Worker",
+              role: w.service?.name || fetchedService.name || "Technician",
+              village: w.village || "Local District",
+              distanceKm: w.distanceInKm ?? 3.5,
+              rating: w.rating || 4.5,
+              skills: w.skills?.length > 0 ? w.skills : [fetchedService.name],
+              price: w.pricePerService || 400,
+              priceUnit: "visit",
+              matchPercent: w.matchScore ? Math.round(w.matchScore) : 92,
+              completedJobs: w.totalReviews || 18,
+              experienceYears: w.experience || 4,
+              bio: w.bio || "Experienced local trade specialist.",
+              phone: w.user?.phone || "",
+            }));
+            setMatches(backendWorkers.slice(0, 4));
           } else {
-            setError("Service not found.");
+            // Fallback: try to get all workers if service filter returned empty
+            const allWorkersResponse = await api.get("/workers", { params: { limit: 50 } });
+            if (allWorkersResponse.data?.workers?.length > 0) {
+              const backendWorkers = allWorkersResponse.data.workers.map((w) => ({
+                id: w._id,
+                serviceId: w.service?._id || null,
+                name: w.user?.name || "Specialist Worker",
+                role: w.service?.name || "Technician",
+                village: w.village || "Local District",
+                distanceKm: w.distanceInKm ?? 3.5,
+                rating: w.rating || 4.5,
+                skills: w.skills?.length > 0 ? w.skills : [w.service?.name || "Maintenance"],
+                price: w.pricePerService || 400,
+                priceUnit: "visit",
+                matchPercent: 85,
+                completedJobs: w.totalReviews || 18,
+                experienceYears: w.experience || 4,
+                bio: w.bio || "Experienced local trade specialist.",
+                phone: w.user?.phone || "",
+              }));
+              setMatches(backendWorkers.slice(0, 4));
+            } else {
+              setMatches([]);
+            }
           }
+        } catch {
+          setMatches([]);
         }
       } catch (err) {
-        // Fallback check
-        const mockMatch = allServices.find((s) => s.id === serviceId);
-        if (mockMatch) {
-          setService(mockMatch);
-        } else {
-          setError("Failed to load service details.");
-        }
+        setError("Failed to load service details.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchService();
+    fetchServiceAndWorkers();
   }, [serviceId]);
 
   if (loading) {
@@ -69,8 +119,6 @@ export default function ServiceDetail() {
       </div>
     );
   }
-
-  const matches = rankWorkers(workers, { skill: service.name }).slice(0, 4);
 
   return (
     <div className="pt-32 sm:pt-40 pb-20">
@@ -116,33 +164,58 @@ export default function ServiceDetail() {
 
       <section className="container-kare mt-12">
         <h2 className="font-display text-xl mb-5 text-charcoal dark:text-dark-text">Best matches for {service.name.toLowerCase()}</h2>
-        <div className="grid sm:grid-cols-2 gap-5">
-          {matches.map((w) => (
-            <div key={w.id} className="bg-cream-card dark:bg-dark-card rounded-3xl overflow-hidden border border-charcoal/5 dark:border-dark-border flex">
-              <div className="w-32 shrink-0">
-                <ImageTile keywords={`${w.role} india portrait`} alt={w.name} seed="300x300" className="w-full h-full" />
-              </div>
-              <div className="p-5 flex-1 flex flex-col gap-1.5">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <h3 className="font-display text-lg text-charcoal dark:text-dark-text">{w.name}</h3>
-                    <p className="text-sm text-charcoal/55 dark:text-dark-muted">{w.role}</p>
-                  </div>
-                  <span className="text-xs font-medium bg-olive-100 dark:bg-olive-900/50 text-olive-800 dark:text-olive-300 rounded-full px-2.5 py-1 shrink-0">
-                    {w.matchPercent}%
-                  </span>
+        {matches.length === 0 ? (
+          <div className="text-center py-12 bg-cream-card dark:bg-dark-card rounded-3xl border border-charcoal/10 dark:border-dark-border p-8">
+            <p className="text-charcoal/60 dark:text-dark-muted text-sm font-medium">
+              No specialists found for this service yet.
+            </p>
+          </div>
+        ) : (
+          <div className="grid sm:grid-cols-2 gap-5">
+            {matches.map((w) => (
+              <div key={w.id} className="bg-cream-card dark:bg-dark-card rounded-3xl overflow-hidden border border-charcoal/5 dark:border-dark-border flex">
+                <div className="w-32 shrink-0">
+                  <ImageTile keywords={`${w.role} india portrait`} alt={w.name} seed="300x300" className="w-full h-full" />
                 </div>
-                <p className="text-sm text-charcoal/55 dark:text-dark-muted flex items-center gap-1">
-                  <MapPin size={13} /> {w.distanceKm} km · ₹{w.price}/{w.priceUnit}
-                </p>
-                <Rating value={w.rating} />
-                <Button as={Link} to={`/workers/${w.id}`} size="sm" variant="outline" className="mt-2 self-start">
-                  View profile
-                </Button>
+                <div className="p-5 flex-1 flex flex-col gap-1.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <h3 className="font-display text-lg text-charcoal dark:text-dark-text">{w.name}</h3>
+                      <p className="text-sm text-charcoal/55 dark:text-dark-muted">{w.role}</p>
+                    </div>
+                    <span className="text-xs font-medium bg-olive-100 dark:bg-olive-900/50 text-olive-800 dark:text-olive-300 rounded-full px-2.5 py-1 shrink-0">
+                      {w.matchPercent}%
+                    </span>
+                  </div>
+                  <p className="text-sm text-charcoal/55 dark:text-dark-muted flex items-center gap-1">
+                    <MapPin size={13} /> {w.distanceKm} km · ₹{w.price}/{w.priceUnit}
+                  </p>
+                  <Rating value={w.rating} />
+                  <div className="flex gap-2 mt-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      as={Link}
+                      to={`/workers/${w.id}`}
+                      className="self-start"
+                    >
+                      View profile
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        if (outletContext?.openBooking) outletContext.openBooking(w);
+                      }}
+                      className="self-start"
+                    >
+                      Book now
+                    </Button>
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Ratings, Reviews & Query/Suggestion Section for Service */}
@@ -159,4 +232,3 @@ export default function ServiceDetail() {
     </div>
   );
 }
-

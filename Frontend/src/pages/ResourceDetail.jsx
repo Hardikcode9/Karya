@@ -1,12 +1,11 @@
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import { resources } from "../data/mockData";
 import Button from "../components/ui/Button";
 import ImageTile from "../components/ui/ImageTile";
 
 export default function ResourceDetail() {
   const { resourceId } = useParams();
-  const resource = resources.find((r) => r.id === resourceId);
+  const resource = null;
 
   if (!resource) {
     return (

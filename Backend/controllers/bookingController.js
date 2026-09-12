@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 
 const Booking = require("../models/Booking");
 const WorkerProfile = require("../models/WorkerProfile");
+const Notification = require("../models/Notification");
 
 const createBooking = async (req, res) => {
   try {
@@ -173,6 +174,14 @@ if (existingBooking) {
       })
       .populate("service", "name category");
 
+    await Notification.create({
+      recipient: workerProfile.user, // Worker's User ID
+      title: "New Booking Request",
+      message: `${req.user.name || "A customer"} has requested your service. Please review and accept/decline.`,
+      type: "booking",
+      relatedId: booking._id,
+    });
+
     res.status(201).json({
       success: true,
       message: "Booking created successfully",
@@ -300,6 +309,24 @@ const updateBookingStatus = async (req, res) => {
     booking.status = status;
 
     await booking.save();
+
+    if (status === "accepted") {
+      await Notification.create({
+        recipient: booking.customer, // Customer's User ID
+        title: "Booking Accepted",
+        message: `${req.user.name || "The worker"} has accepted your booking request. Please proceed to payment.`,
+        type: "booking",
+        relatedId: booking._id,
+      });
+    } else if (status === "rejected") {
+      await Notification.create({
+        recipient: booking.customer, // Customer's User ID
+        title: "Booking Declined",
+        message: `Unfortunately, ${req.user.name || "the worker"} cannot fulfill your booking request at this time.`,
+        type: "booking",
+        relatedId: booking._id,
+      });
+    }
 
     res.status(200).json({
       success: true,

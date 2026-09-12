@@ -1,16 +1,22 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, MapPin, CheckCircle2 } from "lucide-react";
+import { X, MapPin, CheckCircle2, AlertCircle } from "lucide-react";
 import Button from "../ui/Button";
 import { useOffline } from "../../hooks/useOffline";
+import { useAuth } from "../../hooks/useAuth";
+import api from "../../utils/api";
 
 export default function BookingModal({ isOpen, onClose, targetItem }) {
   const { queueAction, isOnline } = useOffline();
+  const { user } = useAuth();
   const [selectedDate, setSelectedDate] = useState("Today, Immediate");
-  const [selectedSlot, setSelectedSlot] = useState("Morning (9 AM - 12 PM)");
+  const [selectedSlot, setSelectedSlot] = useState("Morning (9-12)");
   const [units, setUnits] = useState(1);
   const [notes, setNotes] = useState("");
+  const [address, setAddress] = useState("");
   const [confirmed, setConfirmed] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   if (!isOpen || !targetItem) return null;
 
@@ -20,27 +26,86 @@ export default function BookingModal({ isOpen, onClose, targetItem }) {
   const serviceFee = 25;
   const grandTotal = totalAmount + serviceFee;
 
+  // Convert the UI date/slot selections into a real ISO scheduledDate
+  const computeScheduledDate = () => {
+    const now = new Date();
+    const date = new Date(now);
+
+    if (selectedDate === "Tomorrow") {
+      date.setDate(date.getDate() + 1);
+    } else if (selectedDate === "Within 3 Days") {
+      date.setDate(date.getDate() + 3);
+    } else if (selectedDate === "Choose Custom") {
+      date.setDate(date.getDate() + 2);
+    }
+    // "Today, Immediate" → keep today
+
+    // Set time based on slot
+    if (selectedSlot.includes("9") || selectedSlot.toLowerCase().includes("morning")) {
+      date.setHours(9, 0, 0, 0);
+    } else if (selectedSlot.includes("1") || selectedSlot.toLowerCase().includes("afternoon")) {
+      date.setHours(13, 0, 0, 0);
+    } else if (selectedSlot.includes("4") || selectedSlot.toLowerCase().includes("evening")) {
+      date.setHours(16, 0, 0, 0);
+    } else {
+      date.setHours(10, 0, 0, 0);
+    }
+
+    // If the computed date/time is in the past, push to tomorrow
+    if (date <= now) {
+      date.setDate(date.getDate() + 1);
+    }
+
+    return date.toISOString();
+  };
+
   const handleConfirmBooking = async (e) => {
     e.preventDefault();
-    const bookingPayload = {
-      type: "BOOKING_CREATED",
-      targetId: targetItem.id,
-      targetName: targetItem.name,
-      role: targetItem.role || "Service Provider",
-      slot: selectedSlot,
-      date: selectedDate,
-      total: grandTotal,
-      notes,
-      createdAt: new Date().toISOString(),
+    setError("");
+    setLoading(true);
+
+    const scheduledDate = computeScheduledDate();
+    const duration = Math.max(units * 60, 15); // minutes, min 15
+    const bookingAddress = address.trim() || notes.trim() || targetItem.village || "Local Area";
+
+    // Build the backend-compatible payload
+    const backendPayload = {
+      worker: targetItem.id,
+      service: targetItem.serviceId,
+      scheduledDate,
+      duration,
+      address: bookingAddress,
+      notes: notes.trim() || `Booking for ${targetItem.name} - ${targetItem.role}`,
     };
 
-    // Queue action for offline support
-    await queueAction(bookingPayload);
-    setConfirmed(true);
+    if (isOnline && user) {
+      try {
+        // Directly call the backend API
+        await api.post("/bookings", backendPayload);
+        setConfirmed(true);
+      } catch (err) {
+        const msg = err.response?.data?.message || "Failed to create booking. Please try again.";
+        console.error("Booking API Error:", err.response?.data || err.message);
+        setError(msg);
+      }
+    } else {
+      // Offline fallback: queue for later sync with the correct payload shape
+      await queueAction({
+        type: "BOOKING_CREATED",
+        ...backendPayload,
+      });
+      setConfirmed(true);
+    }
+
+    setLoading(false);
   };
 
   const resetAndClose = () => {
     setConfirmed(false);
+    setError("");
+    setAddress("");
+    setNotes("");
+    setUnits(1);
     onClose();
   };
 
@@ -113,6 +178,14 @@ export default function BookingModal({ isOpen, onClose, targetItem }) {
             </div>
           ) : (
             <form onSubmit={handleConfirmBooking} className="p-5 sm:p-6 space-y-5">
+              {/* Error display */}
+              {error && (
+                <div className="p-3 rounded-xl bg-red-50 border border-red-200 flex items-center gap-2 text-red-700 text-xs">
+                  <AlertCircle size={16} />
+                  <span>{error}</span>
+                </div>
+              )}
+
               {/* Date & Slot selection */}
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-charcoal/70 mb-2">
@@ -188,15 +261,28 @@ export default function BookingModal({ isOpen, onClose, targetItem }) {
                 </div>
               </div>
 
+              {/* Address input */}
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-charcoal/70 mb-1.5">
+                  Service Address
+                </label>
+                <input
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="e.g. House #42, Rampur Village, Near Temple..."
+                  className="w-full bg-cream-card border border-charcoal/15 rounded-2xl p-3 text-xs outline-none focus:border-olive-600 transition-colors"
+                />
+              </div>
+
               {/* Notes input */}
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-charcoal/70 mb-1.5">
-                  Job Description / Address Note
+                  Job Description / Notes
                 </label>
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="e.g. Need wiring check in kitchen, house near temple..."
+                  placeholder="e.g. Need wiring check in kitchen, leaking tap in bathroom..."
                   rows={2}
                   className="w-full bg-cream-card border border-charcoal/15 rounded-2xl p-3 text-xs outline-none focus:border-olive-600 transition-colors"
                 />
@@ -219,7 +305,7 @@ export default function BookingModal({ isOpen, onClose, targetItem }) {
               </div>
 
               {/* Action button */}
-              <Button type="submit" className="w-full py-3 text-sm">
+              <Button type="submit" className="w-full py-3 text-sm" loading={loading}>
                 Confirm & Request Booking
               </Button>
             </form>

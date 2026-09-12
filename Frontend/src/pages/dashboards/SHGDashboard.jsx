@@ -1,15 +1,15 @@
 import { ShoppingBag, Users, IndianRupee, TrendingUp } from "lucide-react";
 import DashStat from "../../components/ui/DashStat";
-import { shgs } from "../../data/mockData";
 
-const recentOrders = [
-  { customer: "Ravi Mehta", service: "Tailoring — 6 uniforms", status: "In progress" },
-  { customer: "Anjali Verma", service: "Wedding catering — 80 plates", status: "Confirmed" },
-  { customer: "Local school", service: "Papad — bulk order", status: "Completed" },
-];
+const recentOrders = [];
 
 export default function SHGDashboard() {
-  const shg = shgs[0];
+  const shg = {
+    name: "SHG Dashboard",
+    village: "Your Village",
+    members: 0,
+    earnings: 0
+  };
 
   return (
     <div className="flex flex-col gap-8">
@@ -27,27 +27,33 @@ export default function SHGDashboard() {
 
       <div>
         <h2 className="font-display text-xl mb-4">Recent orders</h2>
-        <div className="bg-cream-card rounded-2xl border border-charcoal/5 divide-y divide-charcoal/5 overflow-hidden">
-          {recentOrders.map((o) => (
-            <div key={o.customer} className="flex items-center justify-between px-5 py-4 gap-4">
-              <div className="min-w-0">
-                <p className="text-sm font-medium truncate">{o.customer}</p>
-                <p className="text-xs text-charcoal/55 truncate">{o.service}</p>
+        {recentOrders.length === 0 ? (
+          <div className="bg-cream-card rounded-2xl p-8 text-center border border-charcoal/10">
+            <p className="text-charcoal/60 dark:text-dark-muted">No recent orders found.</p>
+          </div>
+        ) : (
+          <div className="bg-cream-card rounded-2xl border border-charcoal/5 divide-y divide-charcoal/5 overflow-hidden">
+            {recentOrders.map((o) => (
+              <div key={o.customer} className="flex items-center justify-between px-5 py-4 gap-4">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium truncate">{o.customer}</p>
+                  <p className="text-xs text-charcoal/55 truncate">{o.service}</p>
+                </div>
+                <span
+                  className={`text-xs px-2.5 py-1 rounded-full shrink-0 ${
+                    o.status === "Completed"
+                      ? "bg-olive-100 text-olive-800"
+                      : o.status === "Confirmed"
+                      ? "bg-clay-100 text-clay-800"
+                      : "bg-cream text-charcoal/60 border border-charcoal/10"
+                  }`}
+                >
+                  {o.status}
+                </span>
               </div>
-              <span
-                className={`text-xs px-2.5 py-1 rounded-full shrink-0 ${
-                  o.status === "Completed"
-                    ? "bg-olive-100 text-olive-800"
-                    : o.status === "Confirmed"
-                    ? "bg-clay-100 text-clay-800"
-                    : "bg-cream text-charcoal/60 border border-charcoal/10"
-                }`}
-              >
-                {o.status}
-              </span>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

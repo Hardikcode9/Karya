@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const Payment = require("../models/Payment");
 const Booking = require("../models/Booking");
 const WorkerProfile = require("../models/WorkerProfile");
+const Notification = require("../models/Notification");
 
 const createPayment = async (req, res) => {
   try {
@@ -51,11 +52,11 @@ const createPayment = async (req, res) => {
       });
     }
 
-    // Payment is allowed only after service is completed
-    if (booking.status !== "completed") {
+    // Payment is allowed when booking is accepted, in_progress, or completed
+    if (!["accepted", "in_progress", "completed"].includes(booking.status)) {
       return res.status(400).json({
         success: false,
-        message: "Payment is allowed only for completed bookings",
+        message: "Payment is only allowed for accepted or completed bookings",
       });
     }
 
@@ -80,6 +81,19 @@ const createPayment = async (req, res) => {
       amount: booking.price,
       paymentMethod,
       status: "pending",
+    });
+
+    // Update booking status to in_progress to signify confirmation
+    booking.status = "in_progress";
+    await booking.save();
+
+    // Create Notification for the worker
+    await Notification.create({
+      recipient: booking.worker,
+      title: "Payment Received",
+      message: `A payment of ₹${booking.price} has been made by ${req.user.name || "a customer"} for booking ${booking._id}.`,
+      type: "payment",
+      relatedId: payment._id,
     });
 
     return res.status(201).json({

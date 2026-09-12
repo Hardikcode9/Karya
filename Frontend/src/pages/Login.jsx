@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Mail, Lock, Sparkles, ShieldCheck } from "lucide-react";
+import { Mail, Lock, Sparkles, ShieldCheck, RefreshCw, AlertCircle } from "lucide-react";
 import Logo from "../components/ui/Logo";
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
 import { useAuth } from "../hooks/useAuth";
 import { useToast } from "../hooks/useToast";
+import api from "../utils/api";
 
 const roles = [
   { id: "customer", label: "Customer", path: "/customer", badge: "Household" },
@@ -22,34 +23,97 @@ export default function Login() {
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [accountNotFound, setAccountNotFound] = useState(false);
+  const [timer, setTimer] = useState(0);
 
-  const { login } = useAuth();
+  const { login, loginWithOtp } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
 
-  const handleSendOtp = (e) => {
-    e.preventDefault();
+  // Countdown timer for OTP resend
+  useEffect(() => {
+    let interval;
+    if (timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timer]);
+
+  // Request 6-digit OTP from backend
+  const handleSendOtp = async (e) => {
+    if (e) e.preventDefault();
+    setAccountNotFound(false);
+
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       toast.error("Please enter a valid email address");
       return;
     }
+
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      const res = await api.post("/auth/send-otp", {
+        email: email.trim().toLowerCase(),
+        role,
+      });
+
       setOtpSent(true);
-      toast.success(`OTP code sent to ${email}`);
-    }, 600);
+      setTimer(60); // 60s cooldown
+      toast.success(res.data?.message || `OTP sent to ${email}`);
+    } catch (error) {
+      console.error("sendOtp error:", error);
+      if (error.response && error.response.status === 404) {
+        setAccountNotFound(true);
+        toast.error(error.response.data?.message || "Account not found with this email. Please create an account.");
+      } else {
+        toast.error(error.response?.data?.message || "Failed to send OTP code. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
+  // Submit Login (OTP or Password)
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (loginMethod === "password" && (!email || !password)) {
-      toast.error("Please enter both email and password");
+    setAccountNotFound(false);
+
+    if (loginMethod === "otp") {
+      if (!otp || otp.trim().length !== 6) {
+        toast.error("Please enter the 6-digit verification code sent to your email");
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const userData = await loginWithOtp({
+          email: email.trim().toLowerCase(),
+          otp: otp.trim(),
+          role,
+        });
+
+        toast.success(`Welcome back, ${userData?.name || "User"}!`);
+        const userRole = userData?.role || role;
+        const rolePath = roles.find((r) => r.id === userRole)?.path || "/customer";
+        navigate(rolePath);
+      } catch (error) {
+        console.error("OTP verification error:", error);
+        if (error.response && error.response.status === 404) {
+          setAccountNotFound(true);
+          toast.error(error.response.data?.message || "Account not found with this email. Please create an account.");
+        } else {
+          toast.error(error.response?.data?.message || "Invalid or expired OTP. Please try again.");
+        }
+      } finally {
+        setLoading(false);
+      }
       return;
     }
-    
-    if (loginMethod === "otp") {
-      toast.error("OTP login is not currently supported. Please use Password Login.");
+
+    // Password login
+    if (!email || !password) {
+      toast.error("Please enter both email and password");
       return;
     }
 
@@ -57,7 +121,7 @@ export default function Login() {
     try {
       const userData = await login({ email, password });
       toast.success(`Logged in as ${userData?.role?.toUpperCase() || role.toUpperCase()}`);
-      
+
       const userRole = userData?.role || role;
       const rolePath = roles.find((r) => r.id === userRole)?.path || "/customer";
       navigate(rolePath);
@@ -195,16 +259,39 @@ export default function Login() {
                 type="email"
                 placeholder="name@example.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (accountNotFound) setAccountNotFound(false);
+                }}
                 leftIcon={Mail}
                 required
               />
+
+              {/* Account Not Found Alert Message */}
+              {accountNotFound && (
+                <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-rose-800 dark:text-rose-200 text-xs flex flex-col gap-1.5 animate-fade-in">
+                  <div className="font-bold flex items-center gap-1.5 text-rose-900 dark:text-rose-100">
+                    <AlertCircle size={15} className="text-rose-600 dark:text-rose-400 shrink-0" />
+                    <span>Account Not Found</span>
+                  </div>
+                  <p className="text-rose-700 dark:text-rose-300">
+                    No account is registered with <strong>{email}</strong>. Please create an account to continue.
+                  </p>
+                  <Link
+                    to={`/register?role=${role}&email=${encodeURIComponent(email)}`}
+                    className="font-bold text-rose-900 dark:text-rose-100 underline hover:opacity-80 inline-flex items-center gap-1 mt-0.5"
+                  >
+                    Create your {roles.find((r) => r.id === role)?.label} Account →
+                  </Link>
+                </div>
+              )}
 
               {loginMethod === "otp" && otpSent && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   transition={{ duration: 0.2 }}
+                  className="space-y-2"
                 >
                   <Input
                     label="Enter 6-Digit Email OTP"
@@ -212,9 +299,35 @@ export default function Login() {
                     placeholder="123456"
                     value={otp}
                     onChange={(e) => setOtp(e.target.value)}
-                    helperText="Demo test: Any 6 digits will work"
+                    helperText="Check your email inbox for the 6-digit verification code."
                     required
                   />
+
+                  {/* Resend and change email controls */}
+                  <div className="flex items-center justify-between text-xs text-charcoal/60 dark:text-dark-muted px-1">
+                    <button
+                      type="button"
+                      disabled={timer > 0 || loading}
+                      onClick={handleSendOtp}
+                      className={`font-semibold hover:underline inline-flex items-center gap-1 ${
+                        timer > 0 ? "opacity-50 cursor-not-allowed" : "text-olive-700 dark:text-olive-400 cursor-pointer"
+                      }`}
+                    >
+                      <RefreshCw size={12} className={loading ? "animate-spin" : ""} />
+                      <span>{timer > 0 ? `Resend OTP in ${timer}s` : "Resend OTP Code"}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOtpSent(false);
+                        setOtp("");
+                        setAccountNotFound(false);
+                      }}
+                      className="text-charcoal/50 hover:text-charcoal dark:hover:text-dark-text cursor-pointer hover:underline"
+                    >
+                      Change email
+                    </button>
+                  </div>
                 </motion.div>
               )}
 

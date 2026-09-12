@@ -1,5 +1,7 @@
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
+const Otp = require("../models/Otp");
+const { sendOtpEmail } = require("../utils/sendEmail");
 
 const registerUser = async (req, res) => {
   try {
@@ -197,7 +199,148 @@ const loginUser = async (req, res) => {
   }
 };
 
+/**
+ * Send 6-Digit Login OTP to Email via Nodemailer
+ * First verifies if an account exists for this email.
+ * If not found, returns 404 with prompt to create an account.
+ */
+const sendOtp = async (req, res) => {
+  try {
+    const { email, role } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter your email address",
+      });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+
+    // 1. Account existence check
+    const user = await User.findOne({ email: cleanEmail });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        notFound: true,
+        message: "Account not found with this email. Please create an account.",
+      });
+    }
+
+    // 2. Generate random 6-digit numeric OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // 3. Clear any existing active OTP for this email
+    await Otp.deleteMany({ email: cleanEmail });
+
+    // 4. Save new OTP in MongoDB (expires in 5 minutes via TTL)
+    await Otp.create({
+      email: cleanEmail,
+      otp,
+      role: user.role || role || "customer",
+    });
+
+    // 5. Send Email via Nodemailer
+    const emailResult = await sendOtpEmail(cleanEmail, otp, user.name, user.role);
+
+    return res.status(200).json({
+      success: true,
+      message: emailResult?.success
+        ? `OTP verification code sent to ${cleanEmail}`
+        : `OTP generated for ${cleanEmail}. (Check server terminal if Gmail SMTP is not yet authenticated)`,
+      email: cleanEmail,
+      smtpDelivered: !!emailResult?.success,
+    });
+  } catch (error) {
+    console.error("sendOtp Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to send OTP email. Please try again.",
+    });
+  }
+};
+
+/**
+ * Verify 6-Digit Email OTP and Issue JWT Auth Token
+ */
+const verifyOtp = async (req, res) => {
+  try {
+    const { email, otp, role } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide both email and OTP",
+      });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanOtp = otp.toString().trim();
+
+    // 1. Find OTP in DB
+    const otpRecord = await Otp.findOne({
+      email: cleanEmail,
+      otp: cleanOtp,
+    });
+
+    if (!otpRecord) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired OTP. Please enter the correct code or request a new one.",
+      });
+    }
+
+    // 2. One-time use: Delete immediately to prevent replay
+    await Otp.deleteOne({ _id: otpRecord._id });
+
+    // 3. Retrieve user
+    const user = await User.findOne({ email: cleanEmail });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        notFound: true,
+        message: "Account not found with this email. Please create an account.",
+      });
+    }
+
+    // 4. Issue JWT Token
+    const token = jwt.sign(
+      {
+        userId: user._id,
+        role: user.role,
+      },
+      process.env.JWT_SECRET || "karya_super_secret_key_2026",
+      {
+        expiresIn: "7d",
+      }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Login successful",
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error("verifyOtp Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error during OTP verification",
+    });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
-};
+  sendOtp,
+  verifyOtp,
+};

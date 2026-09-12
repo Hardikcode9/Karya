@@ -7,6 +7,7 @@ import Icon from "../components/ui/Icon";
 import Rating from "../components/ui/Rating";
 import Button from "../components/ui/Button";
 import ImageTile from "../components/ui/ImageTile";
+import RatingAndReviewsSection from "../components/reviews/RatingAndReviewsSection";
 import api from "../utils/api";
 import { getServiceImage } from "../utils/serviceImages";
 
@@ -142,6 +143,18 @@ export default function ServiceDetail() {
             </div>
           ))}
         </div>
+      </section>
+
+      {/* Ratings, Reviews & Query/Suggestion Section for Service */}
+      <section className="container-kare">
+        <RatingAndReviewsSection
+          targetType="service"
+          targetId={service.id || service._id}
+          targetName={service.name}
+          targetCategory={service.category || "Village Service"}
+          initialRating={service.rating || 4.8}
+          initialReviewsCount={service.totalBookings || 32}
+        />
       </section>
     </div>
   );

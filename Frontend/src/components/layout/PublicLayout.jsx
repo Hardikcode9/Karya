@@ -8,11 +8,11 @@ import FloatingEmergencyButton from "./FloatingEmergencyButton";
 import CompanionAssistantModal from "../modals/CompanionAssistantModal";
 import BookingModal from "../modals/BookingModal";
 import EmergencyModal from "../modals/EmergencyModal";
-import ContactModal from "../modals/ContactModal";
 import ReviewModal from "../modals/ReviewModal";
 import CartDrawer from "../cart/CartDrawer";
 import OfflineIndicator from "./OfflineIndicator";
 import PageTransition from "./PageTransition";
+import ScrollToTopButton from "./ScrollToTopButton";
 import { useAuth } from "../../hooks/useAuth";
 
 export default function PublicLayout() {
@@ -21,11 +21,10 @@ export default function PublicLayout() {
   const [emergencyOpen, setEmergencyOpen] = useState(false);
   const [bookingTarget, setBookingTarget] = useState(null);
   const [reviewTarget, setReviewTarget] = useState(null);
-  const [contactOpen, setContactOpen] = useState(false);
 
   return (
     <div className="min-h-screen flex flex-col pb-16 lg:pb-0 bg-cream dark:bg-dark-bg text-charcoal dark:text-dark-text transition-colors">
-      <Navbar onOpenEmergency={() => setEmergencyOpen(true)} onOpenContact={() => setContactOpen(true)} />
+      <Navbar onOpenEmergency={() => setEmergencyOpen(true)} />
       
       <PageTransition>
         <div className="flex-1">
@@ -54,6 +53,9 @@ export default function PublicLayout() {
           onOpenEmergency={() => setEmergencyOpen(true)}
         />
       </div>
+
+      {/* Floating Scroll Up Button with Black Border */}
+      <ScrollToTopButton />
       
       {/* Interactive App Modals */}
       <CompanionAssistantModal
@@ -77,11 +79,6 @@ export default function PublicLayout() {
         isOpen={Boolean(reviewTarget)}
         onClose={() => setReviewTarget(null)}
         targetItem={reviewTarget}
-      />
-
-      <ContactModal
-        isOpen={contactOpen}
-        onClose={() => setContactOpen(false)}
       />
 
       {/* Cart & Checkout Slideout */}

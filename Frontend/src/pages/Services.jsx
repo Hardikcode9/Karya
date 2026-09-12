@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useOutletContext } from "react-router-dom";
+import { useOutletContext, useSearchParams } from "react-router-dom";
 import { Search, Map, List, AlertCircle } from "lucide-react";
 import SectionHeading from "../components/ui/SectionHeading";
 import ServiceCard from "../components/ui/ServiceCard";
@@ -9,9 +9,11 @@ import { useCart } from "../hooks/useCart";
 import { allServices } from "../data/mockData";
 
 export default function Services() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialView = searchParams.get("view") === "map" ? "map" : "list";
   const [active, setActive] = useState("all");
   const [search, setSearch] = useState("");
-  const [viewMode, setViewMode] = useState("list"); // 'list' | 'map'
+  const [viewMode, setViewMode] = useState(initialView); // 'list' | 'map'
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");

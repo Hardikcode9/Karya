@@ -38,15 +38,25 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const loginWithOtp = async ({ email, otp, role }) => {
+    try {
+      const response = await api.post("/auth/verify-otp", { email, otp, role });
+      const { token, user: userData } = response.data;
+      
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(userData));
+      setUser(userData);
+      
+      return userData;
+    } catch (error) {
+      console.error("OTP login failed:", error);
+      throw error;
+    }
+  };
+
   const register = async (data) => {
     try {
       const response = await api.post("/auth/register", data);
-      
-      // Some backends return token on register, if not, we can just return the user
-      // Assuming the backend doesn't return a token on register directly based on authController.js
-      // The user will need to login after register or we login them in automatically if token is returned.
-      // Wait, let's check authController.js registerUser. It returns user object but NO token.
-      
       return response.data;
     } catch (error) {
       console.error("Registration failed:", error);
@@ -69,7 +79,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, updateUser, loading }}>
+    <AuthContext.Provider value={{ user, login, loginWithOtp, register, logout, updateUser, loading }}>
       {!loading && children}
     </AuthContext.Provider>
   );

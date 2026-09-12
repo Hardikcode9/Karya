@@ -1,0 +1,87 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  darkMode: "class",
+  content: ["./index.html", "./src/**/*.{js,jsx}"],
+  theme: {
+    container: {
+      center: true,
+      padding: "1.25rem",
+    },
+    screens: {
+      xs: "475px",
+      sm: "640px",
+      md: "768px",
+      lg: "1024px",
+      xl: "1280px",
+      "2xl": "1440px",
+    },
+    extend: {
+      colors: {
+        cream: {
+          DEFAULT: "#FBF7EE",
+          warm: "#FFF3E1",
+          card: "#F6F0E3",
+        },
+        ivory: "#F1ECDD",
+        charcoal: {
+          DEFAULT: "#2A2620",
+          soft: "#443F35",
+        },
+        dark: {
+          bg: "#111611",
+          surface: "#182017",
+          card: "#202A1F",
+          cardHover: "#283427",
+          border: "#2C3B2A",
+          text: "#EBE6DA",
+          muted: "#A2AFA0",
+        },
+        olive: {
+          950: "#1B2417",
+          900: "#26331F",
+          800: "#33422A",
+          700: "#42542F",
+          600: "#526B3C",
+          500: "#6F8B5B",
+          400: "#93AC80",
+          300: "#AEC3B0",
+          200: "#CFDCC7",
+          100: "#E6EEDE",
+        },
+        clay: {
+          800: "#4A362B",
+          600: "#6B4F3F",
+          500: "#8C6E63",
+          400: "#B08D6E",
+          300: "#D3A376",
+          200: "#E8C99C",
+          100: "#F3DDBB",
+        },
+        terracotta: {
+          900: "#5C2018",
+          800: "#7C2D22",
+          700: "#9E3C2E",
+          600: "#BC4B3B",
+          500: "#D95D4B",
+          400: "#E68172",
+          300: "#F0A69B",
+          200: "#F7CCC5",
+          100: "#FCEEEB",
+          50: "#FEF7F5",
+        },
+      },
+      fontFamily: {
+        display: ["'Fraunces'", "serif"],
+        sans: ["'General Sans'", "'Manrope'", "sans-serif"],
+      },
+      boxShadow: {
+        card: "0 12px 30px -15px rgba(42, 38, 32, 0.18)",
+        nav: "0 8px 30px -12px rgba(42, 38, 32, 0.15)",
+        darkGlow: "0 0 35px -5px rgba(111, 139, 91, 0.25)",
+        "2xs": "0 1px 2px rgba(0, 0, 0, 0.05)",
+        xs: "0 1px 3px rgba(0, 0, 0, 0.08)",
+      },
+    },
+  },
+  plugins: [],
+}

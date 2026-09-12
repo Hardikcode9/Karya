@@ -44,6 +44,7 @@ const mapBookingToRequest = (b) => {
 
   return {
     id: b._id,
+    rawStatus: b.status,
     jobTitle: `${b.service?.name || "Service"} Request`,
     jobTitleHi: "",
     category: b.service?.category || "Service",
@@ -460,6 +461,8 @@ export default function WorkerRequests() {
             const isActive = req.status === "active";
             const isCompleted = req.status === "completed";
             const isDeclined = req.status === "declined";
+            const isAccepted = req.rawStatus === "accepted";
+            const isInProgress = req.rawStatus === "in_progress";
 
             return (
               <motion.div
@@ -659,16 +662,23 @@ export default function WorkerRequests() {
                           {showHindi ? "विवरण देखें (Details)" : "View Details"}
                         </button>
 
-                        <button
-                          type="button"
-                          onClick={() => setConfirmCompleteModal(req)}
-                          className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-700 text-white hover:bg-emerald-800 transition-all shadow-xs cursor-pointer"
-                        >
-                          <CheckCircle2 size={16} />
-                          <span>
-                            {showHindi ? `काम पूरा हुआ - ₹${req.amount} प्राप्त (Mark Done)` : `Mark Done & Paid (₹${req.amount})`}
-                          </span>
-                        </button>
+                        {isAccepted ? (
+                          <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[11px] sm:text-xs font-bold bg-charcoal/5 dark:bg-dark-surface text-charcoal/70 dark:text-dark-muted border border-charcoal/10 dark:border-dark-border cursor-not-allowed">
+                            <Clock size={16} className="text-amber-500" />
+                            <span>{showHindi ? "भुगतान की प्रतीक्षा (Waiting for Payment)" : "Waiting for Customer Payment"}</span>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setConfirmCompleteModal(req)}
+                            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-700 text-white hover:bg-emerald-800 transition-all shadow-xs cursor-pointer"
+                          >
+                            <CheckCircle2 size={16} />
+                            <span>
+                              {showHindi ? `काम पूरा हुआ - ₹${req.amount} प्राप्त (Mark Done)` : `Mark Done & Paid (₹${req.amount})`}
+                            </span>
+                          </button>
+                        )}
                       </>
                     )}
 

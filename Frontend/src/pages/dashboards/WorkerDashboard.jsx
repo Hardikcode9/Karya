@@ -1,8 +1,9 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import {
   Filter, TrendingUp, Calendar, ChevronDown, ShieldCheck
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import api from "../../utils/api";
 
 // Dynamic Filter Datasets for Overview (Today, Yesterday, Last Week, Last 15 Days, Last Month)
 const OVERVIEW_FILTER_DATA = {
@@ -99,10 +100,68 @@ export default function WorkerDashboard() {
   const [selectedPeriod, setSelectedPeriod] = useState("today");
   const [hoveredPoint, setHoveredPoint] = useState(null);
 
+  const [bookings, setBookings] = useState([]);
+
+  const fetchBookings = useCallback(async () => {
+    try {
+      const response = await api.get("/bookings/worker");
+      if (response.data?.bookings) {
+        setBookings(response.data.bookings);
+      }
+    } catch (err) {
+      console.error("Failed to fetch worker bookings:", err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchBookings();
+  }, [fetchBookings]);
+
   // Active period dataset
   const activeData = useMemo(() => {
-    return OVERVIEW_FILTER_DATA[selectedPeriod] || OVERVIEW_FILTER_DATA.today;
-  }, [selectedPeriod]);
+    const now = new Date();
+    let filteredBookings = bookings;
+    
+    if (selectedPeriod === "today") {
+      filteredBookings = bookings.filter(b => new Date(b.createdAt).toDateString() === now.toDateString());
+    } else if (selectedPeriod === "yesterday") {
+      const yesterday = new Date(now);
+      yesterday.setDate(yesterday.getDate() - 1);
+      filteredBookings = bookings.filter(b => new Date(b.createdAt).toDateString() === yesterday.toDateString());
+    } else if (selectedPeriod === "lastWeek") {
+      const lastWeek = new Date(now);
+      lastWeek.setDate(lastWeek.getDate() - 7);
+      filteredBookings = bookings.filter(b => new Date(b.createdAt) >= lastWeek);
+    } else if (selectedPeriod === "last15Days") {
+      const last15 = new Date(now);
+      last15.setDate(last15.getDate() - 15);
+      filteredBookings = bookings.filter(b => new Date(b.createdAt) >= last15);
+    } else if (selectedPeriod === "lastMonth") {
+      const lastMonth = new Date(now);
+      lastMonth.setMonth(lastMonth.getMonth() - 1);
+      filteredBookings = bookings.filter(b => new Date(b.createdAt) >= lastMonth);
+    }
+
+    const totalRequests = filteredBookings.length;
+    const totalAccepted = filteredBookings.filter(b => ["accepted", "in_progress", "completed"].includes(b.status)).length;
+    const completedBookings = filteredBookings.filter(b => b.status === "completed");
+    const totalEarning = completedBookings.reduce((sum, b) => sum + (b.price || 0), 0);
+    
+    // Fallback to static trend shape for now
+    const dataPoints = OVERVIEW_FILTER_DATA[selectedPeriod]?.dataPoints || [
+      { label: "Start", value: 0, jobs: 0 },
+      { label: "End", value: totalEarning, jobs: completedBookings.length }
+    ];
+
+    return {
+      label: selectedPeriod,
+      totalRequests,
+      totalAccepted,
+      totalEarning,
+      rating: "5.0",
+      dataPoints
+    };
+  }, [selectedPeriod, bookings]);
 
   // SVG Chart Geometry Calculations
   const chartGeometry = useMemo(() => {

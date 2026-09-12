@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --surface-0: #FBF7EE;
+    --surface-1: #FFFFFF;
+    --surface-2: #F6F0E3;
+    --brand-olive: #526B3C;
+    --brand-terracotta: #BC4B3B;
+  }
+
+  .dark {
+    --surface-0: #111611;
+    --surface-1: #182017;
+    --surface-2: #202A1F;
+    --brand-olive: #6F8B5B;
+    --brand-terracotta: #D95D4B;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-cream text-charcoal font-sans antialiased transition-colors duration-200;
+  }
+
+  .dark body {
+    @apply bg-dark-bg text-dark-text;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+@keyframes scaleUp {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-scale-up {
+  animation: scaleUp 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Google Translate widget suppression & clean integration */
+body > .skiptranslate,
+body > iframe.skiptranslate,
+.goog-te-banner-frame,
+.goog-te-banner-frame.skiptranslate,
+iframe.goog-te-banner-frame,
+.VIpgJd-ZVi9od-aZ2wEe-wOHMyf,
+.VIpgJd-ZVi9od-OR9Gae-sMIugc,
+.VIpgJd-yAWNEb-L7lbkb,
+#goog-gt-tt,
+.goog-te-balloon-frame,
+.goog-tooltip,
+.goog-te-spinner-pos {
+  display: none !important;
+  visibility: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  height: 0 !important;
+  width: 0 !important;
+  max-height: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  border: none !important;
+}
+
+.goog-text-highlight {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+#google_translate_element {
+  position: absolute !important;
+  left: -9999px !important;
+  top: -9999px !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+}
+

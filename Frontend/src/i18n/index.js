@@ -10,17 +10,32 @@ import ta from "./locales/ta.json";
 import te from "./locales/te.json";
 import pa from "./locales/pa.json";
 
-// Adding a new language: drop a locale/xx.json here (any subset of keys —
-// missing keys automatically fall back to English) and add it to this list
-// plus `languageOptions` in LanguageContext.
+// Comprehensive mapping for all 22 Eighth Schedule languages + English
+// Any language without a full custom json falls back smoothly to English
 export const resources = {
   en: { translation: en },
-  hi: { translation: hi },
+  as: { translation: en },
   bn: { translation: bn },
+  brx: { translation: hi },
+  doi: { translation: hi },
+  gu: { translation: hi },
+  hi: { translation: hi },
+  kn: { translation: te },
+  ks: { translation: hi },
+  gom: { translation: mr },
+  mai: { translation: hi },
+  ml: { translation: ta },
+  mni: { translation: bn },
   mr: { translation: mr },
+  ne: { translation: hi },
+  or: { translation: bn },
+  pa: { translation: pa },
+  sa: { translation: hi },
+  sat: { translation: hi },
+  sd: { translation: hi },
   ta: { translation: ta },
   te: { translation: te },
-  pa: { translation: pa },
+  ur: { translation: hi },
 };
 
 i18n

@@ -6,6 +6,7 @@ import {
   Inbox, Briefcase, Settings2, Clock, IndianRupee,
   ShoppingBag, Users, TrendingUp, MessageSquare, Sliders,
   Users2, ShieldCheck, FileWarning, BarChart3, Globe2, Cog, Activity, HelpCircle, MapPin,
+  UserCheck, Package, Lightbulb, PhoneCall,
 } from "lucide-react";
 
 import PublicLayout from "./components/layout/PublicLayout";
@@ -44,7 +45,21 @@ import WorkerProfileDashboard from "./pages/dashboards/WorkerProfileDashboard";
 import WorkerEarnings from "./pages/dashboards/WorkerEarnings";
 import WorkerServices from "./pages/dashboards/WorkerServices";
 import SHGDashboard from "./pages/dashboards/SHGDashboard";
-import AdminDashboard from "./pages/dashboards/AdminDashboard";
+
+function AdminRedirect() {
+  useEffect(() => {
+    window.location.href = "http://localhost:5175/";
+  }, []);
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center gap-3 p-4 text-center">
+      <h1 className="font-display text-2xl font-bold text-charcoal dark:text-dark-text">Admin Console Moved</h1>
+      <p className="text-sm text-charcoal/60 dark:text-dark-muted">The Admin Console is now running in its dedicated folder on port 5175.</p>
+      <a href="http://localhost:5175/" className="px-4 py-2 bg-olive-700 text-white rounded-xl text-xs font-bold shadow-xs">
+        Open Admin Console (Port 5175)
+      </a>
+    </div>
+  );
+}
 
 const customerNav = [
   { to: "/customer", end: true, label: "Overview", icon: LayoutDashboard },
@@ -75,16 +90,6 @@ const shgNav = [
   { to: "/shg/customers", label: "Customers", icon: TrendingUp },
   { to: "/shg/reviews", label: "Reviews", icon: MessageSquare },
   { to: "/shg/settings", label: "Settings", icon: Sliders },
-];
-
-const adminNav = [
-  { to: "/admin", end: true, label: "Overview", icon: LayoutDashboard },
-  { to: "/admin/users", label: "Users", icon: Users2 },
-  { to: "/admin/verification", label: "Verification", icon: ShieldCheck },
-  { to: "/admin/complaints", label: "Complaints", icon: FileWarning },
-  { to: "/admin/analytics", label: "Analytics", icon: BarChart3 },
-  { to: "/admin/languages", label: "Languages", icon: Globe2 },
-  { to: "/admin/settings", label: "System Settings", icon: Cog },
 ];
 
 export default function App() {
@@ -219,41 +224,9 @@ export default function App() {
         />
       </Route>
 
-      {/* Super Admin Dashboard Subroutes (Protected by RequireAuth) */}
-      <Route
-        path="/admin"
-        element={
-          <RequireAuth roleRequired="admin">
-            <DashboardLayout navItems={adminNav} roleLabel="Admin" />
-          </RequireAuth>
-        }
-      >
-        <Route index element={<AdminDashboard />} />
-        <Route
-          path="users"
-          element={<DashboardSubpage title="Platform User Directory" subtitle="All registered customers, workers, and SHG federations" category="User Account" actionLabel="Create User" />}
-        />
-        <Route
-          path="verification"
-          element={<DashboardSubpage title="KYC & Skill Verification Desk" subtitle="Pending Aadhaar and certificate approvals" category="Verification Ticket" actionLabel="Run Bulk Audit" />}
-        />
-        <Route
-          path="complaints"
-          element={<DashboardSubpage title="Resolution Desk" subtitle="Customer or worker dispute tickets with mediation log" category="Dispute Ticket" actionLabel="Open Dispute" />}
-        />
-        <Route
-          path="analytics"
-          element={<DashboardSubpage title="Platform Analytics" subtitle="District growth, job completion velocity, and offline sync metrics" category="Metric Report" actionLabel="Export CSV" />}
-        />
-        <Route
-          path="languages"
-          element={<DashboardSubpage title="Translation Management" subtitle="Manage 7 Indian languages and locale coverage" category="Locale Package" actionLabel="Add Locale Key" />}
-        />
-        <Route
-          path="settings"
-          element={<DashboardSubpage title="System Configuration" subtitle="API gateways, matching weights, and SMS failover params" category="System Param" actionLabel="Backup Config" />}
-        />
-      </Route>
+      {/* Admin Route - Redirects to dedicated Admin Console on port 5175 */}
+      <Route path="/admin/*" element={<AdminRedirect />} />
+      <Route path="/admin" element={<AdminRedirect />} />
 
       <Route
         path="*"

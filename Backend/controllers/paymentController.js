@@ -52,11 +52,11 @@ const createPayment = async (req, res) => {
       });
     }
 
-    // Payment is allowed when booking is accepted, in_progress, or completed
-    if (!["accepted", "in_progress", "completed"].includes(booking.status)) {
+    // Payment is allowed unless booking is cancelled or rejected
+    if (["cancelled", "rejected"].includes(booking.status)) {
       return res.status(400).json({
         success: false,
-        message: "Payment is only allowed for accepted or completed bookings",
+        message: "Payment is not allowed for cancelled or rejected bookings",
       });
     }
 
@@ -88,13 +88,17 @@ const createPayment = async (req, res) => {
     await booking.save();
 
     // Create Notification for the worker
-    await Notification.create({
-      recipient: booking.worker,
-      title: "Payment Received",
-      message: `A payment of ₹${booking.price} has been made by ${req.user.name || "a customer"} for booking ${booking._id}.`,
-      type: "payment",
-      relatedId: payment._id,
-    });
+    const WorkerProfile = require("../models/WorkerProfile");
+    const workerProfile = await WorkerProfile.findById(booking.worker);
+    if (workerProfile) {
+      await Notification.create({
+        recipient: workerProfile.user,
+        title: "Payment Received",
+        message: `A payment of ₹${booking.price} has been made by ${req.user.name || "a customer"} for booking ${booking._id}.`,
+        type: "payment",
+        relatedId: payment._id,
+      });
+    }
 
     return res.status(201).json({
       success: true,

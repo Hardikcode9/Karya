@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Logo from "../ui/Logo";
 import OfflineIndicator from "./OfflineIndicator";
 import ThemeToggle from "../ui/ThemeToggle";
+import NotificationBell from "../notifications/NotificationBell";
 import { useAuth } from "../../hooks/useAuth";
 import { useLanguage } from "../../hooks/useLanguage";
 
@@ -286,6 +287,9 @@ export default function DashboardLayout({ navItems, roleLabel }) {
                 )}
               </AnimatePresence>
             </div>
+
+            {/* Notification Bell */}
+            <NotificationBell />
 
             {/* Theme Toggle Button */}
             <ThemeToggle className="h-9 w-9 flex items-center justify-center" />

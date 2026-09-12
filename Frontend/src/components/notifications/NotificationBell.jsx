@@ -2,18 +2,32 @@ import { useState, useEffect, useRef } from "react";
 import { Bell, Check, X, CreditCard, Calendar } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../../utils/api";
+import { useToast } from "../../hooks/useToast";
 
 export default function NotificationBell() {
   const [notifications, setNotifications] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const dropdownRef = useRef(null);
+  const toast = useToast();
 
   const fetchNotifications = async () => {
     try {
       const res = await api.get("/notifications");
       if (res.data?.success) {
-        setNotifications(res.data.notifications);
+        setNotifications((prev) => {
+          const fetched = res.data.notifications;
+          // Check for new unread notifications
+          if (prev.length > 0 && fetched.length > 0) {
+            const newUnread = fetched.filter(
+              (f) => !f.isRead && !prev.some((p) => p._id === f._id)
+            );
+            newUnread.forEach((n) => {
+              toast.success(`${n.title}: ${n.message}`);
+            });
+          }
+          return fetched;
+        });
       }
     } catch (err) {
       console.error("Failed to fetch notifications", err);
@@ -23,7 +37,7 @@ export default function NotificationBell() {
   useEffect(() => {
     fetchNotifications();
     // Set up a polling interval for notifications
-    const intervalId = setInterval(fetchNotifications, 60000); // every minute
+    const intervalId = setInterval(fetchNotifications, 5000); // every 5 seconds
     return () => clearInterval(intervalId);
   }, []);
 

@@ -56,7 +56,7 @@ export default function PaymentModal({ isOpen, onClose, bookingId, amount, onSuc
           <div className="p-6">
             <div className="text-center mb-6">
               <p className="text-xs text-charcoal/60 uppercase font-bold tracking-wider mb-1">Total Amount</p>
-              <h2 className="text-3xl font-display font-bold text-olive-900">{amount}</h2>
+              <h2 className="text-3xl font-display font-bold text-olive-900">₹{amount}</h2>
             </div>
 
             <div className="space-y-3 mb-6">

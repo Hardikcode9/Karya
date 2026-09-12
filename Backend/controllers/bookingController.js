@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const Booking = require("../models/Booking");
 const WorkerProfile = require("../models/WorkerProfile");
 const Notification = require("../models/Notification");
+const User = require("../models/User");
 
 const createBooking = async (req, res) => {
   try {
@@ -174,10 +175,14 @@ if (existingBooking) {
       })
       .populate("service", "name category");
 
+    // Look up the customer's real name from DB (JWT does not include name)
+    const customerUser = await User.findById(req.user.userId).select("name");
+    const customerName = customerUser?.name || "A customer";
+
     await Notification.create({
       recipient: workerProfile.user, // Worker's User ID
       title: "New Booking Request",
-      message: `${req.user.name || "A customer"} has requested your service. Please review and accept/decline.`,
+      message: `${customerName} has requested your service. Please review and accept/decline.`,
       type: "booking",
       relatedId: booking._id,
     });
@@ -310,11 +315,15 @@ const updateBookingStatus = async (req, res) => {
 
     await booking.save();
 
+    // Look up the worker's real name from DB (JWT does not include name)
+    const workerUser = await User.findById(req.user.userId).select("name");
+    const workerName = workerUser?.name || "The worker";
+
     if (status === "accepted") {
       await Notification.create({
         recipient: booking.customer, // Customer's User ID
         title: "Booking Accepted",
-        message: `${req.user.name || "The worker"} has accepted your booking request. Please proceed to payment.`,
+        message: `${workerName} has accepted your booking request. Please proceed to payment.`,
         type: "booking",
         relatedId: booking._id,
       });
@@ -322,7 +331,15 @@ const updateBookingStatus = async (req, res) => {
       await Notification.create({
         recipient: booking.customer, // Customer's User ID
         title: "Booking Declined",
-        message: `Unfortunately, ${req.user.name || "the worker"} cannot fulfill your booking request at this time.`,
+        message: `Unfortunately, ${workerName} cannot fulfill your booking request at this time.`,
+        type: "booking",
+        relatedId: booking._id,
+      });
+    } else if (status === "completed") {
+      await Notification.create({
+        recipient: booking.customer,
+        title: "Work Completed",
+        message: `${workerName} has marked the job as completed.`,
         type: "booking",
         relatedId: booking._id,
       });

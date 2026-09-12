@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   ShoppingBag, Wrench, Wallet, Star, MapPin,
@@ -7,6 +8,7 @@ import DashStat from "../../components/ui/DashStat";
 import Rating from "../../components/ui/Rating";
 import Button from "../../components/ui/Button";
 import { useAuth } from "../../hooks/useAuth";
+import api from "../../utils/api";
 
 const RECENT_PURCHASES = [];
 const RECENT_SERVICES = [];
@@ -17,6 +19,36 @@ const recentSpecialists = [];
 
 export default function CustomerDashboard() {
   const { user } = useAuth();
+  const [stats, setStats] = useState({
+    totalServices: 0,
+    totalExpenses: 0,
+    totalReviews: 0,
+    totalProducts: 0,
+  });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const bookingsRes = await api.get("/bookings/customer");
+        const bookings = bookingsRes.data?.bookings || [];
+        
+        const totalServices = bookings.length;
+        const totalExpenses = bookings
+          .filter(b => !["cancelled", "rejected"].includes(b.status))
+          .reduce((sum, b) => sum + (b.price || 0), 0);
+
+        setStats({
+          totalServices,
+          totalExpenses,
+          totalReviews: 0,
+          totalProducts: 0,
+        });
+      } catch (err) {
+        console.error("Failed to fetch customer stats:", err);
+      }
+    };
+    fetchStats();
+  }, []);
 
   return (
     <div className="flex flex-col gap-8">
@@ -68,28 +100,28 @@ export default function CustomerDashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <DashStat
           label="Total Purchased Products"
-          value="0"
+          value={String(stats.totalProducts)}
           sub="Village SHG Items"
           icon={ShoppingBag}
           to="/shgs"
         />
         <DashStat
           label="Total Services Used"
-          value="0"
+          value={String(stats.totalServices)}
           sub="Verified Specialists"
           icon={Wrench}
           to="/customer/activity"
         />
         <DashStat
           label="Total Expenses"
-          value="₹0"
+          value={`₹${stats.totalExpenses.toLocaleString("en-IN")}`}
           sub="Services & Crafts"
           icon={Wallet}
           to="/customer/payments"
         />
         <DashStat
           label="Total Reviews"
-          value="0"
+          value={String(stats.totalReviews)}
           sub="0 suggestions given"
           icon={Star}
           to="/customer/reviews"

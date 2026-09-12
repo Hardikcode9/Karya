@@ -28,7 +28,7 @@ export default function CustomerActivity() {
           status: b.status,
           title: b.service?.name || "Service Booking",
           price: b.price ? `₹${b.price}` : "",
-          rawPrice: b.price ? `₹${b.price}` : "",
+          rawPrice: b.price || 0,
           dateTime: new Date(b.scheduledDate).toLocaleString("en-IN"),
           image: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?auto=format&fit=crop&w=200&q=80",
           details: `Booking for ${new Date(b.scheduledDate).toLocaleDateString()} at ${b.address}`,

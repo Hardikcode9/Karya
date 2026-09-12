@@ -170,7 +170,7 @@ export default function WorkerRequests() {
       setRequests((prev) =>
         prev.map((req) =>
           req.id === id
-            ? { ...req, status: "active", acceptedAt: "Just now (अभी)" }
+            ? { ...req, status: "active", rawStatus: "accepted", acceptedAt: "Just now (अभी)" }
             : req
         )
       );
@@ -188,7 +188,7 @@ export default function WorkerRequests() {
       setRequests((prev) =>
         prev.map((req) =>
           req.id === id
-            ? { ...req, status: "declined" }
+            ? { ...req, status: "declined", rawStatus: "rejected" }
             : req
         )
       );
@@ -209,15 +209,14 @@ export default function WorkerRequests() {
             ? {
                 ...req,
                 status: "completed",
+                rawStatus: "completed",
                 completedAt: "Just now (अभी)",
-                rating: 5.0,
-                reviewText: "Customer marked work verified & completed with direct payment."
               }
             : req
         )
       );
       setConfirmCompleteModal(null);
-      toast.success("बधाई! काम पूरा हुआ और कमाई जुड़ गई (Work Marked Done & Paid!)");
+      toast.success("बधाई! काम पूरा हुआ (Work Marked Done!)");
     } catch (err) {
       console.error("Complete error:", err);
       toast.error(err.response?.data?.message || "Failed to complete. Please try again.");

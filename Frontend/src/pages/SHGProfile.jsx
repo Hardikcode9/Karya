@@ -1,6 +1,5 @@
 import { Link, useParams, useOutletContext } from "react-router-dom";
 import { ArrowLeft, ShieldCheck, MapPin } from "lucide-react";
-import { shgs, workers } from "../data/mockData";
 import Rating from "../components/ui/Rating";
 import Button from "../components/ui/Button";
 import Badge from "../components/ui/Badge";
@@ -10,8 +9,8 @@ import RatingAndReviewsSection from "../components/reviews/RatingAndReviewsSecti
 export default function SHGProfile() {
   const { shgId } = useParams();
   const outletContext = useOutletContext();
-  const shg = shgs.find((s) => s.id === shgId);
-  const members = workers.filter((w) => w.shgId === shgId);
+  const shg = null;
+  const members = [];
 
   if (!shg) {
     return (

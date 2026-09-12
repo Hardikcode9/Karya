@@ -4,7 +4,7 @@ import {
   X, Sparkles, Send, Mic, MicOff, MapPin, Zap, ShieldCheck,
   Scale, HelpCircle, MessageSquare, Volume2, VolumeX, CheckCircle2
 } from "lucide-react";
-import { workers } from "../../data/mockData";
+const workers = [];
 import Button from "../ui/Button";
 import VoiceVisualizer from "../voice/VoiceVisualizer";
 import CompareAICard from "./CompareAICard";

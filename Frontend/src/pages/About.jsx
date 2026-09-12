@@ -5,7 +5,6 @@ import SectionHeading from "../components/ui/SectionHeading";
 import Button from "../components/ui/Button";
 import ImageTile from "../components/ui/ImageTile";
 import StatCard from "../components/ui/StatCard";
-import { heroStats } from "../data/mockData";
 
 const values = [
   { title: "Trust first", desc: "Every profile carries verification, so a decision to hire never has to be a guess." },
@@ -40,14 +39,6 @@ export default function About() {
         >
           <ImageTile keywords="rural india community workers group" alt="Karya community" seed="900x680" className="w-full h-full" />
         </motion.div>
-      </section>
-
-      <section className="container-kare mt-20">
-        <div className="rounded-[2rem] bg-cream-card border border-charcoal/5 px-6 sm:px-10 py-8 sm:py-10 grid grid-cols-2 lg:grid-cols-4 gap-8">
-          {heroStats.map((s) => (
-            <StatCard key={s.label} value={s.value} suffix={s.suffix} label={s.label} />
-          ))}
-        </div>
       </section>
 
       <section className="container-kare mt-24 sm:mt-32">

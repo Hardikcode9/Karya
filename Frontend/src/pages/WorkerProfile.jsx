@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useParams, useOutletContext } from "react-router-dom";
 import { ArrowLeft, MapPin, ShieldCheck, Clock, Share2, Phone } from "lucide-react";
-import { workers as mockWorkers, shgs } from "../data/mockData";
 import Rating from "../components/ui/Rating";
 import Button from "../components/ui/Button";
 import Badge from "../components/ui/Badge";
@@ -26,6 +25,7 @@ export default function WorkerProfile() {
           const w = response.data.worker;
           setWorker({
             id: w._id,
+            serviceId: w.service?._id || null,
             name: w.user?.name || "Specialist Worker",
             role: w.service?.name || "Technician",
             village: w.village || "Local District",
@@ -43,14 +43,10 @@ export default function WorkerProfile() {
             shgId: null
           });
         } else {
-          const mockMatch = mockWorkers.find((mw) => mw.id === workerId);
-          if (mockMatch) setWorker(mockMatch);
-          else setError("Worker profile not found.");
+          setError("Worker profile not found.");
         }
       } catch (err) {
-        const mockMatch = mockWorkers.find((mw) => mw.id === workerId);
-        if (mockMatch) setWorker(mockMatch);
-        else setError("Failed to load worker profile.");
+        setError("Failed to load worker profile.");
       } finally {
         setLoading(false);
       }
@@ -77,7 +73,7 @@ export default function WorkerProfile() {
     );
   }
 
-  const shg = worker.shgId ? shgs.find((s) => s.id === worker.shgId) : null;
+  const shg = null; // Removed mock data dependency
   const badges = [
     worker.verified?.phone && "Phone verified",
     worker.verified?.skill && "Skill verified",

@@ -2,6 +2,8 @@ import { useEffect, useState, useCallback } from "react";
 import { openDB } from "idb";
 import { OfflineContext } from "./contexts";
 
+import api from "../utils/api";
+
 const DB_NAME = "karya-db";
 const STORE_QUEUE = "sync-queue";
 
@@ -48,8 +50,26 @@ export function OfflineProvider({ children }) {
       const db = await getDb();
       const all = await db.getAll(STORE_QUEUE);
       if (all.length === 0) return;
-      await db.clear(STORE_QUEUE);
-      setQueueSize(0);
+      
+      for (const action of all) {
+        try {
+          if (action.type === 'BOOKING_CREATED') {
+            // The BookingModal now stores backend-compatible fields
+            const { type, queuedAt, id, ...bookingPayload } = action;
+            await api.post('/bookings', bookingPayload);
+          } else if (action.type === 'EMERGENCY_SOS') {
+            await api.post('/bookings/sos', action);
+          } else if (action.type === 'CART_CHECKOUT') {
+            await api.post('/bookings/checkout', action);
+          }
+          await db.delete(STORE_QUEUE, action.id);
+        } catch (error) {
+          console.error("Failed to sync action", action.id, error);
+        }
+      }
+      
+      const newCount = await db.count(STORE_QUEUE);
+      setQueueSize(newCount);
       setJustSynced(true);
       setTimeout(() => setJustSynced(false), 3000);
     } catch {

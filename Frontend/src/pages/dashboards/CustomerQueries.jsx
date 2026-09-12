@@ -155,7 +155,7 @@ const INITIAL_QUERIES = [
 ];
 
 export default function CustomerQueries() {
-  const [queries, setQueries] = useState(INITIAL_QUERIES);
+  const [queries, setQueries] = useState([]);
   const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [showModal, setShowModal] = useState(false);

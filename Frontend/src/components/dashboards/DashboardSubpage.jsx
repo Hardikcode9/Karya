@@ -17,35 +17,7 @@ export default function DashboardSubpage({
   const [filter, setFilter] = useState("all");
   const [items, setItems] = useState(() => {
     if (initialData.length > 0) return initialData;
-    return [
-      {
-        id: "1",
-        title: `${category || "Service"} Order #892`,
-        subtitle: "Rampur Cluster · Priority Assignment",
-        date: "Today, 10:30 AM",
-        amount: "₹650",
-        status: "active",
-        user: "Aarav Sharma",
-      },
-      {
-        id: "2",
-        title: `${category || "Maintenance"} Task #841`,
-        subtitle: "Verified Worker Scheduled",
-        date: "Yesterday",
-        amount: "₹1,200",
-        status: "completed",
-        user: "Sunita Devi (SHG)",
-      },
-      {
-        id: "3",
-        title: `${category || "Verification"} Submission #779`,
-        subtitle: "Aadhaar & Skill Checklist Verified",
-        date: "Sep 04, 2026",
-        amount: "₹450",
-        status: "pending",
-        user: "Ramesh Kumar",
-      },
-    ];
+    return [];
   });
 
   const [selectedItem, setSelectedItem] = useState(null);

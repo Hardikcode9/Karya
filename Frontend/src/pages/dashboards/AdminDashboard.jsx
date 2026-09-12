@@ -5,7 +5,6 @@ import {
 } from "lucide-react";
 import DashStat from "../../components/ui/DashStat";
 import Button from "../../components/ui/Button";
-import { workers, shgs } from "../../data/mockData";
 
 export default function AdminDashboard() {
   const [verifications, setVerifications] = useState([
@@ -30,7 +29,7 @@ export default function AdminDashboard() {
     setToggles((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const verifiedWorkersCount = workers.filter((w) => w.verified.skill).length;
+  const verifiedWorkersCount = 0;
 
   return (
     <div className="flex flex-col gap-8">
@@ -57,7 +56,7 @@ export default function AdminDashboard() {
       {/* Stats Cards */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <DashStat label="Registered Users" value="2,850+" icon={Users} />
-        <DashStat label="Verified Specialists" value={`${verifiedWorkersCount}/${workers.length}`} icon={ShieldCheck} />
+        <DashStat label="Verified Specialists" value={`${verifiedWorkersCount}/0`} icon={ShieldCheck} />
         <DashStat label="Open Complaints" value="2" icon={AlertTriangle} />
         <DashStat label="Jobs Completed (WTD)" value="412" icon={Activity} />
       </div>

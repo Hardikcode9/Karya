@@ -19,6 +19,7 @@ import { useAuth } from "../../hooks/useAuth";
 import Button from "../ui/Button";
 import Logo from "../ui/Logo";
 import ThemeToggle from "../ui/ThemeToggle";
+import NotificationBell from "../notifications/NotificationBell";
 
 // Before login: ONLY Home and How It Works
 const publicNavItems = [
@@ -251,6 +252,9 @@ export default function Navbar({ onOpenEmergency, onOpenContact }) {
               )}
             </AnimatePresence>
           </div>
+
+          {/* Notification Bell */}
+          {user && <NotificationBell />}
 
           {/* Account Profile / Auth CTAs */}
           {user ? (

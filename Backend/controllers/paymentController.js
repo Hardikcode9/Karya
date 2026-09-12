@@ -87,14 +87,16 @@ const createPayment = async (req, res) => {
     booking.status = "in_progress";
     await booking.save();
 
-    // Create Notification for the worker
-    const WorkerProfile = require("../models/WorkerProfile");
+    // Create Notification for the worker (use User ID, not WorkerProfile ID)
+    const User = require("../models/User");
+    const customerUser = await User.findById(req.user.userId).select("name");
+    const customerName = customerUser?.name || "a customer";
     const workerProfile = await WorkerProfile.findById(booking.worker);
     if (workerProfile) {
       await Notification.create({
         recipient: workerProfile.user,
         title: "Payment Received",
-        message: `A payment of ₹${booking.price} has been made by ${req.user.name || "a customer"} for booking ${booking._id}.`,
+        message: `A payment of ₹${booking.price} has been made by ${customerName} for your service. You can now start the work.`,
         type: "payment",
         relatedId: payment._id,
       });

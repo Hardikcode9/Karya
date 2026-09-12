@@ -7,6 +7,7 @@ import {
   Package, DollarSign, BarChart3, Clock, Share2, Grid, List
 } from "lucide-react";
 import { useCart } from "../hooks/useCart";
+import RatingAndReviewsSection from "../components/reviews/RatingAndReviewsSection";
 
 const CATEGORIES = [
   "All",
@@ -270,99 +271,78 @@ export default function SHGs() {
         </div>
       )}
 
-      {/* Internal Store Sub-Header */}
-      <div className="container-kare mb-8">
-        <div className="rounded-3xl p-4 sm:p-6 bg-white dark:bg-dark-card border border-charcoal/10 dark:border-dark-border shadow-elevation-1 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-olive-700 text-cream flex items-center justify-center font-display font-bold text-xl shadow-xs">
-              ग
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-charcoal dark:text-dark-text">
-                  Gyaanshrot SHG Collective Store
-                </h1>
-                <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">
-                  <ShieldCheck size={11} />
-                  <span>0% Commission</span>
-                </span>
-              </div>
-              <p className="text-xs text-charcoal/60 dark:text-dark-muted mt-0.5">
-                Connecting rural Self-Help Groups, women federations & artisans directly with conscious buyers.
-              </p>
-            </div>
-          </div>
-
-          {/* Internal Navigation Tabs */}
-          <div className="flex flex-wrap items-center gap-1.5 self-start md:self-auto bg-cream dark:bg-dark-surface p-1 rounded-2xl border border-charcoal/5 dark:border-dark-border">
-            {[
-              { id: "home", label: "Featured" },
-              { id: "shop", label: "Artisan Catalog" },
-              { id: "about", label: "Mission" },
-              { id: "blog", label: "Artisan Stories" },
-              { id: "admin", label: "Seller Hub" },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => { setPage(tab.id); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                  page === tab.id
-                    ? "bg-olive-700 text-cream shadow-xs"
-                    : "text-charcoal/70 dark:text-dark-muted hover:text-charcoal dark:hover:text-dark-text"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-
-            {/* Open Navbar Cart Trigger */}
-            <button
-              onClick={() => setIsCartOpen(true)}
-              className="relative flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-olive-100 dark:bg-olive-900/60 text-olive-900 dark:text-olive-300 hover:bg-olive-200 transition-all shadow-xs"
-              title="Open Navbar Cart"
-            >
-              <ShoppingBag size={14} />
-              <span>Cart</span>
-              {totalCount > 0 && (
-                <span className="w-5 h-5 rounded-full bg-olive-700 text-cream text-[10px] font-black flex items-center justify-center animate-bounce">
-                  {totalCount}
-                </span>
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
 
       {/* VIEW: HOME / FEATURED */}
       {page === "home" && (
         <div className="container-kare space-y-12">
           {/* Hero Banner */}
-          <div className="relative rounded-[2.5rem] overflow-hidden p-8 sm:p-14 bg-gradient-to-br from-olive-950 via-olive-900 to-charcoal text-cream shadow-elevation-2">
+          <div className="relative rounded-[2.5rem] overflow-hidden p-6 sm:p-10 lg:p-12 bg-gradient-to-br from-olive-950 via-olive-900 to-charcoal text-cream shadow-elevation-2">
             <div className="absolute -right-20 -bottom-20 w-96 h-96 rounded-full bg-olive-600/20 blur-3xl pointer-events-none" />
-            <div className="relative z-10 max-w-2xl space-y-5">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 text-olive-300 text-xs font-semibold backdrop-blur">
-                <Sparkles size={13} />
-                <span>Zero-Middleman Direct Handicraft Channel</span>
+            <div className="relative z-10 grid lg:grid-cols-[1.15fr_0.85fr] items-center gap-8 lg:gap-12">
+              {/* Left Side Content */}
+              <div className="space-y-5">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 text-olive-300 text-xs font-semibold backdrop-blur">
+                  <Sparkles size={13} />
+                  <span>Zero-Middleman Direct Handicraft Channel</span>
+                </div>
+                <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-light leading-tight text-white">
+                  Treasures from Bharat's rural soil, crafted with generational pride.
+                </h2>
+                <p className="text-cream/75 text-xs sm:text-sm lg:text-base leading-relaxed">
+                  Every purchase sends 100% of fair value directly to village Self-Help Group bank accounts. Zero corporate margins, zero deductions.
+                </p>
+                <div className="flex flex-wrap items-center gap-3 pt-2">
+                  <button
+                    onClick={() => openCategory("All")}
+                    className="px-6 py-3 rounded-full bg-olive-600 hover:bg-olive-500 text-cream text-xs sm:text-sm font-bold shadow-sm transition-transform active:scale-95 cursor-pointer"
+                  >
+                    Explore All Products ({PRODUCTS.length})
+                  </button>
+                  <button
+                    onClick={() => openCategory("Organic & Farm Produce")}
+                    className="px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 text-cream text-xs sm:text-sm font-bold backdrop-blur transition-colors cursor-pointer"
+                  >
+                    Organic Farm Goods →
+                  </button>
+                </div>
               </div>
-              <h2 className="font-display text-3xl sm:text-5xl font-light leading-tight text-white">
-                Treasures from Bharat's rural soil, crafted with generational pride.
-              </h2>
-              <p className="text-cream/75 text-sm sm:text-base leading-relaxed">
-                Every purchase sends 100% of fair value directly to village Self-Help Group bank accounts. Zero corporate margins, zero deductions.
-              </p>
-              <div className="flex flex-wrap items-center gap-3 pt-2">
-                <button
-                  onClick={() => openCategory("All")}
-                  className="px-6 py-3 rounded-full bg-olive-600 hover:bg-olive-500 text-cream text-xs sm:text-sm font-bold shadow-sm transition-transform active:scale-95"
-                >
-                  Explore All Products ({PRODUCTS.length})
-                </button>
-                <button
-                  onClick={() => openCategory("Organic & Farm Produce")}
-                  className="px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 text-cream text-xs sm:text-sm font-bold backdrop-blur transition-colors"
-                >
-                  Organic Farm Goods →
-                </button>
+
+              {/* Right Side: Village Artisans Image Showcase (Inside the Box) */}
+              <div className="relative w-full max-w-lg mx-auto lg:max-w-none group">
+                {/* Ambient glow behind image */}
+                <div className="absolute -inset-1.5 bg-gradient-to-tr from-olive-600/40 to-amber-600/30 rounded-[2rem] blur-xl opacity-75 group-hover:opacity-100 transition duration-500 pointer-events-none" />
+
+                <div className="relative rounded-[2rem] overflow-hidden border-2 border-white/20 bg-charcoal/50 shadow-elevation-3 aspect-[4/3] sm:aspect-[16/11]">
+                  <img
+                    src="https://images.unsplash.com/photo-1606293926075-69a00dbfde81?auto=format&fit=crop&w=800&q=80"
+                    alt="Rural Indian Village Artisans Handcrafting Terracotta Pottery and Handloom"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                    loading="lazy"
+                  />
+                  {/* Subtle contrast gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent pointer-events-none" />
+
+                  {/* Top Floating Badge */}
+                  <div className="absolute top-3.5 right-3.5 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white text-[11px] font-bold shadow-xs">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>Women-Led SHGs</span>
+                  </div>
+
+                  {/* Bottom Text Overlay */}
+                  <div className="absolute bottom-4 left-4 right-4 text-white">
+                    <span className="inline-block px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-olive-700/90 text-white mb-1">
+                      Village Cooperatives
+                    </span>
+                    <h3 className="font-display text-base sm:text-lg font-semibold text-white leading-snug">
+                      Handmade Pottery, Khadi Weaves & Heritage Preserves
+                    </h3>
+                    <p className="text-[11px] text-cream/75 mt-0.5 flex items-center gap-1.5">
+                      <span>📍 Sonipur & Rampura Panchayats</span>
+                      <span>•</span>
+                      <span>100% Fair-Trade Direct</span>
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -554,11 +534,10 @@ export default function SHGs() {
                     <button
                       key={cat}
                       onClick={() => setSelectedCategory(cat)}
-                      className={`w-full text-left px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors flex items-center justify-between ${
-                        selectedCategory === cat
-                          ? "bg-olive-700 text-cream font-bold"
-                          : "text-charcoal/70 dark:text-dark-muted hover:bg-cream dark:hover:bg-dark-surface"
-                      }`}
+                      className={`w-full text-left px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors flex items-center justify-between ${selectedCategory === cat
+                        ? "bg-olive-700 text-cream font-bold"
+                        : "text-charcoal/70 dark:text-dark-muted hover:bg-cream dark:hover:bg-dark-surface"
+                        }`}
                     >
                       <span>{cat}</span>
                     </button>
@@ -836,11 +815,10 @@ export default function SHGs() {
                       <button
                         key={v}
                         onClick={() => setSelectedVariant(v)}
-                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                          selectedVariant === v
-                            ? "bg-olive-700 text-cream shadow-xs"
-                            : "bg-white dark:bg-dark-card border border-charcoal/15 dark:border-dark-border text-charcoal dark:text-dark-text hover:border-olive-600"
-                        }`}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${selectedVariant === v
+                          ? "bg-olive-700 text-cream shadow-xs"
+                          : "bg-white dark:bg-dark-card border border-charcoal/15 dark:border-dark-border text-charcoal dark:text-dark-text hover:border-olive-600"
+                          }`}
                       >
                         {v}
                       </button>
@@ -887,11 +865,10 @@ export default function SHGs() {
                     <button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
-                      className={`pb-1 transition-colors border-b-2 ${
-                        activeTab === tab
-                          ? "border-olive-700 text-olive-800 dark:text-olive-300"
-                          : "border-transparent text-charcoal/50 dark:text-dark-muted hover:text-charcoal"
-                      }`}
+                      className={`pb-1 transition-colors border-b-2 ${activeTab === tab
+                        ? "border-olive-700 text-olive-800 dark:text-olive-300"
+                        : "border-transparent text-charcoal/50 dark:text-dark-muted hover:text-charcoal"
+                        }`}
                     >
                       {tab}
                     </button>
@@ -916,6 +893,18 @@ export default function SHGs() {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Product Ratings, Reviews, Submit Rating & Query/Suggestion Section */}
+          <div className="pt-2">
+            <RatingAndReviewsSection
+              targetType="product"
+              targetId={selectedProduct.id}
+              targetName={selectedProduct.name}
+              targetCategory={selectedProduct.category}
+              initialRating={selectedProduct.rating}
+              initialReviewsCount={selectedProduct.reviews}
+            />
           </div>
         </div>
       )}
@@ -1013,17 +1002,15 @@ export default function SHGs() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setAdminTab("orders")}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold ${
-                  adminTab === "orders" ? "bg-olive-700 text-cream" : "bg-cream dark:bg-dark-surface text-charcoal/60"
-                }`}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold ${adminTab === "orders" ? "bg-olive-700 text-cream" : "bg-cream dark:bg-dark-surface text-charcoal/60"
+                  }`}
               >
                 Recent Orders
               </button>
               <button
                 onClick={() => setAdminTab("inventory")}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold ${
-                  adminTab === "inventory" ? "bg-olive-700 text-cream" : "bg-cream dark:bg-dark-surface text-charcoal/60"
-                }`}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold ${adminTab === "inventory" ? "bg-olive-700 text-cream" : "bg-cream dark:bg-dark-surface text-charcoal/60"
+                  }`}
               >
                 Inventory ({PRODUCTS.length})
               </button>

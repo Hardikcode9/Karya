@@ -16,7 +16,7 @@ export default function MultilingualSection() {
             title="Technology that speaks your language."
             description="Switch the whole interface to the language you're most comfortable in — with more languages added over time."
           />
-          <div className="flex flex-wrap gap-2.5">
+          <div className="flex flex-wrap gap-2.5 notranslate" translate="no">
             {languageOptions.map((l) => (
               <span key={l.code} className="px-4 py-2 rounded-full bg-cream-card border border-charcoal/10 text-sm">
                 {l.label}

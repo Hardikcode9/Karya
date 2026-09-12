@@ -46,7 +46,7 @@ const getServices = async (req, res) => {
 
 const createService = async (req, res) => {
   try {
-    const { name, category, description, icon } = req.body;
+    const { name, category, description, icon, image } = req.body;
 
     if (!name || !category) {
       return res.status(400).json({
@@ -71,6 +71,7 @@ const createService = async (req, res) => {
       category,
       description,
       icon,
+      image,
     });
 
     res.status(201).json({

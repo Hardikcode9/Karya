@@ -6,6 +6,7 @@ import Rating from "../components/ui/Rating";
 import Button from "../components/ui/Button";
 import Badge from "../components/ui/Badge";
 import ImageTile from "../components/ui/ImageTile";
+import RatingAndReviewsSection from "../components/reviews/RatingAndReviewsSection";
 import api from "../utils/api";
 
 export default function WorkerProfile() {
@@ -153,6 +154,16 @@ export default function WorkerProfile() {
             </div>
           </div>
         </div>
+
+        {/* Rating & Reviews Section with Rate and Query/Suggestion Actions */}
+        <RatingAndReviewsSection
+          targetType="worker"
+          targetId={worker.id}
+          targetName={worker.name}
+          targetCategory={worker.role}
+          initialRating={worker.rating}
+          initialReviewsCount={worker.completedJobs}
+        />
       </div>
     </div>
   );

@@ -53,6 +53,7 @@ const seedData = async () => {
         category: "Home Repair",
         description: "Pipe repair, leakage repair, tap installation and plumbing maintenance",
         icon: "plumbing",
+        image: "https://images.unsplash.com/photo-1581244277943-fe4a9c777189?auto=format&fit=crop&w=600&q=80",
         isActive: true,
       },
       {
@@ -60,6 +61,7 @@ const seedData = async () => {
         category: "Home Repair",
         description: "Electrical wiring, switch repair, fan installation and maintenance",
         icon: "electrical",
+        image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=600&q=80",
         isActive: true,
       },
       {
@@ -67,6 +69,7 @@ const seedData = async () => {
         category: "Home Repair",
         description: "Furniture repair, door repair and custom carpentry work",
         icon: "carpentry",
+        image: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=600&q=80",
         isActive: true,
       },
       {
@@ -74,6 +77,7 @@ const seedData = async () => {
         category: "Household",
         description: "House cleaning, deep cleaning and regular cleaning services",
         icon: "cleaning",
+        image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=600&q=80",
         isActive: true,
       },
       {
@@ -81,6 +85,7 @@ const seedData = async () => {
         category: "Household",
         description: "Garden maintenance, plant care and landscaping services",
         icon: "gardening",
+        image: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=600&q=80",
         isActive: true,
       },
     ]);

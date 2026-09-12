@@ -1,16 +1,19 @@
 import { useEffect, useState } from "react";
-import { useOutletContext } from "react-router-dom";
-import { Search, Map, List, ShoppingBag, AlertCircle } from "lucide-react";
+import { useOutletContext, useSearchParams } from "react-router-dom";
+import { Search, Map, List, AlertCircle } from "lucide-react";
 import SectionHeading from "../components/ui/SectionHeading";
 import ServiceCard from "../components/ui/ServiceCard";
 import GeolocationMap from "../components/map/GeolocationMap";
 import api from "../utils/api";
 import { useCart } from "../hooks/useCart";
+import { allServices } from "../data/mockData";
 
 export default function Services() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialView = searchParams.get("view") === "map" ? "map" : "list";
   const [active, setActive] = useState("all");
   const [search, setSearch] = useState("");
-  const [viewMode, setViewMode] = useState("list"); // 'list' | 'map'
+  const [viewMode, setViewMode] = useState(initialView); // 'list' | 'map'
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -21,14 +24,28 @@ export default function Services() {
       setError("");
       try {
         const response = await api.get("/services");
-        if (response.data && response.data.services) {
-          setServices(response.data.services);
-        } else {
-          setServices([]);
-        }
+        const backendList = (response.data && response.data.services) || [];
+
+        // Build a map of backend services by lowercase name
+        const bMap = new Map();
+        backendList.forEach((s) => {
+          if (s && s.name) bMap.set(s.name.toLowerCase().trim(), s);
+        });
+
+        // Merge: Include backend services and any catalogue services (SHG, Community) not in DB
+        const merged = [...backendList];
+        allServices.forEach((ms) => {
+          const key = ms.name.toLowerCase().trim();
+          if (!bMap.has(key)) {
+            merged.push(ms);
+          }
+        });
+
+        setServices(merged.length > 0 ? merged : allServices);
       } catch (err) {
         console.error("Error fetching services:", err);
-        setError("Failed to load services from backend. Make sure the backend server is running.");
+        // Fallback gracefully to allServices
+        setServices(allServices);
       } finally {
         setLoading(false);
       }
@@ -175,29 +192,7 @@ export default function Services() {
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
               {filteredServices.map((s, index) => (
-                <div key={s._id || s.id} className="relative group">
-                  <ServiceCard service={{ ...s, id: s._id || s.id }} index={index} />
-
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-
-                      addItem({
-                        id: s._id || s.id,
-                        name: s.name,
-                        price: s.basePrice || s.price || 350,
-                        priceUnit: "service",
-                        category: s.category,
-                      });
-                    }}
-                    className="absolute top-4 right-4 z-10 p-2 bg-cream dark:bg-dark-surface border border-charcoal/10 dark:border-dark-border rounded-xl text-charcoal/70 dark:text-dark-muted hover:text-olive-700 dark:hover:text-olive-400 hover:bg-olive-50 dark:hover:bg-olive-900/40 opacity-0 group-hover:opacity-100 transition-all shadow-xs"
-                    title="Add to Cart"
-                  >
-                    <ShoppingBag size={15} />
-                  </button>
-                </div>
+                <ServiceCard key={s._id || s.id} service={{ ...s, id: s._id || s.id }} index={index} />
               ))}
             </div>
           )}

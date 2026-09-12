@@ -1,15 +1,18 @@
-import { Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { Routes, Route, useLocation } from "react-router-dom";
+import { retriggerGoogleTranslate } from "./utils/googleTranslate";
 import {
   LayoutDashboard, ClipboardList, CalendarCheck, Wallet, Star, User,
   Inbox, Briefcase, Settings2, Clock, IndianRupee,
   ShoppingBag, Users, TrendingUp, MessageSquare, Sliders,
-  Users2, ShieldCheck, FileWarning, BarChart3, Globe2, Cog,
+  Users2, ShieldCheck, FileWarning, BarChart3, Globe2, Cog, Activity, HelpCircle, MapPin,
 } from "lucide-react";
 
 import PublicLayout from "./components/layout/PublicLayout";
 import DashboardLayout from "./components/layout/DashboardLayout";
 import DashboardSubpage from "./components/dashboards/DashboardSubpage";
 import RequireAuth from "./components/auth/RequireAuth";
+import ScrollToTop from "./components/layout/ScrollToTop";
 
 import Home from "./pages/Home";
 import About from "./pages/About";
@@ -29,29 +32,38 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 
 import CustomerDashboard from "./pages/dashboards/CustomerDashboard";
+import CustomerMap from "./pages/dashboards/CustomerMap";
+import CustomerReviews from "./pages/dashboards/CustomerReviews";
+import CustomerProfile from "./pages/dashboards/CustomerProfile";
+import CustomerActivity from "./pages/dashboards/CustomerActivity";
+import CustomerQueries from "./pages/dashboards/CustomerQueries";
 import WorkerDashboard from "./pages/dashboards/WorkerDashboard";
+import WorkerRequests from "./pages/dashboards/WorkerRequests";
+import WorkerReviews from "./pages/dashboards/WorkerReviews";
+import WorkerProfileDashboard from "./pages/dashboards/WorkerProfileDashboard";
+import WorkerEarnings from "./pages/dashboards/WorkerEarnings";
+import WorkerServices from "./pages/dashboards/WorkerServices";
 import SHGDashboard from "./pages/dashboards/SHGDashboard";
 import AdminDashboard from "./pages/dashboards/AdminDashboard";
 
 const customerNav = [
   { to: "/customer", end: true, label: "Overview", icon: LayoutDashboard },
+  { to: "/customer/map", label: "Nearby Map", icon: MapPin },
   { to: "/shgs", label: "SHG Store", icon: ShoppingBag },
-  { to: "/customer/requests", label: "My Requests", icon: ClipboardList },
-  { to: "/customer/jobs", label: "Active Jobs", icon: CalendarCheck },
+  { to: "/customer/activity", label: "Recent Activity", icon: Activity },
   { to: "/customer/payments", label: "Payments", icon: Wallet },
   { to: "/customer/reviews", label: "Reviews", icon: Star },
+  { to: "/customer/queries", label: "Queries", icon: HelpCircle },
   { to: "/customer/profile", label: "Profile", icon: User },
 ];
 
 const workerNav = [
   { to: "/worker", end: true, label: "Overview", icon: LayoutDashboard },
   { to: "/worker/requests", label: "Requests", icon: Inbox },
-  { to: "/worker/jobs", label: "My Jobs", icon: Briefcase },
   { to: "/worker/services", label: "Services", icon: Settings2 },
   { to: "/worker/availability", label: "Availability", icon: Clock },
   { to: "/worker/earnings", label: "Earnings", icon: IndianRupee },
   { to: "/worker/reviews", label: "Reviews", icon: Star },
-  { to: "/worker/profile", label: "Profile", icon: User },
 ];
 
 const shgNav = [
@@ -76,9 +88,17 @@ const adminNav = [
 ];
 
 export default function App() {
+  const location = useLocation();
+
+  useEffect(() => {
+    retriggerGoogleTranslate();
+  }, [location.pathname]);
+
   return (
-    <Routes>
-      <Route element={<PublicLayout />}>
+    <>
+      <ScrollToTop />
+      <Routes>
+        <Route element={<PublicLayout />}>
         {/* Public before login */}
         <Route path="/" element={<Home />} />
         <Route path="/how-it-works" element={<HowItWorks />} />
@@ -95,7 +115,7 @@ export default function App() {
         <Route path="/work/:projectId" element={<RequireAuth><WorkDetail /></RequireAuth>} />
         <Route path="/resources" element={<RequireAuth><Resources /></RequireAuth>} />
         <Route path="/resources/:resourceId" element={<RequireAuth><ResourceDetail /></RequireAuth>} />
-        <Route path="/contact" element={<RequireAuth><Contact /></RequireAuth>} />
+        <Route path="/contact" element={<Contact />} />
       </Route>
 
       <Route path="/login" element={<Login />} />
@@ -111,26 +131,16 @@ export default function App() {
         }
       >
         <Route index element={<CustomerDashboard />} />
-        <Route
-          path="requests"
-          element={<DashboardSubpage title="Service Requests" subtitle="Track all your sent requests and live responses" category="Service Request" actionLabel="New Request" />}
-        />
-        <Route
-          path="jobs"
-          element={<DashboardSubpage title="Active Bookings & Jobs" subtitle="Workers currently on-site or scheduled for this week" category="Job" actionLabel="Schedule Job" />}
-        />
+        <Route path="map" element={<CustomerMap />} />
+        <Route path="activity" element={<CustomerActivity />} />
+        <Route path="requests" element={<CustomerActivity />} />
         <Route
           path="payments"
           element={<DashboardSubpage title="Payment History" subtitle="Verified digital and cash transaction slips" category="Payment Slip" actionLabel="Make Payment" />}
         />
-        <Route
-          path="reviews"
-          element={<DashboardSubpage title="My Reviews" subtitle="Feedback left for local providers and SHG crafts" category="Review" actionLabel="Write Review" />}
-        />
-        <Route
-          path="profile"
-          element={<DashboardSubpage title="Customer Profile" subtitle="Account details, saved village locations, and language preference" category="Profile Update" actionLabel="Edit Profile" />}
-        />
+        <Route path="reviews" element={<CustomerReviews />} />
+        <Route path="queries" element={<CustomerQueries />} />
+        <Route path="profile" element={<CustomerProfile />} />
       </Route>
 
       {/* Worker Dashboard Subroutes (Protected by RequireAuth) */}
@@ -145,15 +155,11 @@ export default function App() {
         <Route index element={<WorkerDashboard />} />
         <Route
           path="requests"
-          element={<DashboardSubpage title="Incoming Requests" subtitle="New customer requests in your 10km village radius" category="Incoming Lead" actionLabel="Refresh Radius" />}
-        />
-        <Route
-          path="jobs"
-          element={<DashboardSubpage title="Assigned Jobs" subtitle="Jobs you have accepted and scheduled dates" category="Job Assignment" actionLabel="Add Walk-in Job" />}
+          element={<WorkerRequests />}
         />
         <Route
           path="services"
-          element={<DashboardSubpage title="My Services & Rates" subtitle="Manage your trade listings, day-rates and emergency visit fee" category="Trade Listing" actionLabel="Add Skill" />}
+          element={<WorkerServices />}
         />
         <Route
           path="availability"
@@ -161,15 +167,15 @@ export default function App() {
         />
         <Route
           path="earnings"
-          element={<DashboardSubpage title="Direct Income Breakdown" subtitle="Transparent record of weekly payouts and cash settlements" category="Earnings Entry" actionLabel="Withdraw Funds" />}
+          element={<WorkerEarnings />}
         />
         <Route
           path="reviews"
-          element={<DashboardSubpage title="Customer Ratings" subtitle="Verified reviews that boost your smart match score" category="Customer Feedback" actionLabel="Share Profile" />}
+          element={<WorkerReviews />}
         />
         <Route
           path="profile"
-          element={<DashboardSubpage title="Worker Profile & Documents" subtitle="Aadhaar KYC, skill certificates, and SHG endorsements" category="Document Upload" actionLabel="Update KYC" />}
+          element={<WorkerProfileDashboard />}
         />
       </Route>
 
@@ -259,5 +265,6 @@ export default function App() {
         }
       />
     </Routes>
+    </>
   );
 }

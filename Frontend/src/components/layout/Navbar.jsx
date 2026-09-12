@@ -50,13 +50,21 @@ export default function Navbar({ onOpenEmergency, onOpenContact }) {
   const { totalCount, setIsCartOpen } = useCart();
   const { user } = useAuth();
   const [scrolled, setScrolled] = useState(false);
+  const [isScrollingUp, setIsScrollingUp] = useState(false);
+  const lastScrollY = useRef(0);
   const [open, setOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   const langMenuRef = useRef(null);
 
-  // Scroll effect for shadow and background depth
+  // Scroll effect: dynamic black border when scrolling up / page is scrolled
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
+    const onScroll = () => {
+      const currentScrollY = window.scrollY;
+      const isUp = currentScrollY < lastScrollY.current;
+      setIsScrollingUp(isUp);
+      setScrolled(currentScrollY > 8);
+      lastScrollY.current = currentScrollY;
+    };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
@@ -85,10 +93,12 @@ export default function Navbar({ onOpenEmergency, onOpenContact }) {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300 rounded-none ${
+      className={`fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300 rounded-none border-b ${
         scrolled
-          ? "bg-cream/95 dark:bg-dark-surface/95 backdrop-blur-md shadow-xs"
-          : "bg-cream/90 dark:bg-dark-surface/90 backdrop-blur-sm"
+          ? isScrollingUp
+            ? "bg-cream/95 dark:bg-dark-surface/95 backdrop-blur-md shadow-xs border-black dark:border-white/40 border-b-2"
+            : "bg-cream/95 dark:bg-dark-surface/95 backdrop-blur-md shadow-xs border-black dark:border-white/30 border-b"
+          : "bg-cream/90 dark:bg-dark-surface/90 backdrop-blur-sm border-transparent"
       }`}
     >
       <div className="w-full px-[5%] h-16 flex items-center justify-between">
@@ -96,7 +106,10 @@ export default function Navbar({ onOpenEmergency, onOpenContact }) {
         <Link
           to="/"
           className="shrink-0 flex items-center group transition-transform active:scale-98"
-          onClick={() => setOpen(false)}
+          onClick={() => {
+            window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+            setOpen(false);
+          }}
         >
           <Logo />
         </Link>
@@ -111,6 +124,9 @@ export default function Navbar({ onOpenEmergency, onOpenContact }) {
               key={item.key}
               to={item.to}
               end={item.to === "/"}
+              onClick={() => {
+                window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+              }}
               className={({ isActive }) =>
                 `text-sm font-semibold transition-colors duration-200 py-1 whitespace-nowrap ${
                   isActive
@@ -126,6 +142,9 @@ export default function Navbar({ onOpenEmergency, onOpenContact }) {
           {/* Contact Page Link */}
           <NavLink
             to="/contact"
+            onClick={() => {
+              window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+            }}
             className={({ isActive }) =>
               `text-sm font-semibold transition-colors duration-200 py-1 whitespace-nowrap ${
                 isActive
@@ -298,7 +317,10 @@ export default function Navbar({ onOpenEmergency, onOpenContact }) {
                     key={item.key}
                     to={item.to}
                     end={item.to === "/"}
-                    onClick={() => setOpen(false)}
+                    onClick={() => {
+                      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+                      setOpen(false);
+                    }}
                     className={({ isActive }) =>
                       `px-4 py-2.5 rounded-2xl text-sm font-semibold transition-colors ${
                         isActive
@@ -311,9 +333,13 @@ export default function Navbar({ onOpenEmergency, onOpenContact }) {
                   </NavLink>
                 ))}
 
+                {/* Mobile Contact Link */}
                 <NavLink
                   to="/contact"
-                  onClick={() => setOpen(false)}
+                  onClick={() => {
+                    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+                    setOpen(false);
+                  }}
                   className={({ isActive }) =>
                     `px-4 py-2.5 rounded-2xl text-sm font-semibold transition-colors ${
                       isActive

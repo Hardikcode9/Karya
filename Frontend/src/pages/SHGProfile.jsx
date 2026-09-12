@@ -5,6 +5,7 @@ import Rating from "../components/ui/Rating";
 import Button from "../components/ui/Button";
 import Badge from "../components/ui/Badge";
 import ImageTile from "../components/ui/ImageTile";
+import RatingAndReviewsSection from "../components/reviews/RatingAndReviewsSection";
 
 export default function SHGProfile() {
   const { shgId } = useParams();
@@ -109,6 +110,16 @@ export default function SHGProfile() {
             </div>
           </section>
         )}
+
+        {/* Rating & Reviews Section for SHG Collective */}
+        <RatingAndReviewsSection
+          targetType="shg"
+          targetId={shg.id}
+          targetName={shg.name}
+          targetCategory="Self-Help Group Cooperative"
+          initialRating={shg.rating}
+          initialReviewsCount={shg.orders || 18}
+        />
       </div>
     </div>
   );

@@ -7,6 +7,7 @@ import {
   Package, DollarSign, BarChart3, Clock, Share2, Grid, List
 } from "lucide-react";
 import { useCart } from "../hooks/useCart";
+import RatingAndReviewsSection from "../components/reviews/RatingAndReviewsSection";
 
 const CATEGORIES = [
   "All",
@@ -533,11 +534,10 @@ export default function SHGs() {
                     <button
                       key={cat}
                       onClick={() => setSelectedCategory(cat)}
-                      className={`w-full text-left px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors flex items-center justify-between ${
-                        selectedCategory === cat
-                          ? "bg-olive-700 text-cream font-bold"
-                          : "text-charcoal/70 dark:text-dark-muted hover:bg-cream dark:hover:bg-dark-surface"
-                      }`}
+                      className={`w-full text-left px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors flex items-center justify-between ${selectedCategory === cat
+                        ? "bg-olive-700 text-cream font-bold"
+                        : "text-charcoal/70 dark:text-dark-muted hover:bg-cream dark:hover:bg-dark-surface"
+                        }`}
                     >
                       <span>{cat}</span>
                     </button>
@@ -815,11 +815,10 @@ export default function SHGs() {
                       <button
                         key={v}
                         onClick={() => setSelectedVariant(v)}
-                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                          selectedVariant === v
-                            ? "bg-olive-700 text-cream shadow-xs"
-                            : "bg-white dark:bg-dark-card border border-charcoal/15 dark:border-dark-border text-charcoal dark:text-dark-text hover:border-olive-600"
-                        }`}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${selectedVariant === v
+                          ? "bg-olive-700 text-cream shadow-xs"
+                          : "bg-white dark:bg-dark-card border border-charcoal/15 dark:border-dark-border text-charcoal dark:text-dark-text hover:border-olive-600"
+                          }`}
                       >
                         {v}
                       </button>
@@ -866,11 +865,10 @@ export default function SHGs() {
                     <button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
-                      className={`pb-1 transition-colors border-b-2 ${
-                        activeTab === tab
-                          ? "border-olive-700 text-olive-800 dark:text-olive-300"
-                          : "border-transparent text-charcoal/50 dark:text-dark-muted hover:text-charcoal"
-                      }`}
+                      className={`pb-1 transition-colors border-b-2 ${activeTab === tab
+                        ? "border-olive-700 text-olive-800 dark:text-olive-300"
+                        : "border-transparent text-charcoal/50 dark:text-dark-muted hover:text-charcoal"
+                        }`}
                     >
                       {tab}
                     </button>
@@ -895,6 +893,18 @@ export default function SHGs() {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Product Ratings, Reviews, Submit Rating & Query/Suggestion Section */}
+          <div className="pt-2">
+            <RatingAndReviewsSection
+              targetType="product"
+              targetId={selectedProduct.id}
+              targetName={selectedProduct.name}
+              targetCategory={selectedProduct.category}
+              initialRating={selectedProduct.rating}
+              initialReviewsCount={selectedProduct.reviews}
+            />
           </div>
         </div>
       )}
@@ -992,17 +1002,15 @@ export default function SHGs() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setAdminTab("orders")}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold ${
-                  adminTab === "orders" ? "bg-olive-700 text-cream" : "bg-cream dark:bg-dark-surface text-charcoal/60"
-                }`}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold ${adminTab === "orders" ? "bg-olive-700 text-cream" : "bg-cream dark:bg-dark-surface text-charcoal/60"
+                  }`}
               >
                 Recent Orders
               </button>
               <button
                 onClick={() => setAdminTab("inventory")}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold ${
-                  adminTab === "inventory" ? "bg-olive-700 text-cream" : "bg-cream dark:bg-dark-surface text-charcoal/60"
-                }`}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold ${adminTab === "inventory" ? "bg-olive-700 text-cream" : "bg-cream dark:bg-dark-surface text-charcoal/60"
+                  }`}
               >
                 Inventory ({PRODUCTS.length})
               </button>

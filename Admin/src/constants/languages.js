@@ -3,7 +3,7 @@
 
 export const CONSTITUTIONAL_LANGUAGES_COUNT = 22;
 
-export const languageOptions = [
+export const LANGUAGE_OPTIONS = [
   // 1. English (Common National & Administrative Language)
   {
     code: "en",
@@ -14,7 +14,7 @@ export const languageOptions = [
     region: "Pan-India / Global",
   },
 
-  // 22 Official Languages of the 8th Schedule of the Constitution of India (in alphabetical order)
+  // 22 Official Languages of the 8th Schedule of the Constitution of India
   {
     code: "as",
     label: "অসমীয়া (Assamese)",

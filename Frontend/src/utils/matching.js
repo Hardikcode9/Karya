@@ -2,7 +2,13 @@
 // Kept isolated from UI so it can later be replaced by a real
 // recommendation service without touching component code.
 
-import { matchingWeights } from "../data/mockData";
+const matchingWeights = {
+  location: 0.35,
+  skill: 0.3,
+  availability: 0.15,
+  rating: 0.1,
+  price: 0.1,
+};
 
 /** Normalize a value between 0 and 1 given a max reference. */
 function normalize(value, max) {

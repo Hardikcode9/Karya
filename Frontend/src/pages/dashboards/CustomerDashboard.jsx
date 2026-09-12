@@ -6,144 +6,17 @@ import {
 import DashStat from "../../components/ui/DashStat";
 import Rating from "../../components/ui/Rating";
 import Button from "../../components/ui/Button";
-import { workers } from "../../data/mockData";
 import { useAuth } from "../../hooks/useAuth";
 
-const RECENT_PURCHASES = [
-  {
-    id: "p-1",
-    title: "Terracotta Handcrafted Mitti Matka (10L)",
-    seller: "Pragati Mahila SHG (Gorakhpur)",
-    price: 450,
-    status: "Delivered",
-    dateTime: "11 Sep 2026, 02:30 PM",
-    image: "https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?auto=format&fit=crop&w=200&q=80",
-  },
-  {
-    id: "p-2",
-    title: "Cold-Pressed Kachi Ghani Mustard Oil (2L)",
-    seller: "Gramodaya SHG Federation",
-    price: 380,
-    status: "Delivered",
-    dateTime: "09 Sep 2026, 11:15 AM",
-    image: "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=200&q=80",
-  },
-  {
-    id: "p-3",
-    title: "Natural Bamboo Storage Baskets (Set of 2)",
-    seller: "Aarunya Weaver Collective",
-    price: 620,
-    status: "Delivered",
-    dateTime: "05 Sep 2026, 04:45 PM",
-    image: "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=200&q=80",
-  },
-];
-
-const RECENT_SERVICES = [
-  {
-    id: "s-1",
-    title: "Submersible Pump Wiring & Overhaul",
-    specialist: "Ramesh Kumar",
-    trade: "Verified Electrician",
-    price: 650,
-    status: "Completed",
-    dateTime: "10 Sep 2026, 09:30 AM",
-    image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=200&q=80",
-  },
-  {
-    id: "s-2",
-    title: "Drip Irrigation Pipe Fitting & Filter Flush",
-    specialist: "Irfan Ali",
-    trade: "Plumbing & Irrigation",
-    price: 480,
-    status: "Completed",
-    dateTime: "04 Sep 2026, 03:00 PM",
-    image: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?auto=format&fit=crop&w=200&q=80",
-  },
-  {
-    id: "s-3",
-    title: "Teakwood Grain Storage Box Hinge Repair",
-    specialist: "Sunita Devi",
-    trade: "Carpentry & Woodcraft",
-    price: 850,
-    status: "Completed",
-    dateTime: "28 Aug 2026, 10:15 AM",
-    image: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=200&q=80",
-  },
-];
-
-const RECENT_VIEWS = [
-  {
-    id: "v-1",
-    title: "Handwoven Chanderi Khadi Shawl",
-    subtitle: "Gyaanshrot Collective Store",
-    category: "SHG Craft",
-    dateTime: "Today, 11 Sep 2026 at 04:55 PM",
-    to: "/shgs",
-    image: "https://images.unsplash.com/photo-1606760227091-3dd870d97f1d?auto=format&fit=crop&w=200&q=80",
-  },
-  {
-    id: "v-2",
-    title: "Suresh Yadav - Solar Pump Specialist",
-    subtitle: "Verified Technician • 3.2 km",
-    category: "Technician Profile",
-    dateTime: "Today, 11 Sep 2026 at 03:20 PM",
-    to: "/services",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80",
-  },
-  {
-    id: "v-3",
-    title: "Pure Organic Sun-Dried Forest Honey (500g)",
-    subtitle: "Wildwood Women Federation",
-    category: "Organic Food",
-    dateTime: "Yesterday, 10 Sep 2026 at 06:10 PM",
-    to: "/shgs",
-    image: "https://images.unsplash.com/photo-1587049352846-4a222e784d38?auto=format&fit=crop&w=200&q=80",
-  },
-];
-
-const RECENT_REVIEWS = [
-  {
-    id: "r-1",
-    type: "product",
-    title: "Terracotta Mitti Matka (10L)",
-    target: "Pragati Mahila SHG",
-    rating: 5,
-    dateTime: "11 Sep 2026, 03:15 PM",
-    text: "Water stays naturally cool even in peak afternoon heat! Sturdy craftsmanship and zero leakage.",
-    image: "https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?auto=format&fit=crop&w=200&q=80",
-  },
-  {
-    id: "r-2",
-    type: "service",
-    title: "Submersible Pump Wiring & Overhaul",
-    target: "Ramesh Kumar (Electrician)",
-    rating: 5,
-    dateTime: "10 Sep 2026, 11:30 AM",
-    text: "Arrived in 35 mins with digital tester. Repaired starter phase fluctuation quickly.",
-    image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=200&q=80",
-  },
-  {
-    id: "r-3",
-    type: "suggestion",
-    title: "Straw Cushioning for Fragile Matkas",
-    target: "Pragati Mahila SHG",
-    status: "Adopted",
-    dateTime: "07 Sep 2026, 11:00 AM",
-    text: "Suggested packing terracotta with dry paddy straw inside cartons to prevent transit damage.",
-    image: "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=200&q=80",
-  },
-];
-
-const SPECIALIST_AVATARS = {
-  "ramesh-kumar": "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&w=200&q=80",
-  "sunita-devi": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80",
-  "irfan-ali": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=200&q=80",
-};
+const RECENT_PURCHASES = [];
+const RECENT_SERVICES = [];
+const RECENT_VIEWS = [];
+const RECENT_REVIEWS = [];
+const SPECIALIST_AVATARS = {};
+const recentSpecialists = [];
 
 export default function CustomerDashboard() {
   const { user } = useAuth();
-  const recentSpecialists = workers.slice(0, 3);
 
   return (
     <div className="flex flex-col gap-8">
@@ -195,29 +68,29 @@ export default function CustomerDashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <DashStat
           label="Total Purchased Products"
-          value="8"
+          value="0"
           sub="Village SHG Items"
           icon={ShoppingBag}
           to="/shgs"
         />
         <DashStat
           label="Total Services Used"
-          value="14"
+          value="0"
           sub="Verified Specialists"
           icon={Wrench}
           to="/customer/activity"
         />
         <DashStat
           label="Total Expenses"
-          value="₹8,450"
+          value="₹0"
           sub="Services & Crafts"
           icon={Wallet}
           to="/customer/payments"
         />
         <DashStat
           label="Total Reviews"
-          value="9"
-          sub="5 suggestions given"
+          value="0"
+          sub="0 suggestions given"
           icon={Star}
           to="/customer/reviews"
         />
@@ -248,8 +121,13 @@ export default function CustomerDashboard() {
           </Link>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {RECENT_PURCHASES.map((p) => (
+        {RECENT_PURCHASES.length === 0 ? (
+          <div className="bg-cream-card dark:bg-dark-card rounded-2xl p-8 text-center border border-charcoal/10">
+            <p className="text-charcoal/60 dark:text-dark-muted">No recent purchases found.</p>
+          </div>
+        ) : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {RECENT_PURCHASES.map((p) => (
             <div
               key={p.id}
               className="bg-cream-card dark:bg-dark-card rounded-2xl p-4 sm:p-5 border border-charcoal/5 dark:border-dark-border flex flex-col justify-between hover:shadow-elevation-2 transition-all group min-h-[25.5rem]"
@@ -305,6 +183,7 @@ export default function CustomerDashboard() {
             </div>
           ))}
         </div>
+        )}
       </div>
 
       {/* Recent Services Used */}
@@ -332,8 +211,13 @@ export default function CustomerDashboard() {
           </Link>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {RECENT_SERVICES.map((s) => (
+        {RECENT_SERVICES.length === 0 ? (
+          <div className="bg-cream-card dark:bg-dark-card rounded-2xl p-8 text-center border border-charcoal/10">
+            <p className="text-charcoal/60 dark:text-dark-muted">No recent services used.</p>
+          </div>
+        ) : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {RECENT_SERVICES.map((s) => (
             <div
               key={s.id}
               className="bg-cream-card dark:bg-dark-card rounded-2xl p-4 sm:p-5 border border-charcoal/5 dark:border-dark-border flex flex-col justify-between hover:shadow-elevation-2 transition-all group min-h-[25.5rem]"
@@ -394,6 +278,7 @@ export default function CustomerDashboard() {
             </div>
           ))}
         </div>
+        )}
       </div>
 
       {/* Recent Reviews & Suggestions */}
@@ -421,8 +306,13 @@ export default function CustomerDashboard() {
           </Link>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {RECENT_REVIEWS.map((r) => (
+        {RECENT_REVIEWS.length === 0 ? (
+          <div className="bg-cream-card dark:bg-dark-card rounded-2xl p-8 text-center border border-charcoal/10">
+            <p className="text-charcoal/60 dark:text-dark-muted">No reviews or suggestions given yet.</p>
+          </div>
+        ) : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {RECENT_REVIEWS.map((r) => (
             <div
               key={r.id}
               className="bg-cream-card dark:bg-dark-card rounded-2xl p-4 sm:p-5 border border-charcoal/5 dark:border-dark-border flex flex-col justify-between hover:shadow-elevation-2 transition-all group min-h-[25.5rem]"
@@ -494,6 +384,7 @@ export default function CustomerDashboard() {
             </div>
           ))}
         </div>
+        )}
       </div>
 
       {/* Recent Views with Date & Time */}
@@ -521,8 +412,13 @@ export default function CustomerDashboard() {
           </Link>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {RECENT_VIEWS.map((v) => (
+        {RECENT_VIEWS.length === 0 ? (
+          <div className="bg-cream-card dark:bg-dark-card rounded-2xl p-8 text-center border border-charcoal/10">
+            <p className="text-charcoal/60 dark:text-dark-muted">No recently viewed items.</p>
+          </div>
+        ) : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {RECENT_VIEWS.map((v) => (
             <div
               key={v.id}
               className="bg-cream-card dark:bg-dark-card rounded-2xl p-4 sm:p-5 border border-charcoal/5 dark:border-dark-border flex flex-col justify-between hover:shadow-elevation-2 transition-all group min-h-[25.5rem]"
@@ -579,6 +475,7 @@ export default function CustomerDashboard() {
             </div>
           ))}
         </div>
+        )}
       </div>
 
       {/* Frequently Viewed / Recommended Specialists */}

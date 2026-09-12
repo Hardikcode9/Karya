@@ -21,38 +21,7 @@ export default function RatingAndReviewsSection({
   const toast = useToast();
 
   // Default seed reviews if none passed
-  const defaultInitialList = [
-    {
-      id: "rev-1",
-      author: "Rajeshwar Singh",
-      village: "Sonipur Ward 2",
-      rating: 5,
-      dateTime: "10 Sep 2026, 03:40 PM",
-      text: `Outstanding craftsmanship and honest behavior. Arrived right on scheduled time and completed the ${targetType === "product" ? "product delivery" : "job"} with pure professionalism.`,
-      verified: true,
-      helpful: 8,
-    },
-    {
-      id: "rev-2",
-      author: "Meera Devi",
-      village: "Rampura Gram Panchayat",
-      rating: 5,
-      dateTime: "06 Sep 2026, 11:15 AM",
-      text: `Very reliable quality and fair transparent village pricing. We always recommend ${targetName} to everyone in our village block.`,
-      verified: true,
-      helpful: 5,
-    },
-    {
-      id: "rev-3",
-      author: "Dinesh Verma",
-      village: "Pipraich Block",
-      rating: 4,
-      dateTime: "28 Aug 2026, 05:20 PM",
-      text: `Great work ethic. Finished everything smoothly and cleaned up the area afterwards. Will book again whenever needed.`,
-      verified: true,
-      helpful: 3,
-    },
-  ];
+  const defaultInitialList = [];
 
   const [reviewsList, setReviewsList] = useState(
     initialReviews.length > 0 ? initialReviews : defaultInitialList

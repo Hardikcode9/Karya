@@ -1,12 +1,11 @@
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import { projects } from "../data/mockData";
 import Button from "../components/ui/Button";
 import ImageTile from "../components/ui/ImageTile";
 
 export default function WorkDetail() {
   const { projectId } = useParams();
-  const project = projects.find((p) => p.id === projectId);
+  const project = null;
 
   if (!project) {
     return (

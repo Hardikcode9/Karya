@@ -25,7 +25,7 @@ export default function AddMemberModal({ isOpen, onClose, onMemberAdded }) {
     try {
       // In a real app, you might have an endpoint to get all workers or search workers by location.
       // We will try fetching from /workers which is public
-      const response = await api.get("/workers/all"); 
+      const response = await api.get("/workers"); 
       setAvailableWorkers(response.data.data || []);
     } catch (error) {
       console.error(error);

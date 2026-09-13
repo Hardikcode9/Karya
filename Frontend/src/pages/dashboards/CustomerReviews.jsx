@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   Star, ShoppingBag, Wrench, MessageSquareQuote, CheckCircle2,
@@ -7,22 +7,21 @@ import {
 } from "lucide-react";
 import Button from "../../components/ui/Button";
 import { useToast } from "../../hooks/useToast";
-
-const INITIAL_REVIEWS = [];
+import api from "../../utils/api";
 
 export default function CustomerReviews() {
-  const [reviews, setReviews] = useState(INITIAL_REVIEWS);
+  const [reviews, setReviews] = useState([]);
   const [activeTab, setActiveTab] = useState("all"); // all, product, service, suggestion
   const [showModal, setShowModal] = useState(false);
   const toast = useToast();
 
   const [newEntry, setNewEntry] = useState({
-    entryType: "product", // product, service, suggestion
-    target: "",
-    title: "",
+    bookingId: "",
     rating: 5,
     text: "",
   });
+
+  const [completedBookings, setCompletedBookings] = useState([]);
 
   const counts = {
     all: reviews.length,
@@ -31,44 +30,89 @@ export default function CustomerReviews() {
     suggestion: reviews.filter((r) => r.type === "suggestion").length,
   };
 
+  useEffect(() => {
+    const fetchRatings = async () => {
+      try {
+        const res = await api.get("/ratings/customer");
+        if (res.data?.success && res.data.ratings) {
+          const mapped = res.data.ratings.map(r => ({
+            id: r._id,
+            type: "service",
+            title: r.booking?.service?.name || "Service Review",
+            target: r.worker?.name || "Specialist",
+            category: "Village Trade Service",
+            rating: r.rating,
+            dateTime: new Date(r.createdAt).toLocaleDateString(),
+            text: r.review,
+            verified: true,
+            status: "Published",
+            redirectUrl: "/services",
+            redirectLabel: "Book Service Again",
+          }));
+          setReviews(mapped);
+        }
+
+        // Also fetch completed bookings for the dropdown
+        const bookingsRes = await api.get("/bookings/customer");
+        if (bookingsRes.data?.success && bookingsRes.data.bookings) {
+          const completed = bookingsRes.data.bookings.filter(b => b.status === "completed");
+          setCompletedBookings(completed);
+        }
+      } catch (err) {
+        console.error("Failed to fetch customer ratings or bookings:", err);
+      }
+    };
+    fetchRatings();
+  }, []);
+
   const filtered = reviews.filter((r) => {
     if (activeTab === "all") return true;
     return r.type === activeTab;
   });
 
-  const handleCreateEntry = (e) => {
+  const handleCreateEntry = async (e) => {
     e.preventDefault();
-    if (!newEntry.title || !newEntry.text) {
-      toast.error("Please fill in title and review details");
+    if (!newEntry.bookingId || !newEntry.text) {
+      toast.show("Please select a booking and write a review", "error");
       return;
     }
 
-    const isProd = newEntry.entryType === "product";
-    const isServ = newEntry.entryType === "service";
+    try {
+      const res = await api.post("/ratings", {
+        booking: newEntry.bookingId,
+        rating: Number(newEntry.rating),
+        review: newEntry.text,
+      });
 
-    const created = {
-      id: `custom-${Date.now()}`,
-      type: newEntry.entryType,
-      title: newEntry.title,
-      target: newEntry.target || (isProd ? "SHG Collective" : isServ ? "Village Specialist" : "Community"),
-      category: isProd ? "Handcrafted Product" : isServ ? "Village Trade Service" : "Community Improvement Idea",
-      price: isProd ? "₹450" : isServ ? "₹500" : undefined,
-      orderId: isProd ? `ORD-${Math.floor(1000 + Math.random() * 9000)}` : undefined,
-      bookingId: isServ ? `SRV-${Math.floor(1000 + Math.random() * 9000)}` : undefined,
-      rating: Number(newEntry.rating) || 5,
-      dateTime: "Just now • Today",
-      text: newEntry.text,
-      verified: true,
-      status: "Under Review",
-      impact: "Shared with village community and verified provider.",
-      redirectUrl: isProd ? "/shgs" : "/services",
-      redirectLabel: isProd ? "View Product in Store" : "Book Service Again",
-    };
-
-    setReviews([created, ...reviews]);
-    setShowModal(false);
-    setNewEntry({ entryType: "product", target: "", title: "", rating: 5, text: "" });
-    toast.success(`${newEntry.entryType === "suggestion" ? "Suggestion" : "Review"} submitted successfully!`);
+      if (res.data.success) {
+        toast.show("Review submitted successfully!", "success");
+        setShowModal(false);
+        setNewEntry({ bookingId: "", rating: 5, text: "" });
+        
+        // Refresh reviews
+        const ratingsRes = await api.get("/ratings/customer");
+        if (ratingsRes.data?.success && ratingsRes.data.ratings) {
+          const mapped = ratingsRes.data.ratings.map(r => ({
+            id: r._id,
+            type: "service",
+            title: r.booking?.service?.name || "Service Review",
+            target: r.worker?.name || "Specialist",
+            category: "Village Trade Service",
+            rating: r.rating,
+            dateTime: new Date(r.createdAt).toLocaleDateString(),
+            text: r.review,
+            verified: true,
+            status: "Published",
+            redirectUrl: "/services",
+            redirectLabel: "Book Service Again",
+          }));
+          setReviews(mapped);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to submit review", error);
+      toast.show(error.response?.data?.message || "Failed to submit review", "error");
+    }
   };
 
   return (
@@ -380,94 +424,53 @@ export default function CustomerReviews() {
 
             <form onSubmit={handleCreateEntry} className="space-y-4 text-xs">
               {/* Type Switcher */}
-              <div>
-                <label className="font-bold text-charcoal/70 dark:text-dark-muted block mb-1.5">
-                  Select Feedback Category
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { id: "product", label: "SHG Product", icon: ShoppingBag },
-                    { id: "service", label: "Village Service", icon: Wrench },
-                    { id: "suggestion", label: "Craft Suggestion", icon: ThumbsUp },
-                  ].map((t) => (
-                    <button
-                      key={t.id}
-                      type="button"
-                      onClick={() => setNewEntry({ ...newEntry, entryType: t.id })}
-                      className={`p-2.5 rounded-xl border text-center flex flex-col items-center gap-1 transition-all ${
-                        newEntry.entryType === t.id
-                          ? "border-olive-700 bg-olive-50 dark:bg-olive-950/40 text-olive-800 dark:text-olive-300 font-bold"
-                          : "border-charcoal/15 dark:border-dark-border text-charcoal/70 dark:text-dark-muted"
-                      }`}
-                    >
-                      <t.icon size={15} />
-                      <span className="text-[11px]">{t.label}</span>
-                    </button>
-                  ))}
-                </div>
+              <div className="mb-4">
+                <p className="text-sm font-bold text-olive-800 mb-2">Note: Only Service Reviews are currently supported by the backend.</p>
               </div>
 
               <div>
                 <label className="font-bold text-charcoal/70 dark:text-dark-muted block mb-1">
-                  {newEntry.entryType === "product"
-                    ? "Product Title / Item Name"
-                    : newEntry.entryType === "service"
-                    ? "Service Title / Trade"
-                    : "Suggestion Headline"}
+                  Select Completed Booking
                 </label>
-                <input
+                <select
                   required
-                  value={newEntry.title}
-                  onChange={(e) => setNewEntry({ ...newEntry, title: e.target.value })}
-                  placeholder={
-                    newEntry.entryType === "product"
-                      ? "e.g. Handmade Terracotta Water Jar"
-                      : newEntry.entryType === "service"
-                      ? "e.g. Electrician Motor Rewiring"
-                      : "e.g. Use organic packaging for rural honey"
-                  }
+                  value={newEntry.bookingId}
+                  onChange={(e) => setNewEntry({ ...newEntry, bookingId: e.target.value })}
                   className="w-full bg-cream dark:bg-dark-surface rounded-xl p-2.5 text-xs outline-none border border-charcoal/15 dark:border-dark-border font-semibold"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="font-bold text-charcoal/70 dark:text-dark-muted block mb-1">
-                    Target SHG or Specialist Name
-                  </label>
-                  <input
-                    value={newEntry.target}
-                    onChange={(e) => setNewEntry({ ...newEntry, target: e.target.value })}
-                    placeholder="e.g. Pragati SHG or Ramesh Electrician"
-                    className="w-full bg-cream dark:bg-dark-surface rounded-xl p-2.5 text-xs outline-none border border-charcoal/15 dark:border-dark-border"
-                  />
-                </div>
-
-                {newEntry.entryType !== "suggestion" && (
-                  <div>
-                    <label className="font-bold text-charcoal/70 dark:text-dark-muted block mb-1">
-                      Rating (1 to 5 Stars)
-                    </label>
-                    <select
-                      value={newEntry.rating}
-                      onChange={(e) => setNewEntry({ ...newEntry, rating: e.target.value })}
-                      className="w-full bg-cream dark:bg-dark-surface rounded-xl p-2.5 text-xs outline-none border border-charcoal/15 dark:border-dark-border font-bold"
-                    >
-                      <option value="5">★★★★★ (5.0 Excellent)</option>
-                      <option value="4">★★★★☆ (4.0 Very Good)</option>
-                      <option value="3">★★★☆☆ (3.0 Good)</option>
-                      <option value="2">★★☆☆☆ (2.0 Fair)</option>
-                      <option value="1">★☆☆☆☆ (1.0 Needs Improvement)</option>
-                    </select>
-                  </div>
+                >
+                  <option value="" disabled>Select a completed service...</option>
+                  {completedBookings.map(b => (
+                    <option key={b._id} value={b._id}>
+                      {b.service?.name} by {b.worker?.user?.name} ({new Date(b.scheduledDate).toLocaleDateString()})
+                    </option>
+                  ))}
+                </select>
+                {completedBookings.length === 0 && (
+                  <p className="text-[10px] text-red-500 mt-1">You have no completed bookings to review.</p>
                 )}
               </div>
 
+
               <div>
                 <label className="font-bold text-charcoal/70 dark:text-dark-muted block mb-1">
-                  {newEntry.entryType === "suggestion"
-                    ? "Explain your idea to improve village crafts or service:"
-                    : "Detailed Review & Experience:"}
+                  Rating (1 to 5 Stars)
+                </label>
+                <select
+                  value={newEntry.rating}
+                  onChange={(e) => setNewEntry({ ...newEntry, rating: e.target.value })}
+                  className="w-full bg-cream dark:bg-dark-surface rounded-xl p-2.5 text-xs outline-none border border-charcoal/15 dark:border-dark-border font-bold"
+                >
+                  <option value="5">★★★★★ (5.0 Excellent)</option>
+                  <option value="4">★★★★☆ (4.0 Very Good)</option>
+                  <option value="3">★★★☆☆ (3.0 Good)</option>
+                  <option value="2">★★☆☆☆ (2.0 Fair)</option>
+                  <option value="1">★☆☆☆☆ (1.0 Needs Improvement)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="font-bold text-charcoal/70 dark:text-dark-muted block mb-1">
+                  Detailed Review & Experience:
                 </label>
                 <textarea
                   required

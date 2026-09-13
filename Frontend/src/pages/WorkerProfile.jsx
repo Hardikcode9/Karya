@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useParams, useOutletContext } from "react-router-dom";
+import { useNavigate, useParams, useOutletContext } from "react-router-dom";
 import { ArrowLeft, MapPin, ShieldCheck, Clock, Share2, Phone } from "lucide-react";
 import Rating from "../components/ui/Rating";
 import Button from "../components/ui/Button";
@@ -11,9 +11,12 @@ import api from "../utils/api";
 export default function WorkerProfile() {
   const { workerId } = useParams();
   const outletContext = useOutletContext();
+  const navigate = useNavigate();
   const [worker, setWorker] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [realReviews, setRealReviews] = useState([]);
+  const [realAvgRating, setRealAvgRating] = useState(0);
 
   useEffect(() => {
     const fetchWorker = async () => {
@@ -42,6 +45,30 @@ export default function WorkerProfile() {
             phone: w.user?.phone || "",
             shgId: null
           });
+
+          // Fetch real reviews
+          try {
+            const ratingsRes = await api.get(`/ratings/worker/${workerId}`);
+            if (ratingsRes.data?.ratings?.length > 0) {
+              const allReviews = ratingsRes.data.ratings.map(r => ({
+                id: r._id,
+                author: r.customer?.name || "Customer",
+                village: r.customer?.village || "Local Area",
+                rating: r.rating,
+                dateTime: new Date(r.createdAt).toLocaleDateString("en-IN", {
+                  day: "numeric", month: "short", year: "numeric",
+                }),
+                text: r.review || "Great service!",
+                verified: true,
+                helpful: 0,
+              }));
+              setRealReviews(allReviews);
+              const avg = allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length;
+              setRealAvgRating(Number(avg.toFixed(1)));
+            }
+          } catch (err) {
+            // non-critical
+          }
         } else {
           setError("Worker profile not found.");
         }
@@ -68,7 +95,7 @@ export default function WorkerProfile() {
     return (
       <div className="pt-40 container-kare text-center">
         <p className="text-charcoal/60 dark:text-dark-muted">We couldn't find that worker.</p>
-        <Button as={Link} to="/workers" className="mt-4" variant="outline">Back to workers</Button>
+        <Button onClick={() => navigate(-1)} className="mt-4" variant="outline">Back</Button>
       </div>
     );
   }
@@ -89,9 +116,9 @@ export default function WorkerProfile() {
   return (
     <div className="pt-32 sm:pt-40 pb-20">
       <div className="container-kare">
-        <Link to="/workers" className="inline-flex items-center gap-1.5 text-sm text-charcoal/50 dark:text-dark-muted hover:text-charcoal dark:hover:text-dark-text mb-6">
-          <ArrowLeft size={15} /> Back to workers
-        </Link>
+        <button onClick={() => navigate(-1)} className="inline-flex items-center gap-1.5 text-sm text-charcoal/50 dark:text-dark-muted hover:text-charcoal dark:hover:text-dark-text mb-6 cursor-pointer">
+          <ArrowLeft size={15} /> Back
+        </button>
 
         <div className="grid lg:grid-cols-[1fr_1.4fr] gap-10">
           <div className="rounded-[2rem] overflow-hidden aspect-square">
@@ -157,8 +184,9 @@ export default function WorkerProfile() {
           targetId={worker.id}
           targetName={worker.name}
           targetCategory={worker.role}
-          initialRating={worker.rating}
-          initialReviewsCount={worker.completedJobs}
+          initialRating={realAvgRating}
+          initialReviewsCount={realReviews.length}
+          initialReviews={realReviews}
         />
       </div>
     </div>

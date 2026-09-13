@@ -93,28 +93,6 @@ export default function ServiceCard({ service, index = 0 }) {
             ₹{price}<span className="text-xs font-normal text-charcoal/50 dark:text-dark-muted">/{service.priceUnit || "visit"}</span>
           </p>
         </div>
-
-        <button
-          type="button"
-          onClick={handleAddToCart}
-          className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full text-xs font-semibold transition-all duration-200 active:scale-95 shadow-xs ${
-            added
-              ? "bg-emerald-600 text-white"
-              : "bg-olive-700 hover:bg-olive-800 text-cream dark:bg-olive-600 dark:hover:bg-olive-500"
-          }`}
-        >
-          {added ? (
-            <>
-              <Check className="w-3.5 h-3.5" />
-              <span>Added</span>
-            </>
-          ) : (
-            <>
-              <Plus className="w-3.5 h-3.5" />
-              <span>Add</span>
-            </>
-          )}
-        </button>
       </div>
     </motion.div>
   );

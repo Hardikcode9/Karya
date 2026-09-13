@@ -4,6 +4,8 @@ const Booking = require("../models/Booking");
 const WorkerProfile = require("../models/WorkerProfile");
 const Notification = require("../models/Notification");
 const User = require("../models/User");
+const Payment = require("../models/Payment");
+const Earning = require("../models/Earning");
 
 const createBooking = async (req, res) => {
   try {
@@ -75,47 +77,8 @@ const createBooking = async (req, res) => {
       });
     }
 
-    const dayNames = [
-  "sunday",
-  "monday",
-  "tuesday",
-  "wednesday",
-  "thursday",
-  "friday",
-  "saturday",
-];
-
-const bookingDay = dayNames[bookingDate.getDay()];
-const hours = workerProfile.workingHours?.[bookingDay];
-
-if (!hours || !hours.start || !hours.end) {
-  return res.status(400).json({
-    success: false,
-    message: "Worker is not available on this day",
-  });
-}
-
-const bookingStartMinutes =
-  bookingDate.getHours() * 60 + bookingDate.getMinutes();
-
-const [startHour, startMinute] = hours.start.split(":").map(Number);
-const [endHour, endMinute] = hours.end.split(":").map(Number);
-
-const workingStartMinutes = startHour * 60 + startMinute;
-const workingEndMinutes = endHour * 60 + endMinute;
-
-const bookingEndMinutes =
-  bookingStartMinutes + Number(duration);
-
-if (
-  bookingStartMinutes < workingStartMinutes ||
-  bookingEndMinutes > workingEndMinutes
-) {
-  return res.status(400).json({
-    success: false,
-    message: "Booking time is outside worker working hours",
-  });
-}
+    // Removed strict day-by-day time validation since workingHours is now a text string
+    // e.g. "Mon-Sat, 9AM-5PM" which is displayed to customers rather than strictly enforced by the backend
 
     // Make sure selected service belongs to the worker
     if (workerProfile.service.toString() !== service) {
@@ -320,6 +283,19 @@ const updateBookingStatus = async (req, res) => {
     const workerName = workerUser?.name || "The worker";
 
     if (status === "accepted") {
+      // Create a pending payment record so it shows up in customer's payment history
+      const existingPayment = await Payment.findOne({ booking: booking._id });
+      if (!existingPayment) {
+        await Payment.create({
+          booking: booking._id,
+          customer: booking.customer,
+          worker: booking.worker,
+          amount: booking.price,
+          paymentMethod: "upi", // default, can be updated later
+          status: "pending",
+        });
+      }
+
       await Notification.create({
         recipient: booking.customer, // Customer's User ID
         title: "Booking Accepted",
@@ -342,6 +318,19 @@ const updateBookingStatus = async (req, res) => {
         message: `${workerName} has marked the job as completed.`,
         type: "booking",
         relatedId: booking._id,
+      });
+      
+      // Look for a payment to determine mode, or default to cash
+      const payment = await Payment.findOne({ booking: booking._id });
+      const paymentMode = payment ? payment.paymentMethod : "cash";
+
+      // Create an Earning record for the worker
+      await Earning.create({
+        worker: booking.worker,
+        booking: booking._id,
+        amount: booking.price,
+        paymentMode: paymentMode,
+        status: "cleared"
       });
     }
 

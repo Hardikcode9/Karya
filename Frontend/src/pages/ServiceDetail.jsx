@@ -5,7 +5,7 @@ import Icon from "../components/ui/Icon";
 import Rating from "../components/ui/Rating";
 import Button from "../components/ui/Button";
 import ImageTile from "../components/ui/ImageTile";
-import RatingAndReviewsSection from "../components/reviews/RatingAndReviewsSection";
+
 import api from "../utils/api";
 import { getServiceImage } from "../utils/serviceImages";
 
@@ -37,6 +37,7 @@ export default function ServiceDetail() {
         setService(fetchedService);
 
         // Fetch real workers for this service from the backend
+        let workerIds = [];
         try {
           const workersResponse = await api.get("/workers", {
             params: { service: fetchedService._id, limit: 50 },
@@ -50,17 +51,18 @@ export default function ServiceDetail() {
               role: w.service?.name || fetchedService.name || "Technician",
               village: w.village || "Local District",
               distanceKm: w.distanceInKm ?? 3.5,
-              rating: w.rating || 4.5,
+              rating: w.rating || 0,
               skills: w.skills?.length > 0 ? w.skills : [fetchedService.name],
               price: w.pricePerService || 400,
               priceUnit: "visit",
-              matchPercent: w.matchScore ? Math.round(w.matchScore) : 92,
-              completedJobs: w.totalReviews || 18,
-              experienceYears: w.experience || 4,
+              matchPercent: w.matchScore ? Math.round(w.matchScore) : 0,
+              completedJobs: w.totalReviews || 0,
+              experienceYears: w.experience || 0,
               bio: w.bio || "Experienced local trade specialist.",
               phone: w.user?.phone || "",
             }));
             setMatches(backendWorkers.slice(0, 4));
+            workerIds = workersResponse.data.workers.map((w) => w._id);
           } else {
             // Fallback: try to get all workers if service filter returned empty
             const allWorkersResponse = await api.get("/workers", { params: { limit: 50 } });
@@ -72,17 +74,18 @@ export default function ServiceDetail() {
                 role: w.service?.name || "Technician",
                 village: w.village || "Local District",
                 distanceKm: w.distanceInKm ?? 3.5,
-                rating: w.rating || 4.5,
+                rating: w.rating || 0,
                 skills: w.skills?.length > 0 ? w.skills : [w.service?.name || "Maintenance"],
                 price: w.pricePerService || 400,
                 priceUnit: "visit",
-                matchPercent: 85,
-                completedJobs: w.totalReviews || 18,
-                experienceYears: w.experience || 4,
+                matchPercent: 0,
+                completedJobs: w.totalReviews || 0,
+                experienceYears: w.experience || 0,
                 bio: w.bio || "Experienced local trade specialist.",
                 phone: w.user?.phone || "",
               }));
               setMatches(backendWorkers.slice(0, 4));
+              workerIds = allWorkersResponse.data.workers.map((w) => w._id);
             } else {
               setMatches([]);
             }
@@ -183,9 +186,11 @@ export default function ServiceDetail() {
                       <h3 className="font-display text-lg text-charcoal dark:text-dark-text">{w.name}</h3>
                       <p className="text-sm text-charcoal/55 dark:text-dark-muted">{w.role}</p>
                     </div>
-                    <span className="text-xs font-medium bg-olive-100 dark:bg-olive-900/50 text-olive-800 dark:text-olive-300 rounded-full px-2.5 py-1 shrink-0">
-                      {w.matchPercent}%
-                    </span>
+                    {w.matchPercent > 0 && (
+                      <span className="text-xs font-medium bg-olive-100 dark:bg-olive-900/50 text-olive-800 dark:text-olive-300 rounded-full px-2.5 py-1 shrink-0">
+                        {w.matchPercent}%
+                      </span>
+                    )}
                   </div>
                   <p className="text-sm text-charcoal/55 dark:text-dark-muted flex items-center gap-1">
                     <MapPin size={13} /> {w.distanceKm} km · ₹{w.price}/{w.priceUnit}
@@ -218,17 +223,6 @@ export default function ServiceDetail() {
         )}
       </section>
 
-      {/* Ratings, Reviews & Query/Suggestion Section for Service */}
-      <section className="container-kare">
-        <RatingAndReviewsSection
-          targetType="service"
-          targetId={service.id || service._id}
-          targetName={service.name}
-          targetCategory={service.category || "Village Service"}
-          initialRating={service.rating || 4.8}
-          initialReviewsCount={service.totalBookings || 32}
-        />
-      </section>
     </div>
   );
 }

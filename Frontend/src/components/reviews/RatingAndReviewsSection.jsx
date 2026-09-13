@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../hooks/useToast";
+import api from "../../utils/api";
 
 export default function RatingAndReviewsSection({
   targetType = "worker", // 'worker' | 'service' | 'product' | 'shg'
@@ -13,23 +14,22 @@ export default function RatingAndReviewsSection({
   targetName,
   targetImage,
   targetCategory,
-  initialRating = 4.8,
-  initialReviewsCount = 24,
+  initialRating = 0,
+  initialReviewsCount = 0,
   initialReviews = [],
+  bookingId = null, // Required for submitting reviews via backend
 }) {
   const { user } = useAuth();
   const toast = useToast();
 
-  // Default seed reviews if none passed
-  const defaultInitialList = [];
-
   const [reviewsList, setReviewsList] = useState(
-    initialReviews.length > 0 ? initialReviews : defaultInitialList
+    initialReviews.length > 0 ? initialReviews : []
   );
 
   // Modals
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [showQueryModal, setShowQueryModal] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   // Rating Form State
   const [ratingStars, setRatingStars] = useState(5);
@@ -45,12 +45,29 @@ export default function RatingAndReviewsSection({
   const [querySubject, setQuerySubject] = useState("");
   const [queryDescription, setQueryDescription] = useState("");
 
-  // Calculate dynamic average
+  // Calculate dynamic average from actual reviews
   const totalReviews = reviewsList.length;
   const avgRating =
     totalReviews > 0
       ? (reviewsList.reduce((acc, r) => acc + (r.rating || 5), 0) / totalReviews).toFixed(1)
       : initialRating;
+
+  // Calculate star distribution dynamically from reviews (no hardcoded values)
+  const starDistribution = (() => {
+    if (totalReviews === 0) {
+      return [
+        { stars: 5, pct: 0 },
+        { stars: 4, pct: 0 },
+        { stars: 3, pct: 0 },
+        { stars: 2, pct: 0 },
+        { stars: 1, pct: 0 },
+      ];
+    }
+    return [5, 4, 3, 2, 1].map((s) => {
+      const count = reviewsList.filter((r) => r.rating === s).length;
+      return { stars: s, pct: Math.round((count / totalReviews) * 100) };
+    });
+  })();
 
   // Star Labels
   const starLabels = {
@@ -62,13 +79,86 @@ export default function RatingAndReviewsSection({
   };
 
   // Submit Rating & Review
-  const handleSubmitRating = (e) => {
+  const handleSubmitRating = async (e) => {
     e.preventDefault();
     if (!reviewComment.trim()) {
       toast.show("Please write a short review comment", "error");
       return;
     }
 
+    // If we have a bookingId, submit to backend API
+    if (bookingId) {
+      setSubmitting(true);
+      try {
+        const res = await api.post("/ratings", {
+          booking: bookingId,
+          rating: ratingStars,
+          review: reviewComment.trim(),
+        });
+
+        const newReview = {
+          id: res.data?.rating?._id || `rev-${Date.now()}`,
+          author: user?.name || "Verified Customer",
+          village: user?.village || "Local Area",
+          rating: ratingStars,
+          dateTime: "Just now • Today",
+          text: reviewComment.trim(),
+          verified: true,
+          helpful: 0,
+        };
+
+        setReviewsList([newReview, ...reviewsList]);
+        setShowRatingModal(false);
+        setReviewTitle("");
+        setReviewComment("");
+        setRatingStars(5);
+        toast.show(`Your rating & review for ${targetName} was published!`, "success");
+      } catch (err) {
+        const errMsg = err.response?.data?.message || "Failed to submit review";
+        toast.show(errMsg, "error");
+      } finally {
+        setSubmitting(false);
+      }
+      return;
+    }
+
+    // Direct rating without explicit bookingId for worker profiles
+    if (targetType === "worker") {
+      setSubmitting(true);
+      try {
+        const res = await api.post("/ratings/direct", {
+          workerId: targetId,
+          rating: ratingStars,
+          review: reviewComment.trim(),
+        });
+
+        const newReview = {
+          id: res.data?.rating?._id || `rev-${Date.now()}`,
+          author: user?.name || "Verified Customer",
+          village: user?.village || "Local Area",
+          rating: ratingStars,
+          dateTime: "Just now • Today",
+          text: reviewComment.trim(),
+          verified: true,
+          helpful: 0,
+        };
+
+        setReviewsList([newReview, ...reviewsList]);
+        setShowRatingModal(false);
+        setReviewTitle("");
+        setReviewComment("");
+        setRatingStars(5);
+        toast.show(`Your rating & review for ${targetName} was published!`, "success");
+      } catch (err) {
+        const errMsg = err.response?.data?.message || "Failed to submit review";
+        toast.show(errMsg, "error");
+      } finally {
+        setSubmitting(false);
+      }
+      return;
+    }
+
+    // Fallback: local-only review (e.g. for services)
     const newReview = {
       id: `rev-${Date.now()}`,
       author: reviewerName.trim() || user?.name || "Verified Customer",
@@ -115,6 +205,9 @@ export default function RatingAndReviewsSection({
     toast.show("Thank you for your feedback!", "info");
   };
 
+  // Only show "Rate & Review" button if user is a customer
+  const canReview = user?.role === "customer";
+
   return (
     <section className="mt-14 pt-10 border-t border-charcoal/10 dark:border-dark-border">
       {/* Section Header & Main Action Buttons */}
@@ -135,15 +228,17 @@ export default function RatingAndReviewsSection({
 
         {/* Both Required Buttons matching the exact unified structure */}
         <div className="flex flex-wrap items-center gap-3">
-          {/* Button 1: Rate & Review */}
-          <button
-            type="button"
-            onClick={() => setShowRatingModal(true)}
-            className="inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-bold text-xs sm:text-sm bg-olive-700 hover:bg-olive-800 active:scale-[0.98] text-white shadow-sm transition-all border border-olive-800/20 cursor-pointer"
-          >
-            <Star size={16} className="shrink-0 fill-amber-300 text-amber-300" />
-            <span>Rate & Review</span>
-          </button>
+          {/* Button 1: Rate & Review - only for customers */}
+          {canReview && (
+            <button
+              type="button"
+              onClick={() => setShowRatingModal(true)}
+              className="inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-bold text-xs sm:text-sm bg-olive-700 hover:bg-olive-800 active:scale-[0.98] text-white shadow-sm transition-all border border-olive-800/20 cursor-pointer"
+            >
+              <Star size={16} className="shrink-0 fill-amber-300 text-amber-300" />
+              <span>Rate & Review</span>
+            </button>
+          )}
 
           {/* Button 2: Query or Suggestion */}
           <button
@@ -180,24 +275,20 @@ export default function RatingAndReviewsSection({
             </div>
 
             <p className="text-xs text-charcoal/60 dark:text-dark-muted font-medium">
-              Based on <strong>{totalReviews}</strong> authentic village reviews
+              Based on <strong>{totalReviews}</strong> {totalReviews === 1 ? "review" : "reviews"}
             </p>
 
-            <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 text-[11px] font-bold border border-emerald-500/20">
-              <ShieldCheck size={13} className="text-emerald-600" />
-              <span>100% Verified Community Feedback</span>
-            </div>
+            {totalReviews > 0 && (
+              <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 text-[11px] font-bold border border-emerald-500/20">
+                <ShieldCheck size={13} className="text-emerald-600" />
+                <span>Verified Community Feedback</span>
+              </div>
+            )}
           </div>
 
-          {/* Rating Distribution Progress Bars */}
+          {/* Rating Distribution Progress Bars - dynamically calculated */}
           <div className="md:col-span-8 space-y-2">
-            {[
-              { stars: 5, pct: 85 },
-              { stars: 4, pct: 12 },
-              { stars: 3, pct: 3 },
-              { stars: 2, pct: 0 },
-              { stars: 1, pct: 0 },
-            ].map(({ stars, pct }) => (
+            {starDistribution.map(({ stars, pct }) => (
               <div key={stars} className="flex items-center gap-3 text-xs">
                 <span className="w-8 font-bold text-charcoal/70 dark:text-dark-muted text-right flex items-center justify-end gap-1">
                   <span>{stars}</span>
@@ -224,6 +315,12 @@ export default function RatingAndReviewsSection({
           <span>Customer Feedback ({reviewsList.length})</span>
           <span className="text-xs font-normal text-charcoal/50 dark:text-dark-muted">Sorted by most recent</span>
         </h4>
+
+        {reviewsList.length === 0 && (
+          <div className="bg-cream-card dark:bg-dark-card rounded-2xl p-8 text-center border border-charcoal/10 dark:border-dark-border">
+            <p className="text-charcoal/60 dark:text-dark-muted text-sm">No reviews yet. Be the first to share your experience!</p>
+          </div>
+        )}
 
         {reviewsList.map((rev) => (
           <div
@@ -394,7 +491,7 @@ export default function RatingAndReviewsSection({
                 </button>
               </div>
 
-              {/* Action Buttons with exact button structure */}
+              {/* Action Buttons */}
               <div className="pt-3 border-t border-charcoal/10 dark:border-dark-border flex items-center justify-end gap-3">
                 <button
                   type="button"
@@ -405,10 +502,11 @@ export default function RatingAndReviewsSection({
                 </button>
                 <button
                   type="submit"
-                  className="inline-flex items-center justify-center gap-2.5 px-6 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-olive-700 hover:bg-olive-800 active:scale-[0.98] text-white shadow-sm border border-olive-800/20 transition-all cursor-pointer"
+                  disabled={submitting}
+                  className="inline-flex items-center justify-center gap-2.5 px-6 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-olive-700 hover:bg-olive-800 active:scale-[0.98] text-white shadow-sm border border-olive-800/20 transition-all cursor-pointer disabled:opacity-50"
                 >
                   <Star size={16} className="shrink-0 fill-amber-300 text-amber-300" />
-                  <span>Submit Verified Review</span>
+                  <span>{submitting ? "Submitting..." : "Submit Verified Review"}</span>
                 </button>
               </div>
             </form>
@@ -543,7 +641,7 @@ export default function RatingAndReviewsSection({
                 />
               </div>
 
-              {/* Action Buttons with exact button structure */}
+              {/* Action Buttons */}
               <div className="pt-3 border-t border-charcoal/10 dark:border-dark-border flex items-center justify-end gap-3">
                 <button
                   type="button"

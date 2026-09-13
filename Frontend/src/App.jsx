@@ -5,8 +5,7 @@ import {
   LayoutDashboard, ClipboardList, CalendarCheck, Wallet, Star, User,
   Inbox, Briefcase, Settings2, Clock, IndianRupee,
   ShoppingBag, Users, TrendingUp, MessageSquare, Sliders,
-  Users2, ShieldCheck, FileWarning, BarChart3, Globe2, Cog, Activity, HelpCircle, MapPin,
-  UserCheck, Package, Lightbulb, PhoneCall,
+  UserCheck, Package, Lightbulb, PhoneCall, Sparkles
 } from "lucide-react";
 
 import PublicLayout from "./components/layout/PublicLayout";
@@ -77,8 +76,12 @@ function AdminRedirect() {
   );
 }
 
+import AdminDashboard from "./pages/dashboards/AdminDashboard";
+import OrderAutomationHub from "./components/automation/OrderAutomationHub";
+
 const customerNav = [
   { to: "/customer", end: true, label: "Overview", icon: LayoutDashboard },
+  { to: "/customer/automation", label: "Order Automation", icon: Sparkles },
   { to: "/customer/map", label: "Nearby Map", icon: MapPin },
   { to: "/customer/activity", label: "Recent Activity", icon: Activity },
   { to: "/customer/payments", label: "Payments", icon: Wallet },
@@ -149,6 +152,7 @@ export default function App() {
         }
       >
         <Route index element={<CustomerDashboard />} />
+        <Route path="automation" element={<OrderAutomationHub />} />
         <Route path="map" element={<CustomerMap />} />
         <Route path="activity" element={<CustomerActivity />} />
         <Route path="requests" element={<CustomerActivity />} />

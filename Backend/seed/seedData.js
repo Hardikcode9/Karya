@@ -27,6 +27,7 @@ const seedData = async () => {
           "suresh.worker@example.com",
           "neha.worker@example.com",
           "vikas.worker@example.com",
+          "demo.customer@example.com",
         ],
       },
     });
@@ -101,6 +102,21 @@ const seedData = async () => {
     // -------------------------
 
     const hashedPassword = await bcrypt.hash("Test@123", 10);
+
+    // -------------------------
+    // CUSTOMER USER (demo access)
+    // -------------------------
+
+    const customer = await User.create({
+      name: "Demo Customer",
+      email: "demo.customer@example.com",
+      phone: "9000000010",
+      password: hashedPassword,
+      role: "customer",
+      isVerified: true,
+    });
+
+    console.log("Customer created:", customer.email, "(password: Test@123)");
 
     // -------------------------
     // WORKER USERS
@@ -286,6 +302,7 @@ const seedData = async () => {
     console.log("Seed data inserted successfully");
     console.log(`Services created: ${services.length}`);
     console.log(`Workers created: ${users.length}`);
+    console.log(`Customer created: ${customer.email}`);
 
     await mongoose.connection.close();
 

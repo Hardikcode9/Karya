@@ -1,13 +1,24 @@
-import { ShoppingBag, Users, IndianRupee, TrendingUp } from "lucide-react";
-import DashStat from "../../components/ui/DashStat";
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import {
+  Users, IndianRupee, Star, Package, CheckCircle2, Clock,
+  ArrowRight, Award, MapPin, Building2, Plus, ShoppingBag, TrendingUp
+} from "lucide-react";
+import { useAuth } from "../../hooks/useAuth";
 import api from "../../utils/api";
+import {
+  SHG_PROFILE_DATA,
+  SHG_ORDERS_DATA
+} from "../../data/shgDashboardData";
+import DashStat from "../../components/ui/DashStat";
 
 export default function SHGDashboard() {
+  const { user } = useAuth();
+
   const [shg, setShg] = useState({
-    name: "SHG Dashboard",
-    village: "Your Village",
-    members: 0,
+    name: user?.name || SHG_PROFILE_DATA.name,
+    village: SHG_PROFILE_DATA.village || "Your Village",
+    members: SHG_PROFILE_DATA.totalMembers || 0,
     earnings: 0
   });
   const [recentOrders, setRecentOrders] = useState([]);
@@ -17,12 +28,13 @@ export default function SHGDashboard() {
       try {
         const res = await api.get("/shg/dashboard");
         if (res.data?.success && res.data.dashboard) {
-          setShg({
-            name: res.data.dashboard.name || "SHG Dashboard",
-            village: res.data.dashboard.village || "Your Village",
-            members: res.data.dashboard.totalMembers || 0,
-            earnings: res.data.dashboard.totalEarnings || 0
-          });
+          setShg(prev => ({
+            ...prev,
+            name: res.data.dashboard.name || prev.name,
+            village: res.data.dashboard.village || prev.village,
+            members: res.data.dashboard.totalMembers || prev.members,
+            earnings: res.data.dashboard.totalEarnings || prev.earnings
+          }));
         }
       } catch (err) {
         console.error("Failed to fetch SHG dashboard", err);
@@ -30,21 +42,8 @@ export default function SHGDashboard() {
     };
     fetchDashboard();
   }, []);
-import { Link } from "react-router-dom";
-import {
-  Users, IndianRupee, Star, Package, CheckCircle2, Clock,
-  ArrowRight, Award, MapPin, Building2, Plus
-} from "lucide-react";
-import { useAuth } from "../../hooks/useAuth";
-import {
-  SHG_PROFILE_DATA,
-  SHG_ORDERS_DATA
-} from "../../data/shgDashboardData";
 
-export default function SHGDashboard() {
-  const { user } = useAuth();
-
-  const shgName = user?.name || SHG_PROFILE_DATA.name;
+  const shgName = shg.name;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
@@ -110,11 +109,6 @@ export default function SHGDashboard() {
         </div>
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <DashStat label="Active orders" value={recentOrders.length.toString()} icon={ShoppingBag} />
-        <DashStat label="Members" value={shg.members} icon={Users} />
-        <DashStat label="Total earnings" value={`₹${shg.earnings}`} icon={IndianRupee} />
-        <DashStat label="Customer growth" value="+18%" sub="This quarter" icon={TrendingUp} />
       {/* 2. Top Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Total Member (in your gp) */}
@@ -127,7 +121,7 @@ export default function SHGDashboard() {
               Total Member (in your GP)
             </p>
             <p className="font-display text-2xl sm:text-3xl font-bold text-charcoal dark:text-dark-text mt-1">
-              24
+              {shg.members}
             </p>
             <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold mt-0.5">
               100% Aadhaar &amp; Bank linked
@@ -148,7 +142,7 @@ export default function SHGDashboard() {
               Total Earning
             </p>
             <p className="font-display text-2xl sm:text-3xl font-bold text-olive-700 dark:text-olive-400 mt-1">
-              ₹1,84,500
+              ₹{shg.earnings.toLocaleString("en-IN")}
             </p>
             <p className="text-[11px] text-charcoal/50 dark:text-dark-muted mt-0.5">
               100% Zero-Cut Village Payout

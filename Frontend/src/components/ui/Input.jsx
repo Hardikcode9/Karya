@@ -68,7 +68,7 @@ const Input = forwardRef(
             <button
               type="button"
               onClick={onRightIconClick}
-              className="pr-3.5 pl-1 text-charcoal/40 hover:text-charcoal dark:text-dark-muted dark:hover:text-dark-text flex items-center transition-colors"
+              className="pr-3.5 pl-1 text-charcoal/40 hover:text-charcoal dark:text-dark-muted dark:hover:text-dark-text flex items-center transition-colors cursor-pointer"
             >
               <RightIcon className="w-4 h-4" />
             </button>

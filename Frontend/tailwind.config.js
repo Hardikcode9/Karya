@@ -80,7 +80,7 @@ export default {
       },
       maxWidth: {
         "8xl": "90rem",
-        inner: "760px",
+        inner: "875px",
       },
       keyframes: {
         shimmer: {

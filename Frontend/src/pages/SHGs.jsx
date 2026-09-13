@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   ShoppingBag, Star, Search, Filter, ArrowLeft, ArrowRight, Check,
   Plus, Minus, Trash2, Heart, Sparkles, ShieldCheck, Truck, RotateCcw,
@@ -191,12 +191,16 @@ const BLOG_POSTS = [
 ];
 
 export default function SHGs() {
-  const [page, setPage] = useState("home"); // 'home', 'shop', 'pdp', 'about', 'blog', 'admin'
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialPage = searchParams.get("tab") || "shop";
+  const [page, setPage] = useState(initialPage); // 'home', 'shop', 'pdp', 'about', 'blog', 'admin'
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [priceLimit, setPriceLimit] = useState(2500);
   const [sortBy, setSortBy] = useState("default");
   const [viewMode, setViewMode] = useState("grid");
+  const [inStockOnly, setInStockOnly] = useState(false);
+  const [giOnly, setGiOnly] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(PRODUCTS[0]);
   const [productQuantity, setProductQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState("Standard Pack");
@@ -223,7 +227,15 @@ export default function SHGs() {
   const openCategory = (category) => {
     setSelectedCategory(category);
     setPage("shop");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setSearchParams({});
+    setTimeout(() => {
+      const el = document.getElementById("catalog-section");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }, 50);
   };
 
   const addToCart = (product, qty = 1, variant = null) => {
@@ -242,6 +254,17 @@ export default function SHGs() {
     showToast("🛒", `${product.name} added to cart!`);
   };
 
+  // Product counts by category
+  const categoryCounts = useMemo(() => {
+    const counts = { All: PRODUCTS.length };
+    CATEGORIES.forEach((cat) => {
+      if (cat !== "All") {
+        counts[cat] = PRODUCTS.filter((p) => p.category === cat).length;
+      }
+    });
+    return counts;
+  }, []);
+
   // Filtered products
   const filteredProducts = useMemo(() => {
     return PRODUCTS.filter((p) => {
@@ -252,14 +275,16 @@ export default function SHGs() {
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         p.shgName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         p.village.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchCat && matchPrice && matchSearch;
+      const matchStock = !inStockOnly || p.inStock;
+      const matchGi = !giOnly || (p.tags && p.tags.some((t) => t.toLowerCase().includes("gi")));
+      return matchCat && matchPrice && matchSearch && matchStock && matchGi;
     }).sort((a, b) => {
       if (sortBy === "price-asc") return a.price - b.price;
       if (sortBy === "price-desc") return b.price - a.price;
       if (sortBy === "rating") return b.rating - a.rating;
       return 0;
     });
-  }, [selectedCategory, priceLimit, searchQuery, sortBy]);
+  }, [selectedCategory, priceLimit, searchQuery, sortBy, inStockOnly, giOnly]);
 
   return (
     <div className="min-h-screen bg-cream dark:bg-dark-bg text-charcoal dark:text-dark-text pt-24 sm:pt-28 pb-20 transition-colors">
@@ -271,10 +296,9 @@ export default function SHGs() {
         </div>
       )}
 
-
-      {/* VIEW: HOME / FEATURED */}
-      {page === "home" && (
-        <div className="container-kare space-y-12">
+      {/* MAIN UNIFIED SHG STORE VIEW (Hero Banner, Value Badges, Catalog with Left Filters) */}
+      {!["pdp", "about", "blog", "admin"].includes(page) && (
+        <div className="w-full max-w-[1700px] pl-[5vw] pr-[10vw] space-y-12">
           {/* Hero Banner */}
           <div className="relative rounded-[2.5rem] overflow-hidden p-6 sm:p-10 lg:p-12 bg-gradient-to-br from-olive-950 via-olive-900 to-charcoal text-cream shadow-elevation-2">
             <div className="absolute -right-20 -bottom-20 w-96 h-96 rounded-full bg-olive-600/20 blur-3xl pointer-events-none" />
@@ -367,159 +391,53 @@ export default function SHGs() {
             ))}
           </div>
 
-          {/* Category Chips Bar */}
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-display text-xl font-medium text-charcoal dark:text-dark-text">
-                Browse by Specialty
-              </h3>
-              <button
-                onClick={() => openCategory("All")}
-                className="text-xs font-bold text-olive-700 dark:text-olive-400 hover:underline"
-              >
-                View Full Catalog →
-              </button>
-            </div>
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-              {CATEGORIES.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => openCategory(cat)}
-                  className="px-4 py-2 rounded-2xl text-xs font-bold whitespace-nowrap bg-white dark:bg-dark-card border border-charcoal/10 dark:border-dark-border hover:border-olive-600 dark:hover:border-olive-500 text-charcoal dark:text-dark-text transition-all hover:shadow-xs"
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Featured Grid */}
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h3 className="font-display text-2xl font-medium text-charcoal dark:text-dark-text">
-                  Featured Artisan Creations
-                </h3>
-                <p className="text-xs text-charcoal/60 dark:text-dark-muted mt-0.5">
-                  Top-rated goods straight from village women cooperatives.
-                </p>
-              </div>
-            </div>
-
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              {PRODUCTS.slice(0, 8).map((product) => (
-                <div
-                  key={product.id}
-                  className="group rounded-3xl bg-white dark:bg-dark-card border border-charcoal/10 dark:border-dark-border overflow-hidden flex flex-col shadow-xs hover:shadow-elevation-2 transition-all duration-300"
-                >
-                  <div
-                    onClick={() => openProduct(product)}
-                    className="relative aspect-square overflow-hidden bg-charcoal/5 dark:bg-dark-surface cursor-pointer"
-                  >
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      loading="lazy"
-                    />
-                    {product.tags?.[0] && (
-                      <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-olive-900/80 backdrop-blur text-cream text-[10px] font-bold">
-                        {product.tags[0]}
-                      </span>
-                    )}
-                    <div className="absolute top-3 right-3 p-1.5 rounded-full bg-white/80 dark:bg-black/60 backdrop-blur text-charcoal dark:text-dark-text">
-                      <div className="flex items-center gap-0.5 text-[11px] font-bold">
-                        <Star size={11} className="fill-amber-400 text-amber-400" />
-                        <span>{product.rating}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-4 flex-1 flex flex-col justify-between gap-3">
-                    <div>
-                      <p className="text-[11px] font-semibold text-olive-800 dark:text-olive-400">
-                        {product.shgName}
-                      </p>
-                      <h4
-                        onClick={() => openProduct(product)}
-                        className="font-bold text-sm text-charcoal dark:text-dark-text mt-0.5 hover:text-olive-700 transition-colors cursor-pointer line-clamp-1"
-                      >
-                        {product.name}
-                      </h4>
-                      <p className="text-[11px] text-charcoal/50 dark:text-dark-muted flex items-center gap-1 mt-1">
-                        <MapPin size={11} />
-                        <span>{product.village}</span>
-                      </p>
-                    </div>
-
-                    <div className="pt-2 border-t border-charcoal/5 dark:border-dark-border flex items-center justify-between">
-                      <div>
-                        <div className="flex items-baseline gap-1.5">
-                          <span className="font-display font-bold text-base text-charcoal dark:text-dark-text">
-                            ₹{product.price}
-                          </span>
-                          {product.originalPrice && (
-                            <span className="text-xs text-charcoal/40 line-through">
-                              ₹{product.originalPrice}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={() => addToCart(product, 1)}
-                        className="p-2 rounded-xl bg-olive-700 hover:bg-olive-800 text-cream transition-transform active:scale-90 shadow-xs"
-                        title="Add to Cart"
-                      >
-                        <Plus size={15} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* VIEW: SHOP / CATALOG */}
-      {page === "shop" && (
-        <div className="container-kare space-y-8">
+          {/* CATALOG SECTION WITH LEFT SIDEBAR FILTERS */}
+          <div id="catalog-section" className="space-y-8 scroll-mt-24">
           {/* Header Controls */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-charcoal/10 dark:border-dark-border">
             <div>
-              <h2 className="font-display text-3xl font-medium text-charcoal dark:text-dark-text">
+              <h2 className="font-display text-2xl sm:text-3xl font-medium text-charcoal dark:text-dark-text">
                 Rural Artisan Catalog
               </h2>
-              <p className="text-xs text-charcoal/60 dark:text-dark-muted mt-1">
+              <p className="text-xs text-charcoal/60 dark:text-dark-muted mt-0.5">
                 Showing {filteredProducts.length} verified products from women collectives.
               </p>
             </div>
 
-            {/* Search Bar */}
-            <div className="relative w-full md:w-80">
-              <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-charcoal/40" />
+            {/* Search Bar - Increased Length */}
+            <div className="relative w-full md:w-[480px] lg:w-[620px] xl:w-[740px]">
+              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-charcoal/40 dark:text-dark-muted" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search saree, honey, pottery, SHG..."
-                className="w-full pl-9 pr-4 py-2 rounded-2xl bg-white dark:bg-dark-card border border-charcoal/10 dark:border-dark-border text-xs text-charcoal dark:text-dark-text placeholder:text-charcoal/40 focus:outline-none focus:ring-2 focus:ring-olive-500"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white dark:bg-dark-card border border-charcoal/15 dark:border-dark-border text-xs sm:text-sm text-charcoal dark:text-dark-text placeholder:text-charcoal/40 focus:outline-none focus:ring-2 focus:ring-olive-500 shadow-2xs transition-all"
               />
             </div>
           </div>
 
-          <div className="grid lg:grid-cols-[260px_1fr] gap-8 items-start">
-            {/* Sidebar Filters */}
-            <div className="p-5 rounded-3xl bg-white dark:bg-dark-card border border-charcoal/10 dark:border-dark-border space-y-6">
-              <div className="flex items-center justify-between pb-3 border-b border-charcoal/5 dark:border-dark-border">
-                <span className="font-bold text-xs uppercase tracking-wider text-charcoal/60 dark:text-dark-muted flex items-center gap-1.5">
-                  <Filter size={13} /> Filters
-                </span>
-                {(selectedCategory !== "All" || priceLimit < 2500 || searchQuery) && (
+          <div className="grid lg:grid-cols-[250px_1fr] xl:grid-cols-[270px_1fr] gap-6 xl:gap-8 items-start relative">
+            {/* Sidebar Filters - Fixed at Left Side & Completely Visible on Screen (NO scrollbar) */}
+            <aside className="lg:sticky lg:top-20 self-start p-3.5 rounded-2xl bg-white dark:bg-dark-card border border-charcoal/10 dark:border-dark-border space-y-2 shadow-xs z-20">
+              {/* Header */}
+              <div className="flex items-center justify-between pb-1.5 border-b border-charcoal/10 dark:border-dark-border">
+                <div className="flex items-center gap-1.5">
+                  <Filter size={14} className="text-olive-700 dark:text-olive-400" />
+                  <span className="font-bold text-xs uppercase tracking-wider text-charcoal dark:text-dark-text">
+                    Filters
+                  </span>
+                </div>
+                {(selectedCategory !== "All" || priceLimit < 2500 || searchQuery || inStockOnly || giOnly) && (
                   <button
-                    onClick={() => { setSelectedCategory("All"); setPriceLimit(2500); setSearchQuery(""); }}
-                    className="text-[11px] text-rose-600 font-bold hover:underline"
+                    onClick={() => {
+                      setSelectedCategory("All");
+                      setPriceLimit(2500);
+                      setSearchQuery("");
+                      setInStockOnly(false);
+                      setGiOnly(false);
+                    }}
+                    className="text-[10px] text-rose-600 dark:text-rose-400 font-bold hover:underline transition-colors cursor-pointer"
                   >
                     Reset
                   </button>
@@ -527,29 +445,48 @@ export default function SHGs() {
               </div>
 
               {/* Categories */}
-              <div className="space-y-2">
-                <p className="text-xs font-bold text-charcoal dark:text-dark-text">Categories</p>
-                <div className="space-y-1">
-                  {CATEGORIES.map((cat) => (
-                    <button
-                      key={cat}
-                      onClick={() => setSelectedCategory(cat)}
-                      className={`w-full text-left px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors flex items-center justify-between ${selectedCategory === cat
-                        ? "bg-olive-700 text-cream font-bold"
-                        : "text-charcoal/70 dark:text-dark-muted hover:bg-cream dark:hover:bg-dark-surface"
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-charcoal/50 dark:text-dark-muted mb-1">
+                  Categories
+                </p>
+                <div className="space-y-0.5">
+                  {CATEGORIES.map((cat) => {
+                    const count = categoryCounts[cat] || 0;
+                    const isSelected = selectedCategory === cat;
+                    return (
+                      <button
+                        key={cat}
+                        onClick={() => setSelectedCategory(cat)}
+                        className={`w-full text-left px-2.5 py-1 rounded-lg text-xs font-medium transition-all flex items-center justify-between cursor-pointer ${
+                          isSelected
+                            ? "bg-olive-700 text-cream font-bold shadow-2xs"
+                            : "text-charcoal/75 dark:text-dark-muted hover:bg-cream dark:hover:bg-dark-surface hover:text-charcoal"
                         }`}
-                    >
-                      <span>{cat}</span>
-                    </button>
-                  ))}
+                      >
+                        <span className="truncate pr-1 text-[11px]">{cat}</span>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <span
+                            className={`text-[9px] px-1.5 py-0.2 rounded font-semibold ${
+                              isSelected
+                                ? "bg-white/20 text-cream"
+                                : "bg-charcoal/5 dark:bg-dark-surface text-charcoal/50 dark:text-dark-muted"
+                            }`}
+                          >
+                            {count}
+                          </span>
+                          {isSelected && <Check size={12} className="text-cream" />}
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
-              {/* Price Filter */}
-              <div className="space-y-3 pt-4 border-t border-charcoal/5 dark:border-dark-border">
+              {/* Price Budget Filter */}
+              <div className="pt-1.5 border-t border-charcoal/10 dark:border-dark-border space-y-1">
                 <div className="flex items-center justify-between text-xs font-bold">
-                  <span>Max Price</span>
-                  <span className="text-olive-700 dark:text-olive-400">₹{priceLimit}</span>
+                  <span className="text-charcoal dark:text-dark-text text-[10px] uppercase tracking-wider text-charcoal/60 font-bold">Max Budget</span>
+                  <span className="text-olive-700 dark:text-olive-400 text-xs font-black">₹{priceLimit}</span>
                 </div>
                 <input
                   type="range"
@@ -558,43 +495,99 @@ export default function SHGs() {
                   step="50"
                   value={priceLimit}
                   onChange={(e) => setPriceLimit(Number(e.target.value))}
-                  className="w-full accent-olive-700 cursor-pointer"
+                  className="w-full h-1 accent-olive-700 cursor-pointer rounded-lg bg-charcoal/10"
                 />
+                {/* Quick Price Presets */}
+                <div className="grid grid-cols-4 gap-1 pt-0.5">
+                  {[
+                    { label: "All", val: 2500 },
+                    { label: "<₹500", val: 500 },
+                    { label: "<₹1k", val: 1000 },
+                    { label: "<₹1.5k", val: 1500 },
+                  ].map((p) => (
+                    <button
+                      key={p.label}
+                      type="button"
+                      onClick={() => setPriceLimit(p.val)}
+                      className={`py-0.5 rounded text-[10px] font-bold text-center transition-colors cursor-pointer ${
+                        priceLimit === p.val
+                          ? "bg-olive-700 text-cream"
+                          : "bg-charcoal/5 dark:bg-dark-surface text-charcoal/60 dark:text-dark-muted hover:bg-charcoal/10"
+                      }`}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              {/* Sort By */}
-              <div className="space-y-2 pt-4 border-t border-charcoal/5 dark:border-dark-border">
-                <p className="text-xs font-bold text-charcoal dark:text-dark-text">Sort By</p>
+              {/* Quick Toggles */}
+              <div className="pt-1.5 border-t border-charcoal/10 dark:border-dark-border space-y-1">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-charcoal/50 dark:text-dark-muted">
+                  Quick Toggles
+                </p>
+                <div className="space-y-0.5">
+                  <label className="flex items-center gap-2 text-[11px] font-medium text-charcoal dark:text-dark-text cursor-pointer hover:text-olive-700">
+                    <input
+                      type="checkbox"
+                      checked={inStockOnly}
+                      onChange={(e) => setInStockOnly(e.target.checked)}
+                      className="w-3.5 h-3.5 accent-olive-700 rounded cursor-pointer"
+                    />
+                    <span>In Stock Only</span>
+                  </label>
+                  <label className="flex items-center gap-2 text-[11px] font-medium text-charcoal dark:text-dark-text cursor-pointer hover:text-olive-700">
+                    <input
+                      type="checkbox"
+                      checked={giOnly}
+                      onChange={(e) => setGiOnly(e.target.checked)}
+                      className="w-3.5 h-3.5 accent-olive-700 rounded cursor-pointer"
+                    />
+                    <span>GI Tagged</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Sort By & View Mode (Single Combined Row) */}
+              <div className="pt-1.5 border-t border-charcoal/10 dark:border-dark-border flex items-center gap-1.5">
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-cream dark:bg-dark-surface border border-charcoal/10 dark:border-dark-border text-xs text-charcoal dark:text-dark-text font-semibold focus:outline-none"
+                  className="flex-1 min-w-0 px-2 py-1 rounded-lg bg-cream dark:bg-dark-surface border border-charcoal/15 dark:border-dark-border text-[11px] text-charcoal dark:text-dark-text font-semibold focus:outline-none focus:border-olive-600 cursor-pointer"
                 >
-                  <option value="default">Featured First</option>
-                  <option value="price-asc">Price: Low to High</option>
-                  <option value="price-desc">Price: High to Low</option>
-                  <option value="rating">Highest Rated</option>
+                  <option value="default">Featured</option>
+                  <option value="price-asc">Price: Low</option>
+                  <option value="price-desc">Price: High</option>
+                  <option value="rating">Top Rated</option>
                 </select>
+                <div className="flex items-center gap-0.5 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setViewMode("grid")}
+                    className={`p-1 rounded-md border transition-colors cursor-pointer ${
+                      viewMode === "grid"
+                        ? "bg-olive-700 text-cream border-olive-700 shadow-2xs"
+                        : "text-charcoal/60 dark:text-dark-muted border-charcoal/15 dark:border-dark-border hover:bg-cream"
+                    }`}
+                    title="Grid View"
+                  >
+                    <Grid size={13} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewMode("list")}
+                    className={`p-1 rounded-md border transition-colors cursor-pointer ${
+                      viewMode === "list"
+                        ? "bg-olive-700 text-cream border-olive-700 shadow-2xs"
+                        : "text-charcoal/60 dark:text-dark-muted border-charcoal/15 dark:border-dark-border hover:bg-cream"
+                    }`}
+                    title="List View"
+                  >
+                    <List size={13} />
+                  </button>
+                </div>
               </div>
-
-              {/* View Mode Toggle */}
-              <div className="flex items-center gap-2 pt-4 border-t border-charcoal/5 dark:border-dark-border">
-                <button
-                  onClick={() => setViewMode("grid")}
-                  className={`p-2 rounded-xl border ${viewMode === "grid" ? "bg-olive-700 text-cream border-olive-700" : "text-charcoal/60 border-charcoal/10"}`}
-                  title="Grid View"
-                >
-                  <Grid size={15} />
-                </button>
-                <button
-                  onClick={() => setViewMode("list")}
-                  className={`p-2 rounded-xl border ${viewMode === "list" ? "bg-olive-700 text-cream border-olive-700" : "text-charcoal/60 border-charcoal/10"}`}
-                  title="List View"
-                >
-                  <List size={15} />
-                </button>
-              </div>
-            </div>
+            </aside>
 
             {/* Products Listing */}
             <div>
@@ -734,14 +727,18 @@ export default function SHGs() {
             </div>
           </div>
         </div>
+      </div>
       )}
 
       {/* VIEW: PDP (PRODUCT DETAIL PAGE) */}
       {page === "pdp" && selectedProduct && (
         <div className="container-kare space-y-10">
           <button
-            onClick={() => setPage("shop")}
-            className="inline-flex items-center gap-2 text-xs font-bold text-charcoal/60 dark:text-dark-muted hover:text-charcoal dark:hover:text-dark-text"
+            onClick={() => {
+              setPage("shop");
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            className="inline-flex items-center gap-2 text-xs font-bold text-charcoal/60 dark:text-dark-muted hover:text-charcoal dark:hover:text-dark-text cursor-pointer"
           >
             <ArrowLeft size={14} /> Back to Catalog
           </button>

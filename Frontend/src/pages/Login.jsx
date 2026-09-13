@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Mail, Lock, Sparkles, ShieldCheck, RefreshCw, AlertCircle } from "lucide-react";
+import { Mail, Lock, Sparkles, ShieldCheck, RefreshCw, AlertCircle, Eye, EyeOff } from "lucide-react";
 import Logo from "../components/ui/Logo";
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
@@ -20,6 +20,7 @@ export default function Login() {
   const [loginMethod, setLoginMethod] = useState("otp"); // 'otp' or 'password'
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -334,11 +335,13 @@ export default function Login() {
               {loginMethod === "password" && (
                 <Input
                   label="Password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   leftIcon={Lock}
+                  rightIcon={showPassword ? EyeOff : Eye}
+                  onRightIconClick={() => setShowPassword((prev) => !prev)}
                   required
                 />
               )}

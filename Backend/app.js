@@ -2,9 +2,13 @@ const dns = require("dns");
 
 dns.setServers(["8.8.8.8", "1.1.1.1"]);
 
+const path = require("path");
 const express = require("express");
 const cors = require("cors");
-require("dotenv").config();
+
+// Load .env relative to this file so startup works from any cwd,
+// and let it override stray shell values like PORT=0.
+require("dotenv").config({ path: path.join(__dirname, ".env"), override: true });
 
 const connectDB = require("./config/db");
 
@@ -19,7 +23,7 @@ const invoiceRoutes = require("./routes/invoiceRoutes");
 const shgRoutes = require("./routes/shgroutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const earningRoutes = require("./routes/earningRoutes");
-
+const automationRoutes = require("./routes/automationRoutes");
 const app = express();
 
 app.use(cors());
@@ -39,7 +43,7 @@ app.use("/api/invoices", invoiceRoutes);
 app.use("/api/shg", shgRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/earnings", earningRoutes);
-
+app.use("/api/automation", automationRoutes);
 app.get("/", (req, res) => {
   res.json({
     success: true,
@@ -47,7 +51,8 @@ app.get("/", (req, res) => {
   });
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT =
+  Number(process.env.PORT) > 0 ? Number(process.env.PORT) : 5000;
 
 app.listen(PORT, () => {
   console.log(`KARYA Backend running on port ${PORT}`);

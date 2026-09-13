@@ -9,7 +9,7 @@ import Rating from "../../components/ui/Rating";
 import Button from "../../components/ui/Button";
 import { useAuth } from "../../hooks/useAuth";
 import api from "../../utils/api";
-
+import OrderAutomationHub from "../../components/automation/OrderAutomationHub";
 
 
 export default function CustomerDashboard() {
@@ -160,6 +160,9 @@ export default function CustomerDashboard() {
           to="/customer/reviews"
         />
       </div>
+
+      {/* Live Order Automation System */}
+      <OrderAutomationHub />
 
       {/* Recent 3 Product Purchases */}
       <div>

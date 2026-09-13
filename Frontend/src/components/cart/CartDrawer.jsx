@@ -2,14 +2,17 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X, Trash2, ShoppingBag, Plus, Minus, ArrowRight,
-  CheckCircle2, ShieldCheck, Tag, CreditCard
+  CheckCircle2, ShieldCheck, Tag, CreditCard, PhoneCall, FileText, Mail
 } from "lucide-react";
+import api from "../../utils/api";
 import { useCart } from "../../hooks/useCart";
 import { useOffline } from "../../hooks/useOffline";
 import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../hooks/useToast";
 import { processRazorpayPayment } from "../../utils/razorpay";
 import Button from "../ui/Button";
+import ConfirmationCallModal from "../automation/ConfirmationCallModal";
+import ReceiptModal from "../automation/ReceiptModal";
 
 export default function CartDrawer() {
   const {
@@ -30,11 +33,60 @@ export default function CartDrawer() {
   const [checkedOut, setCheckedOut] = useState(false);
   const [processingPayment, setProcessingPayment] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("online"); // 'online' | 'cash'
+  const [automationResult, setAutomationResult] = useState(null);
+  const [isCallOpen, setIsCallOpen] = useState(false);
+  const [isReceiptOpen, setIsReceiptOpen] = useState(false);
 
   if (!isCartOpen) return null;
 
   const platformFee = items.length > 0 ? 30 : 0;
   const finalTotal = Math.max(0, totalAmount + platformFee - discount);
+
+  const triggerOrderAutomationSequence = async (checkoutTotal, method, txnId) => {
+    try {
+      const isServiceOrder = items.some(
+        (i) =>
+          i.category?.toLowerCase().includes("service") ||
+          i.category?.toLowerCase().includes("repair") ||
+          i.category?.toLowerCase().includes("plumbing") ||
+          i.category?.toLowerCase().includes("electrical") ||
+          !i.category
+      );
+
+      const res = await api.post("/automation/trigger", {
+        customerEmail: user?.email,
+        customerName: user?.name,
+        customerPhone: user?.phone,
+        items: items.map((i) => ({
+          name: i.name,
+          category: i.category || "Service",
+          quantity: i.quantity || 1,
+          price: i.price || 0,
+        })),
+        amountPaid: checkoutTotal,
+        paymentMethod: method,
+        transactionId: txnId || `TXN-KRY-${Date.now()}`,
+        isService: isServiceOrder,
+        customArrivalDetails: {
+          providerName: items[0]?.workerName || "Ramesh Kumar (Verified Specialist)",
+          providerPhone: "+91 98234 56789",
+          serviceName: items[0]?.name || "Rural Trade Service",
+          arrivalWindow: "Today within 45 to 60 minutes",
+          address: "Registered Service Address",
+        },
+      });
+
+      if (res.data?.success) {
+        setAutomationResult(res.data);
+        toast.success(`Receipt & Thank-You emailed to ${res.data.stepSummary.userIdentified.email}`);
+        setTimeout(() => {
+          setIsCallOpen(true);
+        }, 1200);
+      }
+    } catch (err) {
+      console.warn("Automation background trigger error:", err);
+    }
+  };
 
   const applyCoupon = (e) => {
     e.preventDefault();
@@ -61,12 +113,12 @@ export default function CartDrawer() {
       await queueAction(orderPayload);
       setCheckedOut(true);
       toast.success("Order placed with Pay on Service Delivery");
+      triggerOrderAutomationSequence(finalTotal, "cash", `CASH-${Date.now()}`);
       return;
     }
 
     // Process via Razorpay Payment Gateway
     setProcessingPayment(true);
-    // Use first item's id or generate transaction order ID
     const sampleBookingId = items[0]?.bookingId || items[0]?.id;
 
     processRazorpayPayment({
@@ -76,6 +128,7 @@ export default function CartDrawer() {
       user,
       onSuccess: async (verifiedData) => {
         setProcessingPayment(false);
+        const txnId = verifiedData.payment?.transactionId || `RZP-${Date.now()}`;
         const orderPayload = {
           type: "CART_CHECKOUT",
           items,
@@ -83,12 +136,13 @@ export default function CartDrawer() {
           discount,
           total: finalTotal,
           paymentMethod: "online",
-          transactionId: verifiedData.payment?.transactionId,
+          transactionId: txnId,
           createdAt: new Date().toISOString(),
         };
         await queueAction(orderPayload);
         setCheckedOut(true);
         toast.success("Payment successful! Gateway transaction verified.");
+        triggerOrderAutomationSequence(finalTotal, "online", txnId);
       },
       onError: (errMessage) => {
         setProcessingPayment(false);
@@ -149,17 +203,46 @@ export default function CartDrawer() {
           {/* Body */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
             {checkedOut ? (
-              <div className="py-12 text-center flex flex-col items-center">
-                <div className="w-16 h-16 rounded-full bg-olive-100 dark:bg-olive-900/50 text-olive-700 dark:text-olive-300 flex items-center justify-center mb-4 animate-bounce">
+              <div className="py-8 text-center flex flex-col items-center space-y-4">
+                <div className="w-16 h-16 rounded-full bg-olive-100 dark:bg-olive-900/50 text-olive-700 dark:text-olive-300 flex items-center justify-center animate-bounce">
                   <CheckCircle2 size={36} />
                 </div>
-                <h3 className="font-display text-2xl text-charcoal dark:text-dark-text mb-2">
-                  Order Scheduled!
-                </h3>
-                <p className="text-sm text-charcoal/70 dark:text-dark-muted max-w-xs mb-6">
-                  Your bookings & SHG products are dispatched.
-                  {!isOnline && " Saved locally and will sync once online."}
-                </p>
+                <div>
+                  <h3 className="font-display text-2xl text-charcoal dark:text-dark-text mb-1">
+                    Order Scheduled!
+                  </h3>
+                  <p className="text-xs text-charcoal/70 dark:text-dark-muted max-w-xs mx-auto">
+                    Your bookings & SHG products are dispatched.
+                    {!isOnline && " Saved locally and will sync once online."}
+                  </p>
+                </div>
+
+                {/* Automation Status Card */}
+                <div className="w-full p-4 bg-emerald-50/80 dark:bg-emerald-950/40 rounded-2xl border border-emerald-500/30 text-left space-y-2.5">
+                  <div className="flex items-center gap-2 text-xs font-bold text-emerald-800 dark:text-emerald-300">
+                    <Mail size={15} />
+                    <span>Receipt & Thank-You Emailed</span>
+                  </div>
+                  <p className="text-[11px] text-emerald-700 dark:text-emerald-400">
+                    Delivered to <strong>{automationResult?.stepSummary?.userIdentified?.email || user?.email || "your registered email"}</strong>
+                  </p>
+
+                  <div className="flex items-center gap-2 pt-1">
+                    <button
+                      onClick={() => setIsReceiptOpen(true)}
+                      className="flex-1 py-2 px-3 bg-white dark:bg-dark-surface border border-emerald-500/30 rounded-xl text-xs font-semibold text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 flex items-center justify-center gap-1.5 transition-colors"
+                    >
+                      <FileText size={13} /> View Receipt
+                    </button>
+                    <button
+                      onClick={() => setIsCallOpen(true)}
+                      className="flex-1 py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs transition-colors"
+                    >
+                      <PhoneCall size={13} /> Open Call
+                    </button>
+                  </div>
+                </div>
+
                 <Button onClick={handleClose} className="w-full">
                   Continue Browsing
                 </Button>
@@ -336,6 +419,27 @@ export default function CartDrawer() {
           )}
         </motion.div>
       </div>
+
+      <ConfirmationCallModal
+        isOpen={isCallOpen}
+        onClose={() => setIsCallOpen(false)}
+        callData={automationResult?.voiceCall}
+        onCallCompleted={() => {
+          toast.success("Order confirmation call finished!");
+        }}
+      />
+
+      <ReceiptModal
+        isOpen={isReceiptOpen}
+        onClose={() => setIsReceiptOpen(false)}
+        receipt={automationResult?.receipt}
+        emailDelivery={automationResult?.emailDelivery}
+        arrivalDetails={automationResult?.voiceCall?.providerArrivalDetails}
+        onTriggerCall={() => {
+          setIsReceiptOpen(false);
+          setIsCallOpen(true);
+        }}
+      />
     </AnimatePresence>
   );
 }

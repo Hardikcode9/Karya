@@ -9,153 +9,7 @@ import {
 import { useCart } from "../hooks/useCart";
 import RatingAndReviewsSection from "../components/reviews/RatingAndReviewsSection";
 
-const CATEGORIES = [
-  "All",
-  "Handloom & Textiles",
-  "Organic & Farm Produce",
-  "Pottery & Clay Decor",
-  "Bamboo & Grass Crafts",
-  "Traditional Paintings",
-];
-
-const PRODUCTS = [
-  {
-    id: "prod-1",
-    name: "Handloom Chanderi Pure Cotton Saree",
-    category: "Handloom & Textiles",
-    price: 1450,
-    originalPrice: 2200,
-    rating: 4.9,
-    reviews: 38,
-    shgName: "Mahila Pragati SHG",
-    village: "Chanderi, Dist. Ashoknagar",
-    image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80",
-    description: "Authentic handwoven pure cotton saree with delicate zari border crafted on traditional rural pit-looms. Breathable, lightweight, and colored using non-toxic natural dye extracts.",
-    artisanStory: "Woven over 4 days by Sunita Bai and her 8-member women cooperative in Chanderi. Every rupee goes directly to funding their children's secondary schooling.",
-    variants: ["Standard Pack", "Gift Box Pack"],
-    inStock: true,
-    tags: ["Best Seller", "GI Tagged"],
-  },
-  {
-    id: "prod-2",
-    name: "Raw Wild Forest Honey (500g)",
-    category: "Organic & Farm Produce",
-    price: 420,
-    originalPrice: 580,
-    rating: 4.9,
-    reviews: 76,
-    shgName: "Van Dhan Vikas Kendra",
-    village: "Maihar Forest Block, Satna",
-    image: "https://images.unsplash.com/photo-1587049352846-4a222e784d38?auto=format&fit=crop&w=800&q=80",
-    description: "Unfiltered, unpasteurized multi-flora honey gathered sustainably from deep forest rock bee hives. Retains 100% natural pollen, royal jelly nutrients, and enzymes.",
-    artisanStory: "Harvested by indigenous Gond and Baiga tribal women trained in non-destructive scientific honey harvesting methods under the Gram Panchayat initiative.",
-    variants: ["500g Glass Jar", "1kg Tin Canister"],
-    inStock: true,
-    tags: ["Organic", "Direct Tribal Payout"],
-  },
-  {
-    id: "prod-3",
-    name: "Natural Terracotta Curd Handi & Cooking Pot",
-    category: "Pottery & Clay Decor",
-    price: 650,
-    originalPrice: 890,
-    rating: 4.8,
-    reviews: 44,
-    shgName: "Mati Kala Mahila Samiti",
-    village: "Khorabar, Gorakhpur",
-    image: "https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?auto=format&fit=crop&w=800&q=80",
-    description: "100% organic unglazed terracotta clay pot cured with buttermilk. Imparts natural minerals, neutralizes food acidity, and enhances rich authentic village flavor.",
-    artisanStory: "Shaped on manual potter wheels and wood-fired kiln pits by families who have preserved this clay heritage for five generations.",
-    variants: ["2.0 Litres", "3.5 Litres Family"],
-    inStock: true,
-    tags: ["Lead Free", "Eco-Friendly"],
-  },
-  {
-    id: "prod-4",
-    name: "Madhubani Canvas Scroll — Tree of Life",
-    category: "Traditional Paintings",
-    price: 890,
-    originalPrice: 1350,
-    rating: 4.9,
-    reviews: 52,
-    shgName: "Kalyani Folk Art Collective",
-    village: "Ranti Village, Madhubani",
-    image: "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=800&q=80",
-    description: "Hand-painted fine nib scroll depicting the sacred Tree of Life and mating peacocks. Painted with natural mineral pigments and plant resins on handmade cotton paper.",
-    artisanStory: "Crafted by master artist Manjula Devi and her apprentice guild. This artwork symbolizes fertility, harmony with mother earth, and prosperity.",
-    variants: ["Standard Canvas", "Teakwood Framed"],
-    inStock: true,
-    tags: ["Master Artisan", "GI Tagged"],
-  },
-  {
-    id: "prod-5",
-    name: "Braided Golden Bamboo Planters & Basket Set",
-    category: "Bamboo & Grass Crafts",
-    price: 480,
-    originalPrice: 720,
-    rating: 4.7,
-    reviews: 31,
-    shgName: "Tripura Bamboo Sakhi Sangha",
-    village: "Melaghar, Sepahijala",
-    image: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=800&q=80",
-    description: "Hand-woven from treated indigenous muli bamboo cane. Extremely sturdy, pest-resistant, and perfect for indoor plant pots, fruit trays, or living room storage.",
-    artisanStory: "Produced by a 14-member all-women cluster utilizing sustainably thinned forest bamboo, generating year-round wages during lean monsoon months.",
-    variants: ["Set of 2 Pots", "Set of 4 Nesting"],
-    inStock: true,
-    tags: ["Biodegradable", "Fair Trade"],
-  },
-  {
-    id: "prod-6",
-    name: "Lakadong Stone-Ground Pure Turmeric (400g)",
-    category: "Organic & Farm Produce",
-    price: 260,
-    originalPrice: 380,
-    rating: 5.0,
-    reviews: 89,
-    shgName: "Annapurna Krishi Sakhi Group",
-    village: "Shangpung, Jaintia Hills",
-    image: "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=800&q=80",
-    description: "Famous Lakadong turmeric with an extraordinary 7.5% natural curcumin content. Sun-dried and cold stone-pulverized without chemical processing or fillers.",
-    artisanStory: "Cultivated on chemical-free rain-fed terrace hill farms by matriarchal farming collectives, directly packaged at farm gate.",
-    variants: ["400g Pouch", "1kg Bulk Pack"],
-    inStock: true,
-    tags: ["High Curcumin 7.5%", "Single Origin"],
-  },
-  {
-    id: "prod-7",
-    name: "Lost-Wax Cast Brass Dhokra Peacock Diya",
-    category: "Pottery & Clay Decor",
-    price: 920,
-    originalPrice: 1400,
-    rating: 4.8,
-    reviews: 28,
-    shgName: "Dhokra Kala Vikas Mandal",
-    village: "Kondagaon, Bastar",
-    image: "https://images.unsplash.com/photo-1606760227091-3dd870d97f1d?auto=format&fit=crop&w=800&q=80",
-    description: "Handcrafted using the ancient 4,000-year-old non-ferrous lost-wax metal casting technique. Features detailed tribal motifs and antique brass luster.",
-    artisanStory: "Cast by indigenous Bastar metal craftsmen preserving one of humanity's oldest continuous metallurgic traditions with modern fair-trade backing.",
-    variants: ["Single Diya (6 inch)", "Pair (Twin Diyas)"],
-    inStock: true,
-    tags: ["4000-Yr Heritage", "Solid Brass"],
-  },
-  {
-    id: "prod-8",
-    name: "Organic Khadi Cotton Handloom Fabric (2.5m)",
-    category: "Handloom & Textiles",
-    price: 780,
-    originalPrice: 1100,
-    rating: 4.7,
-    reviews: 19,
-    shgName: "Gramodaya Swaraj Sangha",
-    village: "Sevagram, Wardha",
-    image: "https://images.unsplash.com/photo-1596464716127-f2a829822391?auto=format&fit=crop&w=800&q=80",
-    description: "Handspun on traditional solar charkhas and hand-loomed with natural unbleached cotton yarns. Super soft, cooling in Indian summers, and naturally textured.",
-    artisanStory: "Promotes rural self-reliance rooted in Gandhiji's Sevagram spinning community. Provides steady monthly honorariums to 40 elderly rural weavers.",
-    variants: ["2.5 Metres (Kurta)", "5 Metres (Full Set)"],
-    inStock: true,
-    tags: ["Pure Khadi", "Zero Carbon"],
-  },
-];
+import { PRODUCTS, CATEGORIES } from "../data/shgCatalog";
 
 const BLOG_POSTS = [
   {
@@ -196,7 +50,8 @@ export default function SHGs() {
   const [page, setPage] = useState(initialPage); // 'home', 'shop', 'pdp', 'about', 'blog', 'admin'
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
-  const [priceLimit, setPriceLimit] = useState(2500);
+  const MAX_PRICE = Math.max(...PRODUCTS.map((p) => p.price));
+  const [priceLimit, setPriceLimit] = useState(MAX_PRICE);
   const [sortBy, setSortBy] = useState("default");
   const [viewMode, setViewMode] = useState("grid");
   const [inStockOnly, setInStockOnly] = useState(false);
@@ -428,11 +283,11 @@ export default function SHGs() {
                     Filters
                   </span>
                 </div>
-                {(selectedCategory !== "All" || priceLimit < 2500 || searchQuery || inStockOnly || giOnly) && (
+                {(selectedCategory !== "All" || priceLimit < MAX_PRICE || searchQuery || inStockOnly || giOnly) && (
                   <button
                     onClick={() => {
                       setSelectedCategory("All");
-                      setPriceLimit(2500);
+                      setPriceLimit(MAX_PRICE);
                       setSearchQuery("");
                       setInStockOnly(false);
                       setGiOnly(false);
@@ -491,7 +346,7 @@ export default function SHGs() {
                 <input
                   type="range"
                   min="200"
-                  max="2500"
+                  max={MAX_PRICE}
                   step="50"
                   value={priceLimit}
                   onChange={(e) => setPriceLimit(Number(e.target.value))}
@@ -500,7 +355,7 @@ export default function SHGs() {
                 {/* Quick Price Presets */}
                 <div className="grid grid-cols-4 gap-1 pt-0.5">
                   {[
-                    { label: "All", val: 2500 },
+                    { label: "All", val: MAX_PRICE },
                     { label: "<₹500", val: 500 },
                     { label: "<₹1k", val: 1000 },
                     { label: "<₹1.5k", val: 1500 },
@@ -555,10 +410,10 @@ export default function SHGs() {
                   onChange={(e) => setSortBy(e.target.value)}
                   className="flex-1 min-w-0 px-2 py-1 rounded-lg bg-cream dark:bg-dark-surface border border-charcoal/15 dark:border-dark-border text-[11px] text-charcoal dark:text-dark-text font-semibold focus:outline-none focus:border-olive-600 cursor-pointer"
                 >
-                  <option value="default">Featured</option>
-                  <option value="price-asc">Price: Low</option>
-                  <option value="price-desc">Price: High</option>
-                  <option value="rating">Top Rated</option>
+                  <option value="default">Featured First</option>
+                  <option value="price-asc">Price: Low to High</option>
+                  <option value="price-desc">Price: High to Low</option>
+                  <option value="rating">Highest Rated</option>
                 </select>
                 <div className="flex items-center gap-0.5 shrink-0">
                   <button
@@ -596,7 +451,7 @@ export default function SHGs() {
                   <p className="text-base font-bold text-charcoal dark:text-dark-text">No products match your filters.</p>
                   <p className="text-xs text-charcoal/60 dark:text-dark-muted mt-1">Try relaxing price or category filters.</p>
                   <button
-                    onClick={() => { setSelectedCategory("All"); setPriceLimit(2500); setSearchQuery(""); }}
+                    onClick={() => { setSelectedCategory("All"); setPriceLimit(5000); setSearchQuery(""); }}
                     className="mt-4 px-4 py-2 rounded-full bg-olive-700 text-cream text-xs font-bold"
                   >
                     Reset Filters
@@ -622,7 +477,7 @@ export default function SHGs() {
                         <div className="absolute top-3 right-3 p-1.5 rounded-full bg-white/80 dark:bg-black/60 backdrop-blur text-charcoal dark:text-dark-text">
                           <div className="flex items-center gap-0.5 text-[11px] font-bold">
                             <Star size={11} className="fill-amber-400 text-amber-400" />
-                            <span>{product.rating}</span>
+                            <span>{product.rating ?? "New"}</span>
                           </div>
                         </div>
                       </div>
@@ -779,7 +634,7 @@ export default function SHGs() {
                 <div className="flex items-center gap-3 mt-3">
                   <div className="flex items-center gap-1 text-amber-500 text-sm font-bold">
                     <Star size={16} className="fill-amber-400 text-amber-400" />
-                    <span>{selectedProduct.rating}</span>
+                    <span>{selectedProduct.rating ?? "New"}</span>
                   </div>
                   <span className="text-xs text-charcoal/40">|</span>
                   <span className="text-xs text-charcoal/60 dark:text-dark-muted">
@@ -804,7 +659,7 @@ export default function SHGs() {
               </div>
 
               {/* Variant Selector */}
-              {selectedProduct.variants && (
+              {selectedProduct.variants?.length > 0 && (
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-charcoal dark:text-dark-text">Select Package Option:</label>
                   <div className="flex flex-wrap gap-2">
@@ -899,7 +754,7 @@ export default function SHGs() {
               targetId={selectedProduct.id}
               targetName={selectedProduct.name}
               targetCategory={selectedProduct.category}
-              initialRating={selectedProduct.rating}
+              initialRating={selectedProduct.rating ?? 0}
               initialReviewsCount={selectedProduct.reviews}
             />
           </div>

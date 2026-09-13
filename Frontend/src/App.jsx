@@ -5,6 +5,7 @@ import {
   LayoutDashboard, ClipboardList, CalendarCheck, Wallet, Star, User,
   Inbox, Briefcase, Settings2, Clock, IndianRupee,
   ShoppingBag, Users, TrendingUp, MessageSquare, Sliders,
+  Users2, ShieldCheck, FileWarning, BarChart3, Globe2, Cog, Activity, HelpCircle, MapPin,
   UserCheck, Package, Lightbulb, PhoneCall, Sparkles
 } from "lucide-react";
 

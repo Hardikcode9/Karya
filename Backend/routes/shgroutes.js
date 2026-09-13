@@ -11,6 +11,7 @@ const {
   assignMembersToJob,
   getSHGOrders,
   getSHGProducts,
+  createSHGProduct,
   getSHGEarnings,
   getSHGReviews,
   getAllSHGs,
@@ -36,6 +37,7 @@ router.get("/jobs", authMiddleware, getSHGJobs);
 router.post("/jobs/:bookingId/assign", authMiddleware, assignMembersToJob);
 router.get("/orders", authMiddleware, getSHGOrders);
 router.get("/products", authMiddleware, getSHGProducts);
+router.post("/products", authMiddleware, createSHGProduct);
 router.get("/earnings", authMiddleware, getSHGEarnings);
 router.get("/reviews", authMiddleware, getSHGReviews);
 

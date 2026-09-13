@@ -54,21 +54,7 @@ import SHGEarnings from "./pages/dashboards/SHGEarnings";
 import SHGReviews from "./pages/dashboards/SHGReviews";
 
 
-function AdminRedirect() {
-  useEffect(() => {
-    window.location.href = "http://localhost:5175/";
-  }, []);
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-3 p-4 text-center">
-      <h1 className="font-display text-2xl font-bold text-charcoal dark:text-dark-text">Admin Console Moved</h1>
-      <p className="text-sm text-charcoal/60 dark:text-dark-muted">The Admin Console is now running in its dedicated folder on port 5175.</p>
-      <a href="http://localhost:5175/" className="px-4 py-2 bg-olive-700 text-white rounded-xl text-xs font-bold shadow-xs">
-        Open Admin Console (Port 5175)
-      </a>
-    </div>
-  );
-}
-
+import AdminApp from "./admin/AdminApp";
 import AdminDashboard from "./pages/dashboards/AdminDashboard";
 import OrderAutomationHub from "./components/automation/OrderAutomationHub";
 
@@ -212,9 +198,8 @@ export default function App() {
         <Route path="profile" element={<Navigate to="/" replace />} />
       </Route>
 
-      {/* Admin Route - Redirects to dedicated Admin Console on port 5175 */}
-      <Route path="/admin/*" element={<AdminRedirect />} />
-      <Route path="/admin" element={<AdminRedirect />} />
+      {/* Admin Routes */}
+      <Route path="/admin/*" element={<AdminApp />} />
 
       <Route
         path="*"

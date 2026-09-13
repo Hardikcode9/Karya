@@ -3,6 +3,7 @@ const Booking = require("../models/Booking");
 const WorkerProfile = require("../models/WorkerProfile");
 const Notification = require("../models/Notification");
 const User = require("../models/User");
+const CustomerProfile = require("../models/CustomerProfile");
 
 const createRating = async (req, res) => {
   try {
@@ -32,10 +33,18 @@ const createRating = async (req, res) => {
       });
     }
 
+    const customerProfile = await CustomerProfile.findOne({ user: req.user.userId });
+    if (!customerProfile) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer profile not found",
+      });
+    }
+
     // Find the booking
     const existingBooking = await Booking.findOne({
       _id: booking,
-      customer: req.user.userId,
+      customer: customerProfile._id,
     });
 
     if (!existingBooking) {
@@ -66,7 +75,7 @@ const createRating = async (req, res) => {
     // Create rating
     const newRating = await Rating.create({
       booking: existingBooking._id,
-      customer: req.user.userId,
+      customer: customerProfile._id,
       worker: existingBooking.worker,
       rating,
       review,

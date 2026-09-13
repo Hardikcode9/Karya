@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 
 const SHGProfile = require("../models/SHGProfile");
+const SHGMember = require("../models/SHGMember");
 const WorkerProfile = require("../models/WorkerProfile");
 const Booking = require("../models/Booking");
 const Payment = require("../models/Payment");
@@ -96,14 +97,7 @@ exports.getSHGProfile = async (req, res) => {
       user: req.user.userId,
     })
       .populate("user", "name email phone")
-      .populate("services", "name category")
-      .populate({
-        path: "members.worker",
-        populate: {
-          path: "user",
-          select: "name email phone",
-        },
-      });
+      .populate("services", "name category");
 
     if (!shg) {
       return res.status(404).json({
@@ -112,9 +106,14 @@ exports.getSHGProfile = async (req, res) => {
       });
     }
 
+    const members = await SHGMember.find({ shg: shg._id }).populate({
+      path: "worker",
+      populate: { path: "user", select: "name email phone" },
+    });
+
     res.status(200).json({
       success: true,
-      data: shg,
+      data: { ...shg.toObject(), members },
     });
   } catch (error) {
     res.status(500).json({
@@ -148,11 +147,8 @@ exports.getSHGDashboard = async (req, res) => {
     // MEMBER STATISTICS
     // -----------------------------
 
-    const totalMembers = shg.members.length;
-
-    const activeMembers = shg.members.filter(
-      (member) => member.isActive
-    ).length;
+    const totalMembers = await SHGMember.countDocuments({ shg: shgId });
+    const activeMembers = await SHGMember.countDocuments({ shg: shgId, isActive: true });
 
 
     // -----------------------------
@@ -293,12 +289,6 @@ exports.getSHGMembers = async (req, res) => {
   try {
     const shg = await SHGProfile.findOne({
       user: req.user.userId,
-    }).populate({
-      path: "members.worker",
-      populate: {
-        path: "user",
-        select: "name email phone",
-      },
     });
 
     if (!shg) {
@@ -308,9 +298,17 @@ exports.getSHGMembers = async (req, res) => {
       });
     }
 
+    const members = await SHGMember.find({ shg: shg._id }).populate({
+      path: "worker",
+      populate: {
+        path: "user",
+        select: "name email phone",
+      },
+    });
+
     res.status(200).json({
       success: true,
-      data: shg.members,
+      data: members,
     });
   } catch (error) {
     res.status(500).json({
@@ -363,29 +361,38 @@ exports.addMember = async (req, res) => {
       });
     }
 
-    const alreadyMember = shg.members.some(
-      (member) =>
-        member.worker.toString() === workerId
-    );
+    const alreadyMember = await SHGMember.findOne({
+      shg: shg._id,
+      worker: workerId
+    });
 
     if (alreadyMember) {
+      if (!alreadyMember.isActive) {
+        alreadyMember.isActive = true;
+        alreadyMember.memberRole = memberRole || "member";
+        await alreadyMember.save();
+        return res.status(200).json({
+          success: true,
+          message: "Member reactivated",
+          data: alreadyMember,
+        });
+      }
       return res.status(409).json({
         success: false,
-        message: "Worker is already an SHG member",
+        message: "Worker is already an active SHG member",
       });
     }
 
-    shg.members.push({
+    const newMember = await SHGMember.create({
+      shg: shg._id,
       worker: workerId,
       memberRole: memberRole || "member",
     });
 
-    await shg.save();
-
     res.status(201).json({
       success: true,
       message: "Member added successfully",
-      data: shg.members,
+      data: newMember,
     });
   } catch (error) {
     res.status(500).json({
@@ -415,10 +422,10 @@ exports.removeMember = async (req, res) => {
       });
     }
 
-    const member = shg.members.find(
-      (member) =>
-        member.worker.toString() === workerId
-    );
+    const member = await SHGMember.findOne({
+      shg: shg._id,
+      worker: workerId
+    });
 
     if (!member) {
       return res.status(404).json({
@@ -428,8 +435,7 @@ exports.removeMember = async (req, res) => {
     }
 
     member.isActive = false;
-
-    await shg.save();
+    await member.save();
 
     res.status(200).json({
       success: true,
@@ -529,9 +535,8 @@ exports.assignMembersToJob = async (req, res) => {
     }
 
     // Check that workers belong to this SHG
-    const shgWorkerIds = shg.members
-      .filter((member) => member.isActive)
-      .map((member) => member.worker.toString());
+    const shgMembers = await SHGMember.find({ shg: shg._id, isActive: true });
+    const shgWorkerIds = shgMembers.map((member) => member.worker.toString());
 
     const invalidWorkers = workerIds.filter(
       (workerId) =>
@@ -638,6 +643,43 @@ exports.getSHGProducts = async (req, res) => {
       success: true,
       count: products.length,
       data: products,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ==========================================
+// CREATE SHG PRODUCT
+// ==========================================
+
+exports.createSHGProduct = async (req, res) => {
+  try {
+    const shg = await SHGProfile.findOne({ user: req.user.userId });
+    if (!shg) {
+      return res.status(404).json({ success: false, message: "SHG profile not found" });
+    }
+
+    const { name, category, price, stock, description } = req.body;
+    
+    if (!name || !category || price === undefined) {
+      return res.status(400).json({ success: false, message: "Required fields missing" });
+    }
+
+    const product = await Product.create({
+      shg: shg._id,
+      name,
+      category,
+      price,
+      stock: stock || 0,
+      description,
+      isActive: true
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Product created successfully",
+      data: product,
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

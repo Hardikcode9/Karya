@@ -1,0 +1,11 @@
+export { default as AdminDashboard } from "./AdminDashboard";
+export { default as AdminWorkers } from "./AdminWorkers";
+export { default as AdminSHGs } from "./AdminSHGs";
+export { default as AdminCustomers } from "./AdminCustomers";
+export { default as AdminServices } from "./AdminServices";
+export { default as AdminProducts } from "./AdminProducts";
+export { default as AdminSuggestions } from "./AdminSuggestions";
+export { default as AdminQueries } from "./AdminQueries";
+export { default as AdminSales } from "./AdminSales";
+export { default as AdminContact } from "./AdminContact";
+export { default as AdminOthers } from "./AdminOthers";

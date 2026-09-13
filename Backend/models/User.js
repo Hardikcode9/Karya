@@ -41,6 +41,31 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+
+    avatar: {
+      type: String,
+      trim: true,
+    },
+
+    address: {
+      type: String,
+      trim: true,
+    },
+
+    village: {
+      type: String,
+      trim: true,
+    },
+
+    district: {
+      type: String,
+      trim: true,
+    },
+
+    state: {
+      type: String,
+      trim: true,
+    },
   },
   {
     timestamps: true,

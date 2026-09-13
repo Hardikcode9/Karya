@@ -468,6 +468,14 @@ const createRazorpayOrder = async (req, res) => {
 
     const { bookingId, amount, paymentMethod = "upi" } = req.body;
 
+    const customerProfile = await CustomerProfile.findOne({ user: req.user.userId });
+    if (!customerProfile) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer profile not found",
+      });
+    }
+
     let booking;
 
     // 1. Try finding existing booking by ID

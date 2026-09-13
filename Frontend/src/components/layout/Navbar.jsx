@@ -28,15 +28,22 @@ const publicNavItems = [
   { to: "/how-it-works", key: "howItWorks" },
 ];
 
-// For customer role: services, workers, work, and resources are removed
+// Customer: Home, Services, SHG Store (+ Contact)
 const customerNavItems = [
   { to: "/", key: "home" },
-  { to: "/how-it-works", key: "howItWorks" },
+  { to: "/services", key: "services" },
   { to: "/shgs", key: "shgs" },
 ];
 
-// For other authenticated roles (e.g. worker, shg, admin): services, workers, work, and resources are removed
-const authenticatedNavItems = [
+// Worker: Home, Services, How It Works (+ Contact)
+const workerNavItems = [
+  { to: "/", key: "home" },
+  { to: "/services", key: "services" },
+  { to: "/how-it-works", key: "howItWorks" },
+];
+
+// SHG: Home, How It Works, SHG Store (+ Contact)
+const shgNavItems = [
   { to: "/", key: "home" },
   { to: "/how-it-works", key: "howItWorks" },
   { to: "/shgs", key: "shgs" },
@@ -98,11 +105,26 @@ export default function Navbar({ onOpenEmergency, onOpenContact }) {
   const currentLabel =
     languageOptions.find((l) => l.code === current)?.label || "English";
 
+  const userRole = (user?.role || "").toLowerCase();
+  const dashboardPath = userRole === "customer"
+    ? "/customer"
+    : userRole === "worker"
+    ? "/worker"
+    : userRole === "shg"
+    ? "/shg"
+    : userRole
+    ? `/${userRole}`
+    : "/login";
+
   const activeNavList = !user
     ? publicNavItems
-    : user.role === "customer"
+    : userRole === "customer"
     ? customerNavItems
-    : authenticatedNavItems;
+    : userRole === "worker"
+    ? workerNavItems
+    : userRole === "shg"
+    ? shgNavItems
+    : customerNavItems;
 
   return (
     <header
@@ -130,7 +152,7 @@ export default function Navbar({ onOpenEmergency, onOpenContact }) {
         {/* Center: Main Navigation */}
         <nav
           aria-label="Main Navigation"
-          className="hidden lg:flex items-center gap-[4vw] xl:gap-[5vw] ml-[5%]"
+          className="hidden lg:flex items-center gap-[2.5vw] xl:gap-[3.5vw] ml-[3%] xl:ml-[5%]"
         >
           {activeNavList.map((item) => (
             <NavLink
@@ -167,6 +189,23 @@ export default function Navbar({ onOpenEmergency, onOpenContact }) {
             }
           >
             {t("nav.contact") || "Contact"}
+          </NavLink>
+
+          {/* 5th Tab: Dashboard Link */}
+          <NavLink
+            to={dashboardPath}
+            onClick={() => {
+              window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+            }}
+            className={({ isActive }) =>
+              `text-sm font-semibold transition-colors duration-200 py-1 whitespace-nowrap ${
+                isActive
+                  ? "text-olive-800 dark:text-olive-300 font-bold"
+                  : "text-charcoal/70 dark:text-dark-muted hover:text-charcoal dark:hover:text-dark-text"
+              }`
+            }
+          >
+            {t("nav.dashboard") || "Dashboard"}
           </NavLink>
         </nav>
 
@@ -414,6 +453,24 @@ export default function Navbar({ onOpenEmergency, onOpenContact }) {
                   }
                 >
                   {t("nav.contact") || "Contact"}
+                </NavLink>
+
+                {/* Mobile Dashboard Link */}
+                <NavLink
+                  to={dashboardPath}
+                  onClick={() => {
+                    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+                    setOpen(false);
+                  }}
+                  className={({ isActive }) =>
+                    `px-4 py-2.5 rounded-2xl text-sm font-semibold transition-colors ${
+                      isActive
+                        ? "bg-olive-100 dark:bg-olive-900/50 text-olive-800 dark:text-olive-300 font-bold"
+                        : "text-charcoal/80 dark:text-dark-muted hover:bg-ivory dark:hover:bg-dark-card"
+                    }`
+                  }
+                >
+                  {t("nav.dashboard") || "Dashboard"}
                 </NavLink>
               </div>
 

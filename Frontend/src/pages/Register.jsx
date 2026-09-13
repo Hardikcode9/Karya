@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  User, Wrench, Users, CheckCircle2, ArrowRight, ArrowLeft, ShieldCheck, MapPin, Mail, ChevronDown
+  User, Wrench, Users, CheckCircle2, ArrowRight, ArrowLeft, ShieldCheck, MapPin, Mail, ChevronDown, Lock, Eye, EyeOff
 } from "lucide-react";
 import Logo from "../components/ui/Logo";
 import Button from "../components/ui/Button";
@@ -61,6 +61,7 @@ export default function Register() {
   });
   const [loading, setLoading] = useState(false);
   const [registered, setRegistered] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const { register } = useAuth();
   const navigate = useNavigate();
@@ -267,10 +268,13 @@ export default function Register() {
 
               <Input
                 label="Password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                leftIcon={Lock}
+                rightIcon={showPassword ? EyeOff : Eye}
+                onRightIconClick={() => setShowPassword((prev) => !prev)}
                 required
               />
 

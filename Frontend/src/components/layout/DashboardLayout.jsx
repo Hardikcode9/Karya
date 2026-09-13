@@ -2,8 +2,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { Link, NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import {
   Menu, X, LogOut, ShieldCheck, ChevronRight,
-  Globe, ChevronDown, Check, Sparkles, Search,
-  Home, HelpCircle, Users, Package, PhoneCall
+  Globe, ChevronDown, Check, Sparkles, Search
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Logo from "../ui/Logo";
@@ -98,8 +97,24 @@ export default function DashboardLayout({ navItems, roleLabel }) {
         </div>
 
         {/* Nav Items */}
-        <div className="flex-1 px-2.5 py-3.5 flex flex-col gap-1 overflow-y-auto">
-          <span className="px-2.5 text-[10px] font-bold text-charcoal/40 dark:text-dark-muted uppercase tracking-wider mb-1.5">
+        <div className="flex-1 px-2.5 py-3 flex flex-col gap-1 overflow-y-auto">
+          {/* Go to Website Button at Top */}
+          <Link
+            to="/"
+            onClick={() => setOpen(false)}
+            className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-charcoal/70 dark:text-dark-muted hover:bg-ivory dark:hover:bg-dark-cardHover hover:text-charcoal dark:hover:text-dark-text transition-all group cursor-pointer"
+          >
+            <div className="flex items-center gap-2.5 min-w-0">
+              <Globe size={15} className="shrink-0 text-olive-700 dark:text-olive-400 group-hover:scale-110 transition-transform" />
+              <span className="truncate">Go to Website</span>
+            </div>
+            <ChevronRight size={13} className="opacity-40 group-hover:opacity-70 group-hover:translate-x-0.5 transition-all shrink-0" />
+          </Link>
+
+          {/* Divider */}
+          <div className="my-1.5 border-t border-charcoal/10 dark:border-dark-border" />
+
+          <span className="px-2.5 text-[10px] font-bold text-charcoal/40 dark:text-dark-muted uppercase tracking-wider mb-1">
             Navigation Menu
           </span>
           {navItems.map((item) => (

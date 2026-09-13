@@ -8,6 +8,7 @@ import Rating from "../../components/ui/Rating";
 import Button from "../../components/ui/Button";
 import { workers } from "../../data/mockData";
 import { useAuth } from "../../hooks/useAuth";
+import OrderAutomationHub from "../../components/automation/OrderAutomationHub";
 
 const RECENT_PURCHASES = [
   {
@@ -222,6 +223,9 @@ export default function CustomerDashboard() {
           to="/customer/reviews"
         />
       </div>
+
+      {/* Live Order Automation System */}
+      <OrderAutomationHub />
 
       {/* Recent 3 Product Purchases */}
       <div>

@@ -22,16 +22,47 @@ export function AuthProvider({ children }) {
     setLoading(false);
   }, []);
 
-  const login = async ({ email, password }) => {
+  const login = async ({ email, password, role }) => {
     try {
-      const response = await api.post("/auth/login", { email, password });
-      const { token, user: userData } = response.data;
-      
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(userData));
-      setUser(userData);
-      
-      return userData;
+      if (email && password) {
+        const response = await api.post("/auth/login", { email, password });
+        const { token, user: userData } = response.data;
+        
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(userData));
+        setUser(userData);
+        
+        return userData;
+      }
+
+      // Demo role login support for quick access & preview testing
+      const selectedRole = role || "customer";
+      const demoUser = {
+        id: "demo-" + selectedRole,
+        name:
+          selectedRole === "customer"
+            ? "Siddhant Sharma"
+            : selectedRole === "worker"
+            ? "Ramesh Kumar"
+            : selectedRole === "admin"
+            ? "Admin Officer"
+            : "Pragati Mahila SHG",
+        email:
+          selectedRole === "customer"
+            ? "siddhant.sharma@example.com"
+            : selectedRole === "worker"
+            ? "ramesh.worker@example.com"
+            : selectedRole === "admin"
+            ? "admin@karya.in"
+            : "shg.pragati@example.com",
+        phone: "+91 98765 43210",
+        role: selectedRole,
+      };
+      const demoToken = "demo-token-" + selectedRole + "-" + Date.now();
+      localStorage.setItem("token", demoToken);
+      localStorage.setItem("user", JSON.stringify(demoUser));
+      setUser(demoUser);
+      return demoUser;
     } catch (error) {
       console.error("Login failed:", error);
       throw error;

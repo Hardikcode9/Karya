@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { useToast } from "../../hooks/useToast";
 import api from "../../utils/api";
-import AddProductModal from "./AddProductModal";
+import AddProductModal from "../../components/dashboards/AddProductModal";
 
 export default function SHGProducts() {
   const toast = useToast();

@@ -5,7 +5,7 @@ import {
 } from "lucide-react";
 import { useToast } from "../../hooks/useToast";
 import api from "../../utils/api";
-import AddMemberModal from "./AddMemberModal";
+import AddMemberModal from "../../components/dashboards/AddMemberModal";
 
 export default function SHGMembers() {
   const toast = useToast();

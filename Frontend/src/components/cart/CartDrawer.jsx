@@ -125,6 +125,12 @@ export default function CartDrawer() {
       bookingId: sampleBookingId,
       amount: finalTotal,
       paymentMethod: "upi",
+      orderItems: items.map(item => ({
+        name: item.name,
+        category: item.category,
+        price: item.price,
+        quantity: item.quantity
+      })),
       user,
       onSuccess: async (verifiedData) => {
         setProcessingPayment(false);

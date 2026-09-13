@@ -466,7 +466,7 @@ const createRazorpayOrder = async (req, res) => {
       });
     }
 
-    const { bookingId, amount, paymentMethod = "upi" } = req.body;
+    const { bookingId, amount, paymentMethod = "upi", orderItems } = req.body;
 
     const customerProfile = await CustomerProfile.findOne({ user: req.user.userId });
     if (!customerProfile) {
@@ -477,35 +477,50 @@ const createRazorpayOrder = async (req, res) => {
     }
 
     let booking;
+    let order;
 
-    // 1. Try finding existing booking by ID
-    if (bookingId && mongoose.Types.ObjectId.isValid(bookingId)) {
-      booking = await Booking.findById(bookingId);
-    }
-
-    // 2. If no booking exists for bookingId, auto-create a pending booking for customer
-    if (!booking) {
-      const Service = require("../models/Service");
-      const defaultService = await Service.findOne({ isActive: true });
-      const serviceId = (bookingId && mongoose.Types.ObjectId.isValid(bookingId))
-        ? bookingId
-        : (defaultService ? defaultService._id : new mongoose.Types.ObjectId());
-
-      const payAmount = Number(amount) || 350;
-
-      booking = await Booking.create({
+    if (orderItems && orderItems.length > 0) {
+      const Order = require("../models/Order");
+      const payAmount = Number(amount) || 0;
+      
+      order = await Order.create({
         customer: customerProfile._id,
-        service: serviceId,
-        scheduledDate: new Date(),
-        duration: 60,
-        address: "Village Service Location",
-        notes: "Online Payment Checkout",
-        price: payAmount,
+        items: orderItems,
+        totalAmount: payAmount,
+        paymentMethod,
+        paymentStatus: "pending",
         status: "pending",
       });
+    } else {
+      // 1. Try finding existing booking by ID
+      if (bookingId && mongoose.Types.ObjectId.isValid(bookingId)) {
+        booking = await Booking.findById(bookingId);
+      }
+
+      // 2. If no booking exists for bookingId, auto-create a pending booking for customer
+      if (!booking) {
+        const Service = require("../models/Service");
+        const defaultService = await Service.findOne({ isActive: true });
+        const serviceId = (bookingId && mongoose.Types.ObjectId.isValid(bookingId))
+          ? bookingId
+          : (defaultService ? defaultService._id : new mongoose.Types.ObjectId());
+
+        const payAmount = Number(amount) || 350;
+
+        booking = await Booking.create({
+          customer: customerProfile._id,
+          service: serviceId,
+          scheduledDate: new Date(),
+          duration: 60,
+          address: "Village Service Location",
+          notes: "Online Payment Checkout",
+          price: payAmount,
+          status: "pending",
+        });
+      }
     }
 
-    const payAmount = Number(amount) || booking.price || 350;
+    const payAmount = Number(amount) || (booking ? booking.price : 0) || 350;
     const amountInPaise = Math.round(payAmount * 100);
 
     // 3. Create Razorpay Order
@@ -528,10 +543,11 @@ const createRazorpayOrder = async (req, res) => {
         razorpayOrder = await razorpay.orders.create({
           amount: amountInPaise,
           currency: "INR",
-          receipt: `rcpt_${booking._id.toString().substring(0, 8)}_${Date.now()}`,
+          receipt: `rcpt_${(booking ? booking._id : order._id).toString().substring(0, 8)}_${Date.now()}`,
           notes: {
-            bookingId: booking._id.toString(),
+            referenceId: (booking ? booking._id : order._id).toString(),
             customerId: req.user.userId.toString(),
+            type: booking ? "booking" : "order"
           },
         });
       } catch (rzpErr) {
@@ -545,24 +561,36 @@ const createRazorpayOrder = async (req, res) => {
     }
 
     // 4. Find or create Payment record
-    let payment = await Payment.findOne({ booking: booking._id });
-
-    if (!payment) {
+    let payment;
+    if (order) {
       payment = await Payment.create({
-        booking: booking._id,
-        customer: booking.customer,
-        worker: booking.worker || null,
+        order: order._id,
+        customer: order.customer,
         amount: payAmount,
         paymentMethod,
         status: "pending",
         razorpayOrderId: razorpayOrder.id,
       });
     } else {
-      payment.razorpayOrderId = razorpayOrder.id;
-      payment.paymentMethod = paymentMethod;
-      payment.amount = payAmount;
-      payment.status = "pending";
-      await payment.save();
+      payment = await Payment.findOne({ booking: booking._id });
+
+      if (!payment) {
+        payment = await Payment.create({
+          booking: booking._id,
+          customer: booking.customer,
+          worker: booking.worker || null,
+          amount: payAmount,
+          paymentMethod,
+          status: "pending",
+          razorpayOrderId: razorpayOrder.id,
+        });
+      } else {
+        payment.razorpayOrderId = razorpayOrder.id;
+        payment.paymentMethod = paymentMethod;
+        payment.amount = payAmount;
+        payment.status = "pending";
+        await payment.save();
+      }
     }
 
     return res.status(200).json({

@@ -24,6 +24,11 @@ const shgRoutes = require("./routes/shgroutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const earningRoutes = require("./routes/earningRoutes");
 const automationRoutes = require("./routes/automationRoutes");
+const productRoutes = require("./routes/productRoutes");
+const contactRoutes = require("./routes/contactRoutes");
+const queryRoutes = require("./routes/queryRoutes");
+const suggestionRoutes = require("./routes/suggestionRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 const app = express();
 
 app.use(cors());
@@ -44,6 +49,11 @@ app.use("/api/shg", shgRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/earnings", earningRoutes);
 app.use("/api/automation", automationRoutes);
+app.use("/api/products", productRoutes);
+app.use("/api/contact", contactRoutes);
+app.use("/api/queries", queryRoutes);
+app.use("/api/suggestions", suggestionRoutes);
+app.use("/api/admin", adminRoutes);
 app.get("/", (req, res) => {
   res.json({
     success: true,

@@ -79,6 +79,26 @@ const shgProfileSchema = new mongoose.Schema(
       trim: true,
     },
 
+    description: {
+      type: String,
+      trim: true,
+    },
+
+    cluster: {
+      type: String,
+      trim: true,
+    },
+
+    bankName: {
+      type: String,
+      trim: true,
+    },
+
+    upiId: {
+      type: String,
+      trim: true,
+    },
+
     establishedDate: {
       type: Date,
     },

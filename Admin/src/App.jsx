@@ -1,6 +1,8 @@
 import { Routes, Route } from "react-router-dom";
 import AdminLayout from "./components/layout/AdminLayout";
 import ScrollToTop from "./components/layout/ScrollToTop";
+import AdminLogin from "./pages/AdminLogin";
+import { useAuth } from "./context/AuthContext";
 import {
   AdminDashboard,
   AdminWorkers,
@@ -16,6 +18,13 @@ import {
 } from "./pages";
 
 export default function App() {
+  const { user } = useAuth();
+
+  // Show login if not authenticated
+  if (!user) {
+    return <AdminLogin />;
+  }
+
   return (
     <>
       <ScrollToTop />

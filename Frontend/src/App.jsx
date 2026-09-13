@@ -52,15 +52,7 @@ import SHGMembers from "./pages/dashboards/SHGMembers";
 import SHGProducts from "./pages/dashboards/SHGProducts";
 import SHGEarnings from "./pages/dashboards/SHGEarnings";
 import SHGReviews from "./pages/dashboards/SHGReviews";
-import {
-  SHG_ORDERS_DATA,
-  SHG_SERVICES_DATA,
-  SHG_MEMBERS_DATA,
-  SHG_EARNINGS_DATA,
-  SHG_CUSTOMERS_DATA,
-  SHG_REVIEWS_DATA,
-  SHG_SETTINGS_DATA,
-} from "./data/shgDashboardData";
+
 
 function AdminRedirect() {
   useEffect(() => {

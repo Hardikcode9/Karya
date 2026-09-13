@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   Users, IndianRupee, Star, Package, CheckCircle2, Clock,
-  ArrowRight, Award, MapPin, Building2, Plus, ShoppingBag, TrendingUp, Users, IndianRupee, Star, Package, CheckCircle2, Clock
+  ArrowRight, Award, MapPin, Building2, Plus, ShoppingBag, TrendingUp
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import api from "../../utils/api";

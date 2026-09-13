@@ -15,7 +15,7 @@ export default function SHGReviews() {
   const fetchReviews = async () => {
     try {
       const response = await api.get("/shg/reviews");
-      setReviews(response.data.reviews || response.data.data || []);
+      setReviews(response.data.data?.reviews || []);
     } catch (error) {
       toast.error("Failed to fetch reviews");
     } finally {

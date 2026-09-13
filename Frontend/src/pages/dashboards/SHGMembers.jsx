@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { useToast } from "../../hooks/useToast";
 import api from "../../utils/api";
+import AddMemberModal from "./AddMemberModal";
 
 export default function SHGMembers() {
   const toast = useToast();
@@ -15,6 +16,7 @@ export default function SHGMembers() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   useEffect(() => {
     fetchMembers();
@@ -89,7 +91,7 @@ export default function SHGMembers() {
               className="w-full pl-9 pr-4 py-2.5 bg-charcoal/5 dark:bg-dark-surface rounded-xl text-xs outline-none focus:ring-2 focus:ring-olive-500/20"
             />
           </div>
-          <button onClick={() => toast.info("Add member functionality coming soon")} className="shrink-0 flex items-center gap-2 bg-olive-700 hover:bg-olive-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-colors">
+          <button onClick={() => setIsAddModalOpen(true)} className="shrink-0 flex items-center gap-2 bg-olive-700 hover:bg-olive-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-colors">
             <Plus size={16} />
             <span className="hidden sm:inline">Add Member</span>
           </button>
@@ -164,6 +166,12 @@ export default function SHGMembers() {
           )}
         </div>
       </div>
+
+      <AddMemberModal 
+        isOpen={isAddModalOpen} 
+        onClose={() => setIsAddModalOpen(false)} 
+        onMemberAdded={fetchMembers} 
+      />
     </div>
   );
 }

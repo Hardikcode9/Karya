@@ -9,8 +9,24 @@ export default function SectionHeading({
   className = "",
 }) {
   const alignment = align === "center" ? "items-center text-center mx-auto" : "items-start text-left";
-  const titleColor = tone === "light" ? "text-cream" : "text-charcoal";
-  const descColor = tone === "light" ? "text-cream/75" : "text-charcoal/65";
+  const titleColor =
+    tone === "white"
+      ? "text-white"
+      : tone === "light"
+      ? "text-cream"
+      : "text-charcoal dark:text-white";
+  const descColor =
+    tone === "white"
+      ? "text-white/85"
+      : tone === "light"
+      ? "text-cream/75"
+      : "text-charcoal/65 dark:text-white/75";
+  const eyebrowColor =
+    tone === "white"
+      ? "text-emerald-400 font-bold"
+      : tone === "light"
+      ? "text-olive-300 font-semibold"
+      : "text-olive-600 dark:text-emerald-400 font-semibold";
 
   return (
     <motion.div
@@ -21,7 +37,7 @@ export default function SectionHeading({
       className={`flex flex-col gap-4 max-w-2xl ${alignment} ${className}`}
     >
       {eyebrow && (
-        <span className={`text-sm font-medium ${tone === "light" ? "text-olive-300" : "text-olive-600"}`}>
+        <span className={`text-sm uppercase tracking-wider ${eyebrowColor}`}>
           {eyebrow}
         </span>
       )}

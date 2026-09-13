@@ -70,15 +70,15 @@ export default function ContactModal({ isOpen, onClose }) {
                 <div className="flex flex-col gap-3 text-sm text-charcoal/70 dark:text-dark-muted">
                   <span className="flex items-center gap-2.5">
                     <Headphones size={18} className="text-olive-700 dark:text-olive-400 shrink-0" />
-                    <span><strong className="text-charcoal dark:text-dark-text">24x7 Toll-Free:</strong> 1800-KARYA-HELP</span>
+                    <span><strong className="text-charcoal dark:text-dark-text">24x7 Toll-Free:</strong> 8920575456</span>
                   </span>
                   <span className="flex items-center gap-2.5">
                     <Phone size={18} className="text-olive-700 dark:text-olive-400 shrink-0" />
-                    <span>+91 98765 43210 (WhatsApp)</span>
+                    <span>+91 7011342370 (WhatsApp)</span>
                   </span>
                   <span className="flex items-center gap-2.5">
                     <Mail size={18} className="text-olive-700 dark:text-olive-400 shrink-0" />
-                    <span>support@karya.app</span>
+                    <span>sumit.geekroom@gmail.com</span>
                   </span>
                   <span className="flex items-center gap-2.5">
                     <MapPin size={18} className="text-olive-700 dark:text-olive-400 shrink-0" />

@@ -695,18 +695,18 @@ export default function WorkerRequests() {
               </h3>
               <p className="text-xs text-white/80 mt-0.5">
                 {showHindi
-                  ? "हमारे टोल-फ्री नंबर 1800-KARYA-HELP (1800-52792-4357) पर कभी भी कॉल करें।"
+                  ? "हमारे टोल-फ्री नंबर 8920575456 पर कभी भी कॉल करें।"
                   : "Call 24x7 toll-free worker support desk or contact your local Panchayat Mitra."}
               </p>
             </div>
           </div>
 
           <a
-            href="tel:1800527924357"
+            href="tel:8920575456"
             className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-olive-900 rounded-xl text-xs font-bold hover:bg-olive-50 transition-colors shadow-xs shrink-0 self-start sm:self-auto"
           >
             <Phone size={14} />
-            <span>1800-KARYA-HELP</span>
+            <span>8920575456</span>
           </a>
         </div>
       </div>

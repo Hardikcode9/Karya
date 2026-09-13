@@ -10,12 +10,7 @@ import Button from "../../components/ui/Button";
 import { useAuth } from "../../hooks/useAuth";
 import api from "../../utils/api";
 
-const RECENT_PURCHASES = [];
-const RECENT_SERVICES = [];
-const RECENT_VIEWS = [];
-const RECENT_REVIEWS = [];
-const SPECIALIST_AVATARS = {};
-const recentSpecialists = [];
+
 
 export default function CustomerDashboard() {
   const { user } = useAuth();
@@ -25,6 +20,10 @@ export default function CustomerDashboard() {
     totalReviews: 0,
     totalProducts: 0,
   });
+  
+  const [recentServices, setRecentServices] = useState([]);
+  const [recentReviews, setRecentReviews] = useState([]);
+  const [recentSpecialists, setRecentSpecialists] = useState([]);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -43,6 +42,40 @@ export default function CustomerDashboard() {
           totalReviews: 0,
           totalProducts: 0,
         });
+
+        // Set recent services (up to 3)
+        const recentB = bookings.slice(0, 3).map(b => ({
+          id: b._id,
+          title: b.service?.name || "Service",
+          specialist: b.worker?.name || "Specialist",
+          trade: b.service?.category || "Trade",
+          status: b.status,
+          price: b.price || 0,
+          dateTime: new Date(b.createdAt).toLocaleDateString(),
+          image: b.service?.image || "https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=400&q=80"
+        }));
+        setRecentServices(recentB);
+
+        // Fetch user's ratings
+        try {
+          const ratingsRes = await api.get("/ratings/customer");
+          const ratings = ratingsRes.data?.ratings || [];
+          setStats(prev => ({ ...prev, totalReviews: ratings.length }));
+          
+          const recentR = ratings.slice(0, 3).map(r => ({
+            id: r._id,
+            title: r.booking?.service?.name || "Review",
+            text: r.review,
+            target: r.worker?.name || "Specialist",
+            rating: r.rating,
+            type: "service",
+            dateTime: new Date(r.createdAt).toLocaleDateString(),
+            image: "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&w=400&q=80"
+          }));
+          setRecentReviews(recentR);
+        } catch (err) {
+          console.error("Failed to fetch customer ratings:", err);
+        }
       } catch (err) {
         console.error("Failed to fetch customer stats:", err);
       }
@@ -153,13 +186,14 @@ export default function CustomerDashboard() {
           </Link>
         </div>
 
-        {RECENT_PURCHASES.length === 0 ? (
+        {/* Keeping empty for now since no product backend */}
+        {[]?.length === 0 ? (
           <div className="bg-cream-card dark:bg-dark-card rounded-2xl p-8 text-center border border-charcoal/10">
             <p className="text-charcoal/60 dark:text-dark-muted">No recent purchases found.</p>
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {RECENT_PURCHASES.map((p) => (
+            {[].map((p) => (
             <div
               key={p.id}
               className="bg-cream-card dark:bg-dark-card rounded-2xl p-4 sm:p-5 border border-charcoal/5 dark:border-dark-border flex flex-col justify-between hover:shadow-elevation-2 transition-all group min-h-[25.5rem]"
@@ -243,13 +277,13 @@ export default function CustomerDashboard() {
           </Link>
         </div>
 
-        {RECENT_SERVICES.length === 0 ? (
+        {recentServices.length === 0 ? (
           <div className="bg-cream-card dark:bg-dark-card rounded-2xl p-8 text-center border border-charcoal/10">
             <p className="text-charcoal/60 dark:text-dark-muted">No recent services used.</p>
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {RECENT_SERVICES.map((s) => (
+            {recentServices.map((s) => (
             <div
               key={s.id}
               className="bg-cream-card dark:bg-dark-card rounded-2xl p-4 sm:p-5 border border-charcoal/5 dark:border-dark-border flex flex-col justify-between hover:shadow-elevation-2 transition-all group min-h-[25.5rem]"
@@ -338,13 +372,13 @@ export default function CustomerDashboard() {
           </Link>
         </div>
 
-        {RECENT_REVIEWS.length === 0 ? (
+        {recentReviews.length === 0 ? (
           <div className="bg-cream-card dark:bg-dark-card rounded-2xl p-8 text-center border border-charcoal/10">
             <p className="text-charcoal/60 dark:text-dark-muted">No reviews or suggestions given yet.</p>
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {RECENT_REVIEWS.map((r) => (
+            {recentReviews.map((r) => (
             <div
               key={r.id}
               className="bg-cream-card dark:bg-dark-card rounded-2xl p-4 sm:p-5 border border-charcoal/5 dark:border-dark-border flex flex-col justify-between hover:shadow-elevation-2 transition-all group min-h-[25.5rem]"
@@ -444,13 +478,13 @@ export default function CustomerDashboard() {
           </Link>
         </div>
 
-        {RECENT_VIEWS.length === 0 ? (
+        {[]?.length === 0 ? (
           <div className="bg-cream-card dark:bg-dark-card rounded-2xl p-8 text-center border border-charcoal/10">
             <p className="text-charcoal/60 dark:text-dark-muted">No recently viewed items.</p>
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {RECENT_VIEWS.map((v) => (
+            {[].map((v) => (
             <div
               key={v.id}
               className="bg-cream-card dark:bg-dark-card rounded-2xl p-4 sm:p-5 border border-charcoal/5 dark:border-dark-border flex flex-col justify-between hover:shadow-elevation-2 transition-all group min-h-[25.5rem]"
@@ -553,7 +587,7 @@ export default function CustomerDashboard() {
               {/* Firstly Image at Top */}
               <div className="relative w-full h-[204px] sm:h-[225px] rounded-xl overflow-hidden shrink-0 border border-charcoal/10 shadow-xs">
                 <img
-                  src={SPECIALIST_AVATARS[w.id] || "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&w=400&q=80"}
+                  src={w.avatar || "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&w=400&q=80"}
                   alt={w.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />

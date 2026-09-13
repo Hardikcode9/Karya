@@ -3,6 +3,28 @@ const User = require("../models/User");
 const Otp = require("../models/Otp");
 const { sendOtpEmail } = require("../utils/sendEmail");
 
+// Helper to build consistent user response with all profile fields
+const buildUserResponse = (user) => ({
+  id: user._id,
+  name: user.name,
+  email: user.email,
+  phone: user.phone,
+  role: user.role,
+  altPhone: user.altPhone || "",
+  photo: user.photo || "",
+  houseNo: user.houseNo || "",
+  village: user.village || "",
+  block: user.block || "",
+  district: user.district || "",
+  state: user.state || "",
+  pincode: user.pincode || "",
+  landmark: user.landmark || "",
+  docType: user.docType || "",
+  docNumber: user.docNumber || "",
+  language: user.language || "Hindi",
+  smsUpdates: user.smsUpdates ?? true,
+});
+
 const registerUser = async (req, res) => {
   try {
     const { name, email, phone, password, role } = req.body;
@@ -181,13 +203,7 @@ const loginUser = async (req, res) => {
       success: true,
       message: "Login successful",
       token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        role: user.role,
-      },
+      user: buildUserResponse(user),
     });
   } catch (error) {
     console.error("Login Error:", error);
@@ -321,13 +337,7 @@ const verifyOtp = async (req, res) => {
       success: true,
       message: "Login successful",
       token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        role: user.role,
-      },
+      user: buildUserResponse(user),
     });
   } catch (error) {
     console.error("verifyOtp Error:", error);
@@ -338,9 +348,54 @@ const verifyOtp = async (req, res) => {
   }
 };
 
+const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const allowedFields = [
+      "name", "email", "phone", "altPhone", "photo",
+      "houseNo", "village", "block", "district", "state",
+      "pincode", "landmark", "docType", "docNumber",
+      "language", "smsUpdates",
+    ];
+
+    const updateData = {};
+    for (const field of allowedFields) {
+      if (req.body[field] !== undefined) {
+        updateData[field] = req.body[field];
+      }
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: updateData },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      user: buildUserResponse(updatedUser),
+    });
+  } catch (error) {
+    console.error("Update profile error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
   sendOtp,
   verifyOtp,
+  updateProfile,
 };

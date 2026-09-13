@@ -38,10 +38,12 @@ import CustomerReviews from "./pages/dashboards/CustomerReviews";
 import CustomerProfile from "./pages/dashboards/CustomerProfile";
 import CustomerActivity from "./pages/dashboards/CustomerActivity";
 import CustomerQueries from "./pages/dashboards/CustomerQueries";
+import CustomerPayments from "./pages/dashboards/CustomerPayments";
 import WorkerDashboard from "./pages/dashboards/WorkerDashboard";
 import WorkerRequests from "./pages/dashboards/WorkerRequests";
 import WorkerReviews from "./pages/dashboards/WorkerReviews";
 import WorkerProfileDashboard from "./pages/dashboards/WorkerProfileDashboard";
+import WorkerAvailability from "./pages/dashboards/WorkerAvailability";
 import WorkerEarnings from "./pages/dashboards/WorkerEarnings";
 import WorkerServices from "./pages/dashboards/WorkerServices";
 import SHGDashboard from "./pages/dashboards/SHGDashboard";
@@ -150,10 +152,7 @@ export default function App() {
         <Route path="map" element={<CustomerMap />} />
         <Route path="activity" element={<CustomerActivity />} />
         <Route path="requests" element={<CustomerActivity />} />
-        <Route
-          path="payments"
-          element={<DashboardSubpage title="Payment History" subtitle="Verified digital and cash transaction slips" category="Payment Slip" actionLabel="Make Payment" />}
-        />
+        <Route path="payments" element={<CustomerPayments />} />
         <Route path="reviews" element={<CustomerReviews />} />
         <Route path="queries" element={<CustomerQueries />} />
         <Route path="profile" element={<CustomerProfile />} />
@@ -179,7 +178,7 @@ export default function App() {
         />
         <Route
           path="availability"
-          element={<DashboardSubpage title="Working Hours & Availability" subtitle="Set days and timing when customers can book you" category="Schedule Slot" actionLabel="Add Slot" />}
+          element={<WorkerAvailability />}
         />
         <Route
           path="earnings"

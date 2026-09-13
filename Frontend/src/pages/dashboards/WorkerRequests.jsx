@@ -10,9 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "../../hooks/useToast";
 import api from "../../utils/api";
 
-const STORAGE_KEY = "karya_worker_requests_v1";
 
-const INITIAL_REQUESTS = [];
 
 // Map backend booking status to the UI status used by the cards
 const mapBackendStatus = (status) => {
@@ -90,18 +88,9 @@ export default function WorkerRequests() {
       }
     } catch (err) {
       console.error("Failed to fetch worker bookings:", err);
-      // Fallback to INITIAL_REQUESTS only if API is unreachable
-      try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) {
-          setRequests(JSON.parse(saved));
-        } else {
-          setRequests([]);
-        }
-      } catch {
-        setRequests([]);
-      }
-      setApiError("Could not reach backend. Showing cached data.");
+      // Since we strictly want backend data, we do not fallback to mock/cache data here.
+      setApiError("Could not reach backend.");
+      setRequests([]);
     } finally {
       setApiLoading(false);
     }
@@ -111,16 +100,7 @@ export default function WorkerRequests() {
     fetchBookings();
   }, [fetchBookings]);
 
-  // Save to localStorage as cache
-  useEffect(() => {
-    if (requests.length > 0) {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(requests));
-      } catch {
-        // ignore
-      }
-    }
-  }, [requests]);
+  // Removed localStorage cache sync as per strict backend requirement
 
   // View settings
   const [activeFilter, setActiveFilter] = useState("all"); // "all" | "pending" | "active" | "completed"

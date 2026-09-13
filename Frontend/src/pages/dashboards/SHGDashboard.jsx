@@ -1,3 +1,35 @@
+import { ShoppingBag, Users, IndianRupee, TrendingUp } from "lucide-react";
+import DashStat from "../../components/ui/DashStat";
+import { useState, useEffect } from "react";
+import api from "../../utils/api";
+
+export default function SHGDashboard() {
+  const [shg, setShg] = useState({
+    name: "SHG Dashboard",
+    village: "Your Village",
+    members: 0,
+    earnings: 0
+  });
+  const [recentOrders, setRecentOrders] = useState([]);
+  
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const res = await api.get("/shg/dashboard");
+        if (res.data?.success && res.data.dashboard) {
+          setShg({
+            name: res.data.dashboard.name || "SHG Dashboard",
+            village: res.data.dashboard.village || "Your Village",
+            members: res.data.dashboard.totalMembers || 0,
+            earnings: res.data.dashboard.totalEarnings || 0
+          });
+        }
+      } catch (err) {
+        console.error("Failed to fetch SHG dashboard", err);
+      }
+    };
+    fetchDashboard();
+  }, []);
 import { Link } from "react-router-dom";
 import {
   Users, IndianRupee, Star, Package, CheckCircle2, Clock,
@@ -78,6 +110,11 @@ export default function SHGDashboard() {
         </div>
       </div>
 
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <DashStat label="Active orders" value={recentOrders.length.toString()} icon={ShoppingBag} />
+        <DashStat label="Members" value={shg.members} icon={Users} />
+        <DashStat label="Total earnings" value={`₹${shg.earnings}`} icon={IndianRupee} />
+        <DashStat label="Customer growth" value="+18%" sub="This quarter" icon={TrendingUp} />
       {/* 2. Top Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Total Member (in your gp) */}

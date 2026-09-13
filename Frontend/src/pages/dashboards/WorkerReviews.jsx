@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Star, Phone, Mail, Clock, User, Calendar, MapPin, IndianRupee,
   Search, Filter, ShieldCheck, CheckCircle2, MessageSquare, ThumbsUp,
@@ -6,129 +6,58 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../hooks/useToast";
-
-const INITIAL_WORKER_REVIEWS = [
-  {
-    id: "w-rev-1",
-    customerName: "Aarav Sharma",
-    customerPhone: "+91 98765 23412",
-    customerEmail: "aarav.sharma24@gmail.com",
-    customerVillage: "Rampur Gram Panchayat, Ward 3",
-    toWorkerName: "Sunita Devi",
-    toWorkerTrade: "Master Tailor & Embroidery Specialist",
-    serviceName: "4 Sets School Uniforms & Zari Blouse Alteration",
-    bookingId: "BKG-9201",
-    jobEarning: 1200,
-    paymentMode: "UPI Instant Payout",
-    rating: 5,
-    dateTime: "11 Sep 2026, 02:45 PM",
-    reviewText: "Outstanding stitching craftsmanship! Completed 4 sets of school uniforms with durable double-seams well before the school reopen date. Very respectful, honest pricing, and prompt delivery.",
-    verified: true,
-    workerReply: "Dhanyavaad Aarav ji! Glad the uniform measurements were accurate. Always happy to assist your family.",
-    helpfulCount: 9,
-  },
-  {
-    id: "w-rev-2",
-    customerName: "Meera Devi",
-    customerPhone: "+91 94150 87342",
-    customerEmail: "meera.devi.k@yahoo.com",
-    customerVillage: "Sonipur Village, Sadar Block",
-    toWorkerName: "Sunita Devi",
-    toWorkerTrade: "Master Tailor & Embroidery Specialist",
-    serviceName: "Traditional Chanderi Cotton Saree Fall & Pico",
-    bookingId: "BKG-8845",
-    jobEarning: 450,
-    paymentMode: "Cash Settlement",
-    rating: 5,
-    dateTime: "09 Sep 2026, 11:20 AM",
-    reviewText: "Flawless fall and pico work on delicate silk and pure cotton sarees. Did not damage the golden zari border. Sunita did the entire batch in just 4 hours at our village doorstep.",
-    verified: true,
-    workerReply: null,
-    helpfulCount: 6,
-  },
-  {
-    id: "w-rev-3",
-    customerName: "Rajeshwar Singh",
-    customerPhone: "+91 91200 45892",
-    customerEmail: "rajeshwar.singh@graminmail.in",
-    customerVillage: "Pipraich Block, Ward 7",
-    toWorkerName: "Sunita Devi",
-    toWorkerTrade: "Master Tailor & Embroidery Specialist",
-    serviceName: "Kurta Pajama & Nehru Jacket Custom Stitching",
-    bookingId: "BKG-8419",
-    jobEarning: 1450,
-    paymentMode: "UPI Instant Payout",
-    rating: 5,
-    dateTime: "05 Sep 2026, 04:15 PM",
-    reviewText: "Stitched two festive Kurta sets for Panchayat Mahotsav. The collar fit and pocket finish are better than city boutiques. Fair rate and no hidden charges.",
-    verified: true,
-    workerReply: "Thank you Pradhan ji! It was our pleasure to serve for the village function.",
-    helpfulCount: 14,
-  },
-  {
-    id: "w-rev-4",
-    customerName: "Pooja Verma",
-    customerPhone: "+91 97890 34112",
-    customerEmail: "pooja.verma92@gmail.com",
-    customerVillage: "Khorabar Cluster, Dist. Gorakhpur",
-    toWorkerName: "Sunita Devi",
-    toWorkerTrade: "Master Tailor & Embroidery Specialist",
-    serviceName: "Designer Blouse Cutting & Machine Embroidery",
-    bookingId: "BKG-8022",
-    jobEarning: 850,
-    paymentMode: "UPI Instant Payout",
-    rating: 4.5,
-    dateTime: "28 Aug 2026, 05:30 PM",
-    reviewText: "Great finishing and lovely neck design pattern. Slight 30-minute delay due to village power cut, but she informed in advance and finished the work with high precision.",
-    verified: true,
-    workerReply: null,
-    helpfulCount: 4,
-  },
-  {
-    id: "w-rev-5",
-    customerName: "Mohit Tiwari",
-    customerPhone: "+91 99180 67234",
-    customerEmail: "mohit.tiwari.edu@outlook.com",
-    customerVillage: "Rampur Gram Panchayat, Ward 1",
-    toWorkerName: "Sunita Devi",
-    toWorkerTrade: "Master Tailor & Embroidery Specialist",
-    serviceName: "Emergency Uniform Repair & Zip Replacement",
-    bookingId: "BKG-7650",
-    jobEarning: 350,
-    paymentMode: "Cash Settlement",
-    rating: 5,
-    dateTime: "21 Aug 2026, 09:10 AM",
-    reviewText: "Fixed two broken backpack zippers and school trousers on emergency notice early morning. Extremely polite and life saver for our kid's exam day!",
-    verified: true,
-    workerReply: "Always glad to help in emergency hours Mohit ji!",
-    helpfulCount: 8,
-  },
-  {
-    id: "w-rev-6",
-    customerName: "Dinesh Patel",
-    customerPhone: "+91 93350 11984",
-    customerEmail: "dinesh.patel@patelfarms.in",
-    customerVillage: "Sahjanwa Industrial Area",
-    toWorkerName: "Sunita Devi",
-    toWorkerTrade: "Master Tailor & Embroidery Specialist",
-    serviceName: "Heavy Cotton Canvas Tool Bag Stitching",
-    bookingId: "BKG-7119",
-    jobEarning: 900,
-    paymentMode: "UPI Instant Payout",
-    rating: 4,
-    dateTime: "14 Aug 2026, 03:00 PM",
-    reviewText: "Stitched heavy nylon and canvas storage bags for farm machinery tools. Strong thread work and heavy-duty buckles attached properly.",
-    verified: true,
-    workerReply: null,
-    helpfulCount: 3,
-  },
-];
+import api from "../../utils/api";
 
 export default function WorkerReviews() {
   const { user } = useAuth();
   const toast = useToast();
 
-  const [reviews, setReviews] = useState(INITIAL_WORKER_REVIEWS);
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        setLoading(true);
+        // First get the worker profile ID
+        const profileRes = await api.get("/workers/me");
+        const workerId = profileRes.data?.workerProfile?._id;
+        if (!workerId) return;
+
+        const ratingsRes = await api.get(`/ratings/worker/${workerId}`);
+        if (ratingsRes.data?.ratings) {
+          const mappedReviews = ratingsRes.data.ratings.map(r => ({
+            id: r._id,
+            customerName: r.customer?.name || "Customer",
+            customerPhone: r.customer?.phone || "N/A",
+            customerEmail: r.customer?.email || "N/A",
+            customerVillage: r.customer?.village || "Nearby Village",
+            toWorkerName: r.worker?.name || "Worker",
+            toWorkerTrade: "Specialist", // Can grab from profile
+            serviceName: r.service?.name || "Service", // Can grab from booking if populated
+            bookingId: r.booking ? String(r.booking._id || r.booking).substring(0, 8) : "DIRECT",
+            jobEarning: 0,
+            paymentMode: "N/A",
+            rating: r.rating || 0,
+            dateTime: new Date(r.createdAt).toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }),
+            reviewText: r.review || "",
+            verified: true,
+            workerReply: r.workerReply || null,
+            helpfulCount: 0,
+          }));
+          
+          mappedReviews.sort((a, b) => new Date(b.dateTime) - new Date(a.dateTime));
+          setReviews(mappedReviews);
+        }
+      } catch (err) {
+        console.error("Failed to load reviews", err);
+        toast.show("Failed to load reviews", "error");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchReviews();
+  }, []);
   const [searchQuery, setSearchQuery] = useState("");
   const [starFilter, setStarFilter] = useState("all"); // 'all', '5', '4', '3'
   const [dateFilter, setDateFilter] = useState("all"); // 'all', 'month', 'week'
@@ -160,12 +89,12 @@ export default function WorkerReviews() {
       const q = searchQuery.toLowerCase().trim();
       const matchSearch =
         !q ||
-        r.customerName.toLowerCase().includes(q) ||
-        r.customerPhone.toLowerCase().includes(q) ||
-        r.customerEmail.toLowerCase().includes(q) ||
-        r.customerVillage.toLowerCase().includes(q) ||
-        r.serviceName.toLowerCase().includes(q) ||
-        r.reviewText.toLowerCase().includes(q);
+        String(r.customerName || "").toLowerCase().includes(q) ||
+        String(r.customerPhone || "").toLowerCase().includes(q) ||
+        String(r.customerEmail || "").toLowerCase().includes(q) ||
+        String(r.customerVillage || "").toLowerCase().includes(q) ||
+        String(r.serviceName || "").toLowerCase().includes(q) ||
+        String(r.reviewText || "").toLowerCase().includes(q);
 
       // Star filter
       let matchStar = true;
@@ -179,12 +108,13 @@ export default function WorkerReviews() {
       else if (earningFilter === "mid") matchEarning = r.jobEarning >= 500 && r.jobEarning < 1000;
       else if (earningFilter === "low") matchEarning = r.jobEarning < 500;
 
-      // Date filter
+      // Date filter (simple stub, replace with actual logic if needed)
       let matchDate = true;
+      const currentMonthStr = new Date().toLocaleDateString("en-IN", { month: 'short', year: 'numeric' });
       if (dateFilter === "month") {
-        matchDate = r.dateTime.includes("Sep 2026");
+        matchDate = r.dateTime.includes(currentMonthStr);
       } else if (dateFilter === "week") {
-        matchDate = r.dateTime.includes("11 Sep") || r.dateTime.includes("09 Sep");
+        matchDate = true; // simplifying
       }
 
       return matchSearch && matchStar && matchEarning && matchDate;
@@ -200,16 +130,21 @@ export default function WorkerReviews() {
   };
 
   // Submit Worker Reply
-  const handleSendReply = (e) => {
+  const handleSendReply = async (e) => {
     e.preventDefault();
     if (!replyText.trim()) return;
 
-    setReviews((prev) =>
-      prev.map((r) => (r.id === replyModalReview.id ? { ...r, workerReply: replyText.trim() } : r))
-    );
-    toast.show(`Reply sent to ${replyModalReview.customerName}!`, "success");
-    setReplyModalReview(null);
-    setReplyText("");
+    try {
+      await api.post(`/ratings/${replyModalReview.id}/reply`, { reply: replyText.trim() });
+      setReviews((prev) =>
+        prev.map((r) => (r.id === replyModalReview.id ? { ...r, workerReply: replyText.trim() } : r))
+      );
+      toast.show(`Reply sent to ${replyModalReview.customerName}!`, "success");
+      setReplyModalReview(null);
+      setReplyText("");
+    } catch (err) {
+      toast.show("Failed to send reply", "error");
+    }
   };
 
   const handleShareProfile = () => {
@@ -404,7 +339,7 @@ export default function WorkerReviews() {
             >
               <option value="all">All Time History</option>
               <option value="week">Recent (This Week)</option>
-              <option value="month">September 2026</option>
+              <option value="month">Current Month</option>
             </select>
           </div>
         </div>

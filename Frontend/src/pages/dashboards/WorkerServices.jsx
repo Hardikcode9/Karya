@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../hooks/useToast";
+import api from "../../utils/api";
 
 // Initial Catalog with ONLY 1 Service Created as requested
 const DEFAULT_WORKER_SERVICES = [
@@ -57,28 +58,47 @@ export default function WorkerServices() {
   const { user } = useAuth();
   const toast = useToast();
 
-  // Load services with local persistence (defaults to exactly 1 service)
-  const [services, setServices] = useState(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
-    } catch (e) {
-      console.error("Failed to read stored services", e);
-    }
-    return DEFAULT_WORKER_SERVICES;
-  });
+  const [loading, setLoading] = useState(true);
+  const [services, setServices] = useState([]);
 
-  // Persist whenever services change
+  // Fetch the worker's assigned service from their profile
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(services));
-    } catch (e) {
-      console.error("Failed to persist services", e);
-    }
-  }, [services]);
+    const fetchWorkerService = async () => {
+      try {
+        setLoading(true);
+        const res = await api.get("/workers/me");
+        if (res.data?.workerProfile) {
+          const profile = res.data.workerProfile;
+          if (profile.service) {
+            setServices([{
+              id: profile.service._id,
+              name: profile.service.name,
+              category: profile.service.category || "General",
+              price: profile.pricePerService || 0,
+              priceUnit: "service",
+              duration: "24 - 48 Hours",
+              description: profile.service.description || profile.bio,
+              inclusions: profile.skills || [],
+              isActive: profile.isAvailable,
+              emergencyAvailable: false,
+              emergencyFee: 0,
+              ordersCompleted: 0, // In a real app this would aggregate completed bookings
+              rating: profile.rating || 0,
+              createdAt: "Active",
+              certificateName: "Self-Attested verified",
+              isAadhaarVerified: true
+            }]);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load worker profile service", error);
+        toast.show("Failed to load your active service", "error");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchWorkerService();
+  }, []);
 
   // Filters & Search
   const [searchTerm, setSearchTerm] = useState("");
@@ -118,9 +138,9 @@ export default function WorkerServices() {
   const filteredServices = useMemo(() => {
     return services.filter((srv) => {
       const matchesSearch =
-        srv.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        srv.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        srv.category.toLowerCase().includes(searchTerm.toLowerCase());
+        String(srv.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        String(srv.description || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        String(srv.category || "").toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesCategory =
         selectedCategory === "All" || srv.category === selectedCategory;
@@ -145,7 +165,8 @@ export default function WorkerServices() {
       total > 0
         ? Math.round(services.reduce((acc, s) => acc + Number(s.price || 0), 0) / total)
         : 0;
-    return { total, activeCount, totalCompleted, avgPrice };
+    const avgRating = total > 0 ? (services.reduce((acc, s) => acc + Number(s.rating || 0), 0) / total).toFixed(1) : "0.0";
+    return { total, activeCount, totalCompleted, avgPrice, avgRating };
   }, [services]);
 
   // Open modal for creating a new service
@@ -369,26 +390,19 @@ export default function WorkerServices() {
         <div className="flex items-center gap-2.5">
           <button
             type="button"
-            onClick={handleResetDefaults}
-            title="Reset to 1 default service"
+            onClick={() => {
+              toast.show("Refreshing data from server...", "info");
+              window.location.reload();
+            }}
+            title="Refresh Data"
             className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-white dark:bg-dark-card border border-charcoal/15 dark:border-dark-border text-charcoal/70 dark:text-dark-muted hover:text-charcoal hover:border-olive-600 transition-all cursor-pointer shadow-2xs"
           >
             <RefreshCw size={14} />
-            <span className="hidden md:inline">Reset Defaults</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleOpenAddModal}
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-olive-700 hover:bg-olive-800 text-white shadow-xs border border-olive-800/20 active:scale-[0.98] transition-all cursor-pointer"
-          >
-            <Plus size={16} />
-            <span>Add New Service</span>
+            <span className="hidden md:inline">Refresh</span>
           </button>
         </div>
       </div>
 
-      {/* 2. EXTRA ACTION CALLOUT BANNER TO ADD NEW SERVICES (Prominent & Village-Friendly) */}
       <div className="bg-gradient-to-r from-olive-800 to-olive-900 text-white rounded-3xl p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-md border border-olive-700">
         <div className="flex items-center gap-3.5">
           <div className="w-11 h-11 rounded-2xl bg-white/10 flex items-center justify-center shrink-0 border border-white/10">
@@ -396,22 +410,13 @@ export default function WorkerServices() {
           </div>
           <div>
             <h3 className="font-display text-base sm:text-lg font-bold">
-              Want to offer a new service? (नया काम या सेवा जोड़ें)
+              Your Primary Trade Profile (आपकी प्राथमिक सेवा)
             </h3>
             <p className="text-xs text-white/80 mt-0.5 max-w-xl">
-              Upload your trade certifications, mention your tools & experience, set village rates, and accept direct bookings with 0% commission.
+              As a verified Karya Worker, your profile is permanently linked to your verified trade to ensure customer trust.
             </p>
           </div>
         </div>
-
-        <button
-          type="button"
-          onClick={handleOpenAddModal}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-white text-olive-900 hover:bg-olive-50 shadow-sm transition-all shrink-0 cursor-pointer self-start sm:self-auto"
-        >
-          <Plus size={16} />
-          <span>Add My New Service</span>
-        </button>
       </div>
 
       {/* 3. METRIC SUMMARY STRIP */}
@@ -461,7 +466,7 @@ export default function WorkerServices() {
             <Star size={16} className="text-amber-500 fill-amber-400" />
           </div>
           <div className="text-2xl font-display font-bold text-charcoal dark:text-dark-text">
-            4.9 / 5.0
+            {metrics.avgRating} / 5.0
           </div>
           <p className="text-[11px] text-charcoal/50 dark:text-dark-muted font-medium mt-1">
             Based on recent customer reviews
@@ -731,27 +736,6 @@ export default function WorkerServices() {
           </div>
         ))}
 
-        {/* 6. EXTRA DASHED "ADD ANOTHER SERVICE" CARD IN THE GRID */}
-        <button
-          type="button"
-          onClick={handleOpenAddModal}
-          className="border-2 border-dashed border-charcoal/20 dark:border-dark-border hover:border-olive-600 dark:hover:border-olive-400 rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center text-center gap-3 transition-all hover:bg-olive-50/50 dark:hover:bg-olive-950/20 group cursor-pointer min-h-[340px]"
-        >
-          <div className="w-14 h-14 rounded-2xl bg-olive-100 dark:bg-olive-950 text-olive-700 dark:text-olive-300 flex items-center justify-center group-hover:scale-110 transition-transform shadow-xs">
-            <Plus size={26} />
-          </div>
-          <div>
-            <h4 className="font-display text-base sm:text-lg font-bold text-charcoal dark:text-dark-text group-hover:text-olive-800 dark:group-hover:text-olive-300 transition-colors">
-              + Add My New Service (नया काम जोड़ें)
-            </h4>
-            <p className="text-xs text-charcoal/60 dark:text-dark-muted mt-1.5 max-w-xs mx-auto leading-relaxed">
-              Upload certificates, mention work equipment &amp; turnaround time, and publish for instant bookings.
-            </p>
-          </div>
-          <span className="inline-flex items-center gap-1 text-xs font-bold text-olive-800 dark:text-olive-300 bg-white dark:bg-dark-card px-4 py-1.5 rounded-xl border border-charcoal/10 shadow-2xs">
-            Open Service &amp; Docs Form →
-          </span>
-        </button>
       </div>
 
       {/* 7. ADD / EDIT SERVICE & DOCUMENT UPLOAD FORM MODAL */}

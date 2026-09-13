@@ -742,10 +742,47 @@ const updateWorkerAvailability = async (req, res) => {
   }
 };
 
+const getWorkerProfile = async (req, res) => {
+  try {
+    if (req.user.role !== "worker") {
+      return res.status(403).json({
+        success: false,
+        message: "Only workers can view their profile",
+      });
+    }
+
+    const workerProfile = await WorkerProfile.findOne({
+      user: req.user.userId,
+    })
+      .populate("user", "name phone email village district state")
+      .populate("service", "name category description icon");
+
+    if (!workerProfile) {
+      return res.status(404).json({
+        success: false,
+        message: "Worker profile not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      workerProfile,
+    });
+  } catch (error) {
+    console.error("Get Worker Profile Error:", error.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch worker profile",
+    });
+  }
+};
+
 module.exports = {
   getWorkers,
   getNearbyWorkers,
   getWorkerById,
   createWorkerProfile,
   updateWorkerAvailability,
+  getWorkerProfile,
 };

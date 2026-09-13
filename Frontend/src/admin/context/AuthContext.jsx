@@ -32,6 +32,8 @@ export function AuthProvider({ children }) {
 
     localStorage.setItem("admin_token", token);
     localStorage.setItem("admin_user", JSON.stringify(userData));
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(userData));
     setUser(userData);
     return userData;
   };
@@ -39,6 +41,8 @@ export function AuthProvider({ children }) {
   const logout = () => {
     localStorage.removeItem("admin_token");
     localStorage.removeItem("admin_user");
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
     setUser(null);
   };
 

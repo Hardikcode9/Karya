@@ -17,7 +17,7 @@ export default function AdminServices() {
   const fetchServices = async () => {
     try {
       const response = await api.get("/services");
-      setServicesList(response.data.data);
+      setServicesList(response.data.services || response.data.data || []);
     } catch (error) {
       toast.error("Failed to fetch services.");
     } finally {

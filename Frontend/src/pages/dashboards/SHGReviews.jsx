@@ -15,7 +15,7 @@ export default function SHGReviews() {
   const fetchReviews = async () => {
     try {
       const response = await api.get("/shg/reviews");
-      setReviews(response.data.data);
+      setReviews(response.data.data?.reviews || []);
     } catch (error) {
       toast.error("Failed to fetch reviews");
     } finally {
@@ -28,7 +28,7 @@ export default function SHGReviews() {
   const filteredReviews = useMemo(() => {
     return reviews.filter((r) => {
       const customer = r.customer?.name || "";
-      const text = r.comment || "";
+      const text = r.review || r.comment || "";
       const product = r.booking?.product?.title || r.booking?.service?.name || "";
 
       return (
@@ -107,7 +107,7 @@ export default function SHGReviews() {
                     </div>
                   </div>
                   <p className="text-xs text-charcoal/80 dark:text-dark-muted mt-2">
-                    "{review.comment}"
+                    "{review.review || review.comment}"
                   </p>
                   <p className="text-[10px] text-charcoal/40 mt-3 text-right">
                     {new Date(review.createdAt).toLocaleDateString()}

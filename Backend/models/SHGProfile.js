@@ -1,32 +1,5 @@
 const mongoose = require("mongoose");
 
-const shgMemberSchema = new mongoose.Schema(
-  {
-    worker: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "WorkerProfile",
-      required: true,
-    },
-
-    memberRole: {
-      type: String,
-      enum: ["member", "leader", "coordinator"],
-      default: "member",
-    },
-
-    joinedAt: {
-      type: Date,
-      default: Date.now,
-    },
-
-    isActive: {
-      type: Boolean,
-      default: true,
-    },
-  },
-  { _id: false }
-);
-
 const shgProfileSchema = new mongoose.Schema(
   {
     // SHG coordinator/login user
@@ -116,7 +89,7 @@ const shgProfileSchema = new mongoose.Schema(
       },
     ],
 
-    members: [shgMemberSchema],
+
 
     rating: {
       type: Number,

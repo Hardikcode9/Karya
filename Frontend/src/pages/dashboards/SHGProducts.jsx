@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { useToast } from "../../hooks/useToast";
 import api from "../../utils/api";
+import AddProductModal from "../../components/dashboards/AddProductModal";
 
 export default function SHGProducts() {
   const toast = useToast();
@@ -15,6 +16,7 @@ export default function SHGProducts() {
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   
   useEffect(() => {
     fetchProducts();
@@ -89,15 +91,21 @@ export default function SHGProducts() {
           ))}
         </div>
         
-        <div className="relative w-full sm:w-64">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-charcoal/40" />
-          <input
-            type="text"
-            placeholder="Search products..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 bg-charcoal/5 dark:bg-dark-surface rounded-xl text-xs outline-none focus:ring-2 focus:ring-olive-500/20"
-          />
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="relative w-full sm:w-64">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-charcoal/40" />
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-9 pr-4 py-2.5 bg-charcoal/5 dark:bg-dark-surface rounded-xl text-xs outline-none focus:ring-2 focus:ring-olive-500/20"
+            />
+          </div>
+          <button onClick={() => setIsAddModalOpen(true)} className="shrink-0 flex items-center gap-2 bg-olive-700 hover:bg-olive-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-colors">
+            <Plus size={16} />
+            <span className="hidden sm:inline">Add Product</span>
+          </button>
         </div>
       </div>
 
@@ -164,6 +172,12 @@ export default function SHGProducts() {
           )}
         </div>
       </div>
+      
+      <AddProductModal 
+        isOpen={isAddModalOpen} 
+        onClose={() => setIsAddModalOpen(false)} 
+        onProductAdded={fetchProducts} 
+      />
     </div>
   );
 }

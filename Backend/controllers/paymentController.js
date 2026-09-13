@@ -3,6 +3,7 @@ const Payment = require("../models/Payment");
 const Booking = require("../models/Booking");
 const WorkerProfile = require("../models/WorkerProfile");
 const Notification = require("../models/Notification");
+const CustomerProfile = require("../models/CustomerProfile");
 
 const createPayment = async (req, res) => {
   try {
@@ -44,8 +45,16 @@ const createPayment = async (req, res) => {
       });
     }
 
+    const customerProfile = await CustomerProfile.findOne({ user: req.user.userId });
+    if (!customerProfile) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer profile not found",
+      });
+    }
+
     // Make sure booking belongs to logged-in customer
-    if (booking.customer.toString() !== req.user.userId.toString()) {
+    if (booking.customer.toString() !== customerProfile._id.toString()) {
       return res.status(403).json({
         success: false,
         message: "You cannot pay for this booking",
@@ -166,8 +175,16 @@ const updatePaymentStatus = async (req, res) => {
       });
     }
 
+    const customerProfile = await CustomerProfile.findOne({ user: req.user.userId });
+    if (!customerProfile) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer profile not found",
+      });
+    }
+
     // Make sure payment belongs to logged-in customer
-    if (payment.customer.toString() !== req.user.userId.toString()) {
+    if (payment.customer.toString() !== customerProfile._id.toString()) {
       return res.status(403).json({
         success: false,
         message: "You cannot update this payment",
@@ -469,7 +486,7 @@ const createRazorpayOrder = async (req, res) => {
       const payAmount = Number(amount) || 350;
 
       booking = await Booking.create({
-        customer: req.user.userId,
+        customer: customerProfile._id,
         service: serviceId,
         scheduledDate: new Date(),
         duration: 60,

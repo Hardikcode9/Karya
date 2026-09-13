@@ -78,7 +78,6 @@ function AdminRedirect() {
 const customerNav = [
   { to: "/customer", end: true, label: "Overview", icon: LayoutDashboard },
   { to: "/customer/map", label: "Nearby Map", icon: MapPin },
-  { to: "/shgs", label: "SHG Store", icon: ShoppingBag },
   { to: "/customer/activity", label: "Recent Activity", icon: Activity },
   { to: "/customer/payments", label: "Payments", icon: Wallet },
   { to: "/customer/reviews", label: "Reviews", icon: Star },

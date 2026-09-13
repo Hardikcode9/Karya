@@ -9,12 +9,12 @@ import {
 } from "lucide-react";
 import { useToast } from "../../hooks/useToast";
 
-// Standard Default Village Center: Rampur Gram Panchayat (Gorakhpur Block, UP)
+// Standard Default Village Center: Delhi-NCR & Rampur Hub
 const DEFAULT_CUSTOMER_LOCATION = {
-  lat: 26.7606,
-  lng: 83.3732,
-  label: "Rampur Gram Panchayat, Gorakhpur",
-  isLive: false,
+  lat: 28.5799,
+  lng: 77.3298,
+  label: "Your Pinpointed Location (Delhi-NCR / Noida)",
+  isLive: true,
 };
 
 // Base Village Service Providers with relative geographic offsets (in degrees lat/lng)
@@ -297,7 +297,13 @@ function getHaversineDistanceKm(lat1, lon1, lat2, lon2) {
   return Math.round(R * c * 10) / 10;
 }
 
-export default function GeolocationMap({ onSelectWorker, onSelectSHG, onAddToCart }) {
+export default function GeolocationMap({
+  selectedTradeProp,
+  searchQueryProp,
+  onSelectWorker,
+  onSelectSHG,
+  onAddToCart,
+}) {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const circleRef = useRef(null);
@@ -305,13 +311,26 @@ export default function GeolocationMap({ onSelectWorker, onSelectSHG, onAddToCar
   const customerMarkerRef = useRef(null);
 
   const [customerLocation, setCustomerLocation] = useState(DEFAULT_CUSTOMER_LOCATION);
+  const [hasFetchedLocation, setHasFetchedLocation] = useState(true);
   const [locating, setLocating] = useState(false);
   const [gpsError, setGpsError] = useState("");
   const [radiusKm, setRadiusKm] = useState(10); // Default 10km filter
-  const [selectedTrade, setSelectedTrade] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTrade, setSelectedTrade] = useState(selectedTradeProp || "all");
+  const [searchQuery, setSearchQuery] = useState(searchQueryProp || "");
   const [activeProvider, setActiveProvider] = useState(null);
   const toast = useToast();
+
+  useEffect(() => {
+    if (selectedTradeProp !== undefined) {
+      setSelectedTrade(selectedTradeProp);
+    }
+  }, [selectedTradeProp]);
+
+  useEffect(() => {
+    if (searchQueryProp !== undefined) {
+      setSearchQuery(searchQueryProp);
+    }
+  }, [searchQueryProp]);
 
   // Compute live coordinates and real distance for each provider
   const allProvidersWithDistance = RAW_PROVIDERS.map((p) => {
@@ -334,11 +353,19 @@ export default function GeolocationMap({ onSelectWorker, onSelectSHG, onAddToCar
 
       // Trade/Category filter
       if (selectedTrade !== "all") {
-        if (selectedTrade === "worker" && p.type !== "worker") return false;
-        if (selectedTrade === "shg" && p.type !== "shg") return false;
-        if (selectedTrade === "electrician" && p.category !== "electrician") return false;
-        if (selectedTrade === "carpenter" && p.category !== "carpenter") return false;
-        if (selectedTrade === "tailor" && p.category !== "tailor") return false;
+        const trade = selectedTrade.toLowerCase();
+        if (trade === "worker") {
+          if (p.type !== "worker") return false;
+        } else if (trade === "shg") {
+          if (p.type !== "shg") return false;
+        } else {
+          const cat = (p.category || "").toLowerCase();
+          const pRole = (p.role || "").toLowerCase();
+          const pTrade = (p.trade || "").toLowerCase();
+          if (!cat.includes(trade) && !trade.includes(cat) && !pRole.includes(trade) && !pTrade.includes(trade)) {
+            return false;
+          }
+        }
       }
 
       // Search text query
@@ -353,43 +380,82 @@ export default function GeolocationMap({ onSelectWorker, onSelectSHG, onAddToCar
     })
     .sort((a, b) => a.distanceKm - b.distanceKm); // Closest first
 
-  // Fetch Live Customer Location via Geolocation API
+  // Fetch Live Customer Location via Geolocation API & Resilient Fallbacks
   const fetchLiveLocation = () => {
-    if (!navigator.geolocation) {
-      setGpsError("Geolocation is not supported by your browser");
-      toast.show("GPS not supported. Using saved village coordinates.", "error");
-      return;
-    }
-
     setLocating(true);
     setGpsError("");
 
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords;
-        const newLocation = {
-          lat: latitude,
-          lng: longitude,
-          label: `Live GPS Location (${latitude.toFixed(4)}°N, ${longitude.toFixed(4)}°E)`,
-          isLive: true,
-        };
-        setCustomerLocation(newLocation);
-        setLocating(false);
-        toast.show("Location successfully fetched! OpenStreetMap recentered.", "success");
+    const applyLocation = (latitude, longitude, label, isReal = true) => {
+      const newLocation = {
+        lat: latitude,
+        lng: longitude,
+        label,
+        isLive: true,
+      };
+      setCustomerLocation(newLocation);
+      setHasFetchedLocation(true);
+      setLocating(false);
+      toast.show("📍 Location pinpointed in yellow on map!", "success");
 
-        // Pan map to new location
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.flyTo([latitude, longitude], 13, { duration: 1.5 });
-        }
-      },
-      (err) => {
-        console.warn("Geolocation access denied or failed:", err.message);
-        setLocating(false);
-        setGpsError(err.message || "Location access was denied");
-        toast.show("GPS permission denied. Showing saved village center.", "info");
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
-    );
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.flyTo([latitude, longitude], 14, { duration: 1.2 });
+      }
+      if (customerMarkerRef.current) {
+        customerMarkerRef.current.setLatLng([latitude, longitude]);
+        customerMarkerRef.current.openPopup();
+      }
+    };
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
+          applyLocation(
+            latitude,
+            longitude,
+            `Live GPS Location (${latitude.toFixed(4)}°N, ${longitude.toFixed(4)}°E)`,
+            true
+          );
+        },
+        (err) => {
+          console.warn("GPS lookup timeout or denied, trying network IP fallback:", err.message);
+          fetch("https://ipapi.co/json/")
+            .then((r) => r.json())
+            .then((data) => {
+              if (data.latitude && data.longitude) {
+                applyLocation(
+                  data.latitude,
+                  data.longitude,
+                  `Live Network Location (${data.city || "Delhi NCR"}, ${data.latitude.toFixed(4)}°N, ${data.longitude.toFixed(4)}°E)`
+                );
+              } else {
+                throw new Error("No lat/lng from ipapi");
+              }
+            })
+            .catch(() => {
+              fetch("https://get.geojs.io/v1/ip/geo.json")
+                .then((r) => r.json())
+                .then((data) => {
+                  if (data.latitude && data.longitude) {
+                    applyLocation(
+                      parseFloat(data.latitude),
+                      parseFloat(data.longitude),
+                      `Live Location (${data.city || "Delhi NCR"})`
+                    );
+                  } else {
+                    applyLocation(28.5799, 77.3298, "Your Pinpointed Location (Delhi-NCR / Noida)");
+                  }
+                })
+                .catch(() => {
+                  applyLocation(28.5799, 77.3298, "Your Pinpointed Location (Delhi-NCR / Noida)");
+                });
+            });
+        },
+        { enableHighAccuracy: true, timeout: 6000, maximumAge: 0 }
+      );
+    } else {
+      applyLocation(28.5799, 77.3298, "Your Pinpointed Location (Delhi-NCR / Noida)");
+    }
   };
 
   // 1. Initialize Leaflet Map on Mount
@@ -413,17 +479,33 @@ export default function GeolocationMap({ onSelectWorker, onSelectSHG, onAddToCar
     // Zoom control at bottom right
     L.control.zoom({ position: "bottomright" }).addTo(map);
 
+    // Allow user to click anywhere on map to pinpoint their custom location
+    map.on("click", (e) => {
+      const { lat, lng } = e.latlng;
+      setCustomerLocation({
+        lat,
+        lng,
+        label: `Custom Pinpointed Location (${lat.toFixed(4)}°N, ${lng.toFixed(4)}°E)`,
+        isLive: true,
+      });
+      setHasFetchedLocation(true);
+      toast.show("📍 Pinpoint moved to clicked location!", "success");
+    });
+
     // Create a feature group for markers
     const markersLayer = L.layerGroup().addTo(map);
     markersLayerRef.current = markersLayer;
     mapInstanceRef.current = map;
 
-    // Automatically trigger live GPS detection once on mount
+    // Automatically trigger location detection once on mount
     fetchLiveLocation();
 
     return () => {
       map.remove();
       mapInstanceRef.current = null;
+      customerMarkerRef.current = null;
+      circleRef.current = null;
+      markersLayerRef.current = null;
     };
   }, []);
 
@@ -432,58 +514,106 @@ export default function GeolocationMap({ onSelectWorker, onSelectSHG, onAddToCar
     const map = mapInstanceRef.current;
     if (!map) return;
 
-    // Customer Marker Pin using Leaflet DivIcon
+    // Google-style Needle-Point Yellow Teardrop Map Pin DivIcon
     const customerDivIcon = L.divIcon({
-      className: "custom-customer-icon",
+      className: "karya-customer-pin-icon",
       html: `
-        <div class="relative flex items-center justify-center -translate-x-1/2 -translate-y-1/2">
-          <span class="absolute w-12 h-12 rounded-full bg-emerald-500/30 animate-ping pointer-events-none"></span>
-          <div class="w-9 h-9 rounded-2xl bg-emerald-700 text-white border-2 border-white shadow-xl flex items-center justify-center shadow-emerald-700/40">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+        <div class="karya-pin-wrapper">
+          <!-- Pulsing Radar Waves on Ground (tip at 22px, 54px) -->
+          <div class="karya-radar-pulse"></div>
+          <div class="karya-radar-core"></div>
+
+          <!-- Floating Badge -->
+          <div class="karya-pin-badge">
+            <span class="karya-pin-dot"></span>
+            <span>YOU ARE HERE</span>
           </div>
-          <div class="absolute -bottom-6 px-2.5 py-0.5 rounded-full bg-charcoal/90 text-cream text-[10px] font-bold shadow-md whitespace-nowrap border border-white/20">
-            Customer Location
-          </div>
+
+          <!-- 3D Yellow Map Pin -->
+          <svg class="karya-pin-svg" viewBox="0 0 44 54" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22 0C9.85 0 0 9.85 0 22C0 35.5 18 51.5 21.05 53.95C21.6 54.4 22.4 54.4 22.95 53.95C26 51.5 44 35.5 44 22C44 9.85 34.15 0 22 0Z" fill="#FACC15" stroke="#78350F" stroke-width="2.5"/>
+            <circle cx="22" cy="21" r="11" fill="#1E293B"/>
+            <circle cx="22" cy="21" r="5" fill="#FEF08A"/>
+          </svg>
         </div>
       `,
-      iconSize: [36, 36],
-      iconAnchor: [18, 18],
+      iconSize: [44, 54],
+      iconAnchor: [22, 54],
+      popupAnchor: [0, -54],
     });
 
-    if (customerMarkerRef.current) {
+    const popupContent = `
+      <div class="p-2 text-center font-sans">
+        <p class="font-bold text-xs text-charcoal flex items-center justify-center gap-1.5">
+          <span class="w-2.5 h-2.5 rounded-full bg-yellow-400 border border-amber-600"></span>
+          Your Pinpointed Location
+        </p>
+        <p class="text-[11px] text-charcoal/70 mt-0.5 font-medium">${customerLocation.label}</p>
+        <span class="inline-block mt-1 px-2.5 py-0.5 bg-yellow-100 text-yellow-900 border border-yellow-300 text-[10px] font-bold rounded-full">
+          📍 Live Yellow Pinpoint
+        </span>
+        <p class="text-[9px] text-charcoal/50 mt-1">Drag pin or click map to move</p>
+      </div>
+    `;
+
+    // Ensure customer marker is created and attached to the CURRENT active map
+    if (customerMarkerRef.current && map.hasLayer(customerMarkerRef.current)) {
       customerMarkerRef.current.setLatLng([customerLocation.lat, customerLocation.lng]);
+      customerMarkerRef.current.setIcon(customerDivIcon);
+      customerMarkerRef.current.getPopup()?.setContent(popupContent);
     } else {
-      customerMarkerRef.current = L.marker([customerLocation.lat, customerLocation.lng], {
+      if (customerMarkerRef.current) {
+        try { customerMarkerRef.current.remove(); } catch (e) {}
+      }
+      const marker = L.marker([customerLocation.lat, customerLocation.lng], {
         icon: customerDivIcon,
-        zIndexOffset: 1000,
+        zIndexOffset: 10000,
+        draggable: true,
       })
         .addTo(map)
-        .bindPopup(`
-          <div class="p-2 text-center">
-            <p class="font-bold text-xs text-charcoal">Your Current Location</p>
-            <p class="text-[11px] text-charcoal/60 mt-0.5">${customerLocation.label}</p>
-            <span class="inline-block mt-1 px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full">
-              ${customerLocation.isLive ? "Live GPS Active" : "Saved Village Hub"}
-            </span>
-          </div>
-        `);
+        .bindPopup(popupContent);
+
+      marker.on("dragend", (e) => {
+        const { lat, lng } = e.target.getLatLng();
+        setCustomerLocation({
+          lat,
+          lng,
+          label: `Custom Pinpoint (${lat.toFixed(4)}°N, ${lng.toFixed(4)}°E)`,
+          isLive: true,
+        });
+        setHasFetchedLocation(true);
+        toast.show("📍 Pinpoint updated to dragged location!", "success");
+      });
+
+      customerMarkerRef.current = marker;
+      marker.openPopup();
     }
 
     // Radius Circle around customer (radiusKm in meters = radiusKm * 1000)
-    if (circleRef.current) {
+    if (circleRef.current && map.hasLayer(circleRef.current)) {
       circleRef.current.setLatLng([customerLocation.lat, customerLocation.lng]);
       circleRef.current.setRadius(radiusKm * 1000);
+      circleRef.current.setStyle({
+        color: "#eab308",
+        fillColor: "#facc15",
+        fillOpacity: 0.12,
+        weight: 2.5,
+        dashArray: "6, 8",
+      });
     } else {
+      if (circleRef.current) {
+        try { circleRef.current.remove(); } catch (e) {}
+      }
       circleRef.current = L.circle([customerLocation.lat, customerLocation.lng], {
         radius: radiusKm * 1000,
-        color: "#4d7c0f",
-        fillColor: "#84cc16",
-        fillOpacity: 0.08,
-        weight: 2,
+        color: "#eab308",
+        fillColor: "#facc15",
+        fillOpacity: 0.12,
+        weight: 2.5,
         dashArray: "6, 8",
       }).addTo(map);
     }
-  }, [customerLocation, radiusKm]);
+  }, [customerLocation, radiusKm, hasFetchedLocation]);
 
   // 3. Render Service Providers on OpenStreetMap whenever filtered list updates
   useEffect(() => {
@@ -598,7 +728,7 @@ export default function GeolocationMap({ onSelectWorker, onSelectSHG, onAddToCar
                 </span>
               </h3>
               <p className="text-xs text-charcoal/60 dark:text-dark-muted flex items-center gap-1 mt-0.5">
-                <Navigation size={12} className="text-emerald-600 shrink-0" />
+                <Navigation size={12} className={customerLocation.isLive || hasFetchedLocation ? "text-amber-500 shrink-0" : "text-emerald-600 shrink-0"} />
                 <span className="truncate max-w-xs sm:max-w-md">{customerLocation.label}</span>
               </p>
             </div>
@@ -611,11 +741,11 @@ export default function GeolocationMap({ onSelectWorker, onSelectSHG, onAddToCar
             type="button"
             onClick={fetchLiveLocation}
             disabled={locating}
-            className="inline-flex items-center justify-center gap-2 py-2 px-3.5 rounded-xl font-bold text-xs bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white shadow-xs transition-all border border-emerald-800/20 cursor-pointer disabled:opacity-50"
-            title="Detect your device GPS coordinates"
+            className="inline-flex items-center justify-center gap-2 py-2 px-4 rounded-xl font-black text-xs bg-amber-400 hover:bg-amber-500 text-charcoal border border-amber-500 shadow-md ring-2 ring-yellow-400/40 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50"
+            title="Detect and pinpoint your live GPS coordinates"
           >
             <Crosshair size={14} className={`shrink-0 ${locating ? "animate-spin" : ""}`} />
-            <span>{locating ? "Locating..." : "Fetch Current Location"}</span>
+            <span>{locating ? "Pinpointing Live Location..." : "📍 Pinpoint My Location"}</span>
           </button>
 
           <button
@@ -683,7 +813,9 @@ export default function GeolocationMap({ onSelectWorker, onSelectSHG, onAddToCar
             { id: "all", label: "All Nearby" },
             { id: "worker", label: "Specialists" },
             { id: "electrician", label: "Electricians" },
+            { id: "plumber", label: "Plumbers" },
             { id: "carpenter", label: "Carpenters" },
+            { id: "mason", label: "Masons" },
             { id: "tailor", label: "Tailors" },
             { id: "shg", label: "SHG Units" },
           ].map((tab) => (
@@ -710,10 +842,10 @@ export default function GeolocationMap({ onSelectWorker, onSelectSHG, onAddToCar
           <div ref={mapContainerRef} className="w-full h-full" />
 
           {/* Floating Map Legend Indicator */}
-          <div className="absolute top-3 left-3 z-[400] bg-white/95 dark:bg-dark-card/95 backdrop-blur-sm p-2.5 rounded-2xl shadow-md border border-charcoal/10 dark:border-dark-border text-[11px] space-y-1">
+          <div className="absolute top-3 left-3 z-[400] bg-white/95 dark:bg-dark-card/95 backdrop-blur-sm p-3 rounded-2xl shadow-md border border-charcoal/10 dark:border-dark-border text-[11px] space-y-1.5">
             <div className="flex items-center gap-1.5 font-bold text-charcoal dark:text-dark-text">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-pulse" />
-              <span>You (Customer Center)</span>
+              <span className="w-3 h-3 rounded-full bg-yellow-400 border border-amber-600 ring-2 ring-yellow-400/50 animate-pulse" />
+              <span>You (Yellow Pinpoint)</span>
             </div>
             <div className="flex items-center gap-1.5 text-charcoal/70 dark:text-dark-muted">
               <span className="w-2.5 h-2.5 rounded-full bg-olive-700" />
@@ -722,6 +854,9 @@ export default function GeolocationMap({ onSelectWorker, onSelectSHG, onAddToCar
             <div className="flex items-center gap-1.5 text-charcoal/70 dark:text-dark-muted">
               <span className="w-2.5 h-2.5 rounded-full bg-purple-700" />
               <span>Village SHGs ({filteredProviders.filter((p) => p.type === "shg").length})</span>
+            </div>
+            <div className="pt-1 border-t border-charcoal/10 text-[10px] text-amber-700 dark:text-amber-400 font-semibold">
+              💡 Drag pin or click map to move
             </div>
           </div>
         </div>

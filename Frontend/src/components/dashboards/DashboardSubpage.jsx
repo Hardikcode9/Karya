@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search, Plus, CheckCircle, Clock, AlertCircle,
@@ -16,9 +16,15 @@ export default function DashboardSubpage({
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [items, setItems] = useState(() => {
-    if (initialData.length > 0) return initialData;
+    if (initialData && initialData.length > 0) return initialData;
     return [];
   });
+
+  useEffect(() => {
+    if (initialData && initialData.length > 0) {
+      setItems(initialData);
+    }
+  }, [initialData]);
 
   const [selectedItem, setSelectedItem] = useState(null);
   const [toast, setToast] = useState(null);

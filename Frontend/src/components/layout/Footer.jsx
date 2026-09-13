@@ -43,7 +43,7 @@ export default function Footer() {
             <a href="#" aria-label="LinkedIn" className="w-9 h-9 rounded-full bg-cream/10 flex items-center justify-center hover:bg-cream/20">
               <Link2 size={16} />
             </a>
-            <a href="mailto:hello@karya.app" aria-label="Email" className="w-9 h-9 rounded-full bg-cream/10 flex items-center justify-center hover:bg-cream/20">
+            <a href="mailto:sumit.geekroom@gmail.com" aria-label="Email" className="w-9 h-9 rounded-full bg-cream/10 flex items-center justify-center hover:bg-cream/20">
               <Mail size={16} />
             </a>
           </div>

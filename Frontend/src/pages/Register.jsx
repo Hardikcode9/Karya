@@ -2,13 +2,22 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  User, Wrench, Users, CheckCircle2, ArrowRight, ArrowLeft, ShieldCheck, MapPin, Mail
+  User, Wrench, Users, CheckCircle2, ArrowRight, ArrowLeft, ShieldCheck, MapPin, Mail, ChevronDown
 } from "lucide-react";
 import Logo from "../components/ui/Logo";
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
 import { useAuth } from "../hooks/useAuth";
 import { useToast } from "../hooks/useToast";
+
+const WORKER_TRADES = [
+  { value: "Tailors", label: "Tailors" },
+  { value: "Carpenters", label: "Carpenters" },
+  { value: "Electricians", label: "Electricians" },
+  { value: "Plumbers", label: "Plumbers" },
+  { value: "Masons", label: "Masons" },
+  { value: "Other", label: "Other Trade / Specialization" },
+];
 
 const roleCards = [
   {
@@ -47,6 +56,7 @@ export default function Register() {
     password: "",
     village: "",
     skillOrCatalog: "",
+    customTrade: "",
     aadhaarOrReg: "",
   });
   const [loading, setLoading] = useState(false);
@@ -67,6 +77,16 @@ export default function Register() {
         toast.error("Please provide a valid email address");
         return;
       }
+      if (role === "worker") {
+        if (!formData.skillOrCatalog) {
+          toast.error("Please select your primary trade");
+          return;
+        }
+        if (formData.skillOrCatalog === "Other" && !formData.customTrade?.trim()) {
+          toast.error("Please specify your trade/skill");
+          return;
+        }
+      }
     }
     setStep((s) => s + 1);
   };
@@ -74,7 +94,12 @@ export default function Register() {
   const handleFinish = async () => {
     setLoading(true);
     try {
-      await register({ role, ...formData });
+      const finalSkill =
+        formData.skillOrCatalog === "Other" && formData.customTrade
+          ? formData.customTrade.trim()
+          : formData.skillOrCatalog;
+
+      await register({ role, ...formData, skillOrCatalog: finalSkill });
       setRegistered(true);
       toast.success("Account created! Please log in.");
       setTimeout(() => {
@@ -258,10 +283,53 @@ export default function Register() {
                 required
               />
 
-              {role !== "customer" && (
+              {role === "worker" && (
+                <div>
+                  <label className="block text-xs font-semibold tracking-wide uppercase text-charcoal/70 dark:text-dark-muted mb-1.5">
+                    Primary Trade / Skills <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative flex items-center rounded-2xl transition-all duration-200 border bg-white dark:bg-dark-card border-charcoal/15 dark:border-dark-border hover:border-charcoal/30 dark:hover:border-olive-700">
+                    <div className="pl-3.5 pr-1 text-charcoal/40 dark:text-dark-muted flex items-center pointer-events-none">
+                      <Wrench className="w-4 h-4" />
+                    </div>
+                    <select
+                      value={formData.skillOrCatalog}
+                      onChange={(e) => setFormData({ ...formData, skillOrCatalog: e.target.value })}
+                      required
+                      className="w-full pl-2 pr-10 py-3 text-sm text-charcoal dark:text-dark-text bg-transparent outline-none rounded-2xl cursor-pointer appearance-none font-medium"
+                    >
+                      <option value="" disabled className="text-charcoal/50 dark:bg-dark-card">
+                        Select Primary Trade
+                      </option>
+                      {WORKER_TRADES.map((t) => (
+                        <option key={t.value} value={t.value} className="dark:bg-dark-card text-charcoal dark:text-dark-text">
+                          {t.label}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="pr-3.5 text-charcoal/40 dark:text-dark-muted pointer-events-none flex items-center absolute right-0">
+                      <ChevronDown className="w-4 h-4" />
+                    </div>
+                  </div>
+
+                  {formData.skillOrCatalog === "Other" && (
+                    <div className="mt-3">
+                      <Input
+                        label="Specify Your Trade / Skill"
+                        placeholder="e.g. Welder, Painter, Tractor Mechanic"
+                        value={formData.customTrade}
+                        onChange={(e) => setFormData({ ...formData, customTrade: e.target.value })}
+                        required
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {role === "shg" && (
                 <Input
-                  label={role === "worker" ? "Primary Trade / Skills" : "Specialty Products / Services"}
-                  placeholder={role === "worker" ? "e.g. Electrician, Motor Rewinding" : "e.g. Organic Pickles, Handloom Sarees"}
+                  label="Specialty Products / Services"
+                  placeholder="e.g. Organic Pickles, Handloom Sarees, Catering"
                   value={formData.skillOrCatalog}
                   onChange={(e) => setFormData({ ...formData, skillOrCatalog: e.target.value })}
                   required

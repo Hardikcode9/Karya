@@ -2,7 +2,8 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { Link, NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import {
   Menu, X, LogOut, ShieldCheck, ChevronRight,
-  Globe, ChevronDown, Check, Sparkles, Search
+  Globe, ChevronDown, Check, Sparkles, Search,
+  Home, HelpCircle, Users, Package, PhoneCall
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Logo from "../ui/Logo";
@@ -21,7 +22,6 @@ export default function DashboardLayout({ navItems, roleLabel }) {
   const langMenuRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
-  const isProfileActive = location.pathname.includes("/profile");
 
   // Real-time language filter
   const filteredLanguages = useMemo(() => {
@@ -77,29 +77,29 @@ export default function DashboardLayout({ navItems, roleLabel }) {
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar - Decreased 20% Width (from 288px w-72 down to 230px) */}
       <aside
-        className={`fixed lg:sticky top-0 inset-y-0 left-0 z-50 w-72 h-screen bg-cream-card dark:bg-dark-surface border-r border-charcoal/10 dark:border-dark-border flex flex-col transition-transform duration-300 ease-kare shrink-0 ${
+        className={`fixed lg:sticky top-0 inset-y-0 left-0 z-50 w-[230px] h-screen bg-cream-card dark:bg-dark-surface border-r border-charcoal/10 dark:border-dark-border flex flex-col transition-transform duration-300 ease-kare shrink-0 ${
           open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
         {/* Sidebar Header */}
-        <div className="p-6 flex items-center justify-between border-b border-charcoal/5 dark:border-dark-border">
+        <div className="px-4 py-4 flex items-center justify-between border-b border-charcoal/5 dark:border-dark-border">
           <Link to="/" onClick={() => setOpen(false)}>
             <Logo />
           </Link>
           <button
-            className="lg:hidden p-2 rounded-xl text-charcoal/50 hover:text-charcoal dark:text-dark-muted"
+            className="lg:hidden p-1.5 rounded-xl text-charcoal/50 hover:text-charcoal dark:text-dark-muted cursor-pointer"
             onClick={() => setOpen(false)}
             aria-label="Close menu"
           >
-            <X size={18} />
+            <X size={17} />
           </button>
         </div>
 
         {/* Nav Items */}
-        <div className="flex-1 px-3 py-4 flex flex-col gap-1 overflow-y-auto">
-          <span className="px-3 text-[10px] font-bold text-charcoal/40 dark:text-dark-muted uppercase tracking-wider mb-2">
+        <div className="flex-1 px-2.5 py-3.5 flex flex-col gap-1 overflow-y-auto">
+          <span className="px-2.5 text-[10px] font-bold text-charcoal/40 dark:text-dark-muted uppercase tracking-wider mb-1.5">
             Navigation Menu
           </span>
           {navItems.map((item) => (
@@ -109,29 +109,29 @@ export default function DashboardLayout({ navItems, roleLabel }) {
               end={item.end}
               onClick={() => setOpen(false)}
               className={({ isActive }) =>
-                `flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all ${
+                `flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
                   isActive
                     ? "bg-olive-700 dark:bg-olive-600 text-cream shadow-xs"
                     : "text-charcoal/70 dark:text-dark-muted hover:bg-ivory dark:hover:bg-dark-cardHover hover:text-charcoal dark:hover:text-dark-text"
                 }`
               }
             >
-              <div className="flex items-center gap-3">
-                <item.icon size={17} />
-                <span>{item.label}</span>
+              <div className="flex items-center gap-2.5 min-w-0">
+                <item.icon size={15} className="shrink-0" />
+                <span className="truncate">{item.label}</span>
               </div>
-              <ChevronRight size={14} className="opacity-40" />
+              <ChevronRight size={13} className="opacity-40 shrink-0" />
             </NavLink>
           ))}
         </div>
 
         {/* Sidebar Footer */}
-        <div className="p-4 border-t border-charcoal/5 dark:border-dark-border flex items-center justify-between">
+        <div className="p-3 border-t border-charcoal/5 dark:border-dark-border flex items-center justify-between gap-2">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
           >
-            <LogOut size={16} />
+            <LogOut size={15} />
             <span>Sign Out</span>
           </button>
           <ThemeToggle />
@@ -294,15 +294,11 @@ export default function DashboardLayout({ navItems, roleLabel }) {
             {/* Theme Toggle Button */}
             <ThemeToggle className="h-9 w-9 flex items-center justify-center" />
 
-            {/* 2. Worker Name Button with Circular Photo */}
+            {/* 2. Worker / SHG Profile Button - Redirects directly to Home Page */}
             <Link
-              to={`/${user?.role || "worker"}/profile`}
-              className={`flex items-center gap-2 pl-1 pr-2.5 sm:pr-3.5 py-1 rounded-full border transition-all group cursor-pointer shadow-2xs hover:shadow-xs ${
-                isProfileActive
-                  ? "border-olive-600 bg-olive-50 dark:bg-olive-950/40 text-olive-800 dark:text-olive-300 ring-2 ring-olive-500/20"
-                  : "border-charcoal/15 dark:border-dark-border bg-white dark:bg-dark-card hover:border-olive-600/60"
-              }`}
-              title="View Worker Profile"
+              to="/"
+              className="flex items-center gap-2 pl-1 pr-2.5 sm:pr-3.5 py-1 rounded-full border border-charcoal/15 dark:border-dark-border bg-white dark:bg-dark-card hover:border-olive-600/60 transition-all group cursor-pointer shadow-2xs hover:shadow-xs"
+              title="Go to Home Page"
             >
               <img
                 src={workerPhoto}
@@ -332,8 +328,8 @@ export default function DashboardLayout({ navItems, roleLabel }) {
           </div>
         </header>
 
-        {/* Dashboard Viewport */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-6xl w-full mx-auto pb-24 lg:pb-8">
+        {/* Dashboard Viewport - Increased Content Section Size */}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 xl:p-10 max-w-7xl xl:max-w-[1536px] 2xl:max-w-[1720px] w-full mx-auto pb-24 lg:pb-10">
           <Outlet />
         </main>
       </div>

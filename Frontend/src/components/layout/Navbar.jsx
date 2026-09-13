@@ -28,22 +28,18 @@ const publicNavItems = [
   { to: "/how-it-works", key: "howItWorks" },
 ];
 
-// For customer role: How-it-works, workers, work, and resources are removed
+// For customer role: services, workers, work, and resources are removed
 const customerNavItems = [
   { to: "/", key: "home" },
-  { to: "/services", key: "services" },
+  { to: "/how-it-works", key: "howItWorks" },
   { to: "/shgs", key: "shgs" },
 ];
 
-// For other authenticated roles (e.g. worker, shg, admin)
+// For other authenticated roles (e.g. worker, shg, admin): services, workers, work, and resources are removed
 const authenticatedNavItems = [
   { to: "/", key: "home" },
   { to: "/how-it-works", key: "howItWorks" },
-  { to: "/services", key: "services" },
-  { to: "/workers", key: "workers" },
   { to: "/shgs", key: "shgs" },
-  { to: "/work", key: "work" },
-  { to: "/resources", key: "resources" },
 ];
 
 export default function Navbar({ onOpenEmergency, onOpenContact }) {

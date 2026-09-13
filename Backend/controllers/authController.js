@@ -69,6 +69,19 @@ const registerUser = async (req, res) => {
       role: role || "customer",
     });
 
+    // If role is customer, create matching CustomerProfile document
+    if (user.role === "customer") {
+      const CustomerProfile = require("../models/CustomerProfile");
+      await CustomerProfile.create({
+        user: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        location: user.location,
+        address: user.address,
+      });
+    }
+
     // If role is worker, create matching WorkerProfile document
     if (user.role === "worker") {
       const mongoose = require("mongoose");

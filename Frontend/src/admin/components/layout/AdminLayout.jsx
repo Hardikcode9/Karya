@@ -12,17 +12,17 @@ import { LANGUAGE_OPTIONS } from "../../constants/languages";
 import { changeGoogleTranslate } from "../../utils/googleTranslate";
 
 const adminNav = [
-  { to: "/", end: true, label: "Dashboard", icon: LayoutDashboard },
-  { to: "/workers", label: "Worker", icon: UserCheck },
-  { to: "/shgs", label: "SGH group", icon: Users2 },
-  { to: "/customers", label: "Customers", icon: Users },
-  { to: "/services", label: "Services", icon: Settings2 },
-  { to: "/products", label: "Product", icon: Package },
-  { to: "/suggestions", label: "Suggestion", icon: Lightbulb },
-  { to: "/queries", label: "Query", icon: HelpCircle },
-  { to: "/sales", label: "Sales", icon: IndianRupee },
-  { to: "/contact", label: "Contact", icon: PhoneCall },
-  { to: "/others", label: "Others", icon: Sliders },
+  { to: "/admin", end: true, label: "Dashboard", icon: LayoutDashboard },
+  { to: "/admin/workers", label: "Worker", icon: UserCheck },
+  { to: "/admin/shgs", label: "SGH group", icon: Users2 },
+  { to: "/admin/customers", label: "Customers", icon: Users },
+  { to: "/admin/services", label: "Services", icon: Settings2 },
+  { to: "/admin/products", label: "Product", icon: Package },
+  { to: "/admin/suggestions", label: "Suggestion", icon: Lightbulb },
+  { to: "/admin/queries", label: "Query", icon: HelpCircle },
+  { to: "/admin/sales", label: "Sales", icon: IndianRupee },
+  { to: "/admin/contact", label: "Contact", icon: PhoneCall },
+  { to: "/admin/others", label: "Others", icon: Sliders },
 ];
 
 export default function AdminLayout() {

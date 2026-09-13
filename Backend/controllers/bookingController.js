@@ -6,6 +6,7 @@ const Notification = require("../models/Notification");
 const User = require("../models/User");
 const Payment = require("../models/Payment");
 const Earning = require("../models/Earning");
+const CustomerProfile = require("../models/CustomerProfile");
 
 const createBooking = async (req, res) => {
   try {
@@ -15,6 +16,15 @@ const createBooking = async (req, res) => {
         message: "Only customers can create bookings",
       });
     }
+
+    const customerProfile = await CustomerProfile.findOne({ user: req.user.userId });
+    if (!customerProfile) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer profile not found",
+      });
+    }
+
     const {
   worker,
   service,
@@ -118,7 +128,7 @@ if (existingBooking) {
 }
 
     const booking = await Booking.create({
-      customer: req.user.userId,
+      customer: customerProfile._id,
       worker,
       service,
       scheduledDate,
@@ -364,8 +374,20 @@ const getCustomerBookings = async (req, res) => {
         message: "Only customers can access customer bookings",
       });
     }
+
+    const customerProfile = await CustomerProfile.findOne({
+      user: req.user.userId,
+    });
+
+    if (!customerProfile) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer profile not found",
+      });
+    }
+
     const bookings = await Booking.find({
-      customer: req.user.userId,
+      customer: customerProfile._id,
     })
       .populate({
         path: "worker",
@@ -403,9 +425,20 @@ const cancelBooking = async (req, res) => {
 
     const { id } = req.params;
 
+    const customerProfile = await CustomerProfile.findOne({
+      user: req.user.userId,
+    });
+
+    if (!customerProfile) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer profile not found",
+      });
+    }
+
     const booking = await Booking.findOne({
       _id: id,
-      customer: req.user.userId,
+      customer: customerProfile._id,
     });
 
     if (!booking) {

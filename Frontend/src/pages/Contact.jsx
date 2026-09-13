@@ -341,10 +341,10 @@ export default function Contact() {
               </div>
               <div>
                 <p className="font-mono font-bold text-sm text-olive-800 dark:text-olive-300">
-                  1800-KARYA-HELP
+                  8920575456
                 </p>
                 <a
-                  href="tel:180052792"
+                  href="tel:8920575456"
                   className="mt-2 inline-flex items-center justify-center gap-2 w-full py-2 px-3 rounded-xl border border-charcoal/15 dark:border-dark-border text-xs font-bold text-charcoal dark:text-dark-text hover:bg-cream dark:hover:bg-dark-surface transition-all"
                 >
                   <Phone size={13} />
@@ -368,10 +368,10 @@ export default function Contact() {
               </div>
               <div>
                 <p className="font-mono font-bold text-sm text-emerald-800 dark:text-emerald-300">
-                  +91 98765 43210
+                  +91 7011342370
                 </p>
                 <a
-                  href="https://wa.me/919876543210"
+                  href="https://wa.me/917011342370"
                   target="_blank"
                   rel="noreferrer"
                   className="mt-2 inline-flex items-center justify-center gap-2 w-full py-2 px-3 rounded-xl border border-charcoal/15 dark:border-dark-border text-xs font-bold text-charcoal dark:text-dark-text hover:bg-cream dark:hover:bg-dark-surface transition-all"
@@ -397,10 +397,10 @@ export default function Contact() {
               </div>
               <div>
                 <p className="font-mono font-bold text-xs sm:text-sm text-blue-800 dark:text-blue-300 truncate">
-                  support@karya.app
+                  sumit.geekroom@gmail.com
                 </p>
                 <a
-                  href="mailto:support@karya.app"
+                  href="mailto:sumit.geekroom@gmail.com"
                   className="mt-2 inline-flex items-center justify-center gap-2 w-full py-2 px-3 rounded-xl border border-charcoal/15 dark:border-dark-border text-xs font-bold text-charcoal dark:text-dark-text hover:bg-cream dark:hover:bg-dark-surface transition-all"
                 >
                   <Mail size={13} />

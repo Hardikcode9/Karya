@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { retriggerGoogleTranslate } from "./utils/googleTranslate";
 import {
   LayoutDashboard, ClipboardList, CalendarCheck, Wallet, Star, User,
@@ -45,6 +45,20 @@ import WorkerProfileDashboard from "./pages/dashboards/WorkerProfileDashboard";
 import WorkerEarnings from "./pages/dashboards/WorkerEarnings";
 import WorkerServices from "./pages/dashboards/WorkerServices";
 import SHGDashboard from "./pages/dashboards/SHGDashboard";
+import SHGOrders from "./pages/dashboards/SHGOrders";
+import SHGMembers from "./pages/dashboards/SHGMembers";
+import SHGProducts from "./pages/dashboards/SHGProducts";
+import SHGEarnings from "./pages/dashboards/SHGEarnings";
+import SHGReviews from "./pages/dashboards/SHGReviews";
+import {
+  SHG_ORDERS_DATA,
+  SHG_SERVICES_DATA,
+  SHG_MEMBERS_DATA,
+  SHG_EARNINGS_DATA,
+  SHG_CUSTOMERS_DATA,
+  SHG_REVIEWS_DATA,
+  SHG_SETTINGS_DATA,
+} from "./data/shgDashboardData";
 
 function AdminRedirect() {
   useEffect(() => {
@@ -84,12 +98,10 @@ const workerNav = [
 const shgNav = [
   { to: "/shg", end: true, label: "Overview", icon: LayoutDashboard },
   { to: "/shg/orders", label: "Orders", icon: ShoppingBag },
-  { to: "/shg/services", label: "Services", icon: Settings2 },
+  { to: "/shg/products", label: "Your Products", icon: Package },
   { to: "/shg/members", label: "Members", icon: Users },
   { to: "/shg/earnings", label: "Earnings", icon: IndianRupee },
-  { to: "/shg/customers", label: "Customers", icon: TrendingUp },
   { to: "/shg/reviews", label: "Reviews", icon: MessageSquare },
-  { to: "/shg/settings", label: "Settings", icon: Sliders },
 ];
 
 export default function App() {
@@ -194,34 +206,15 @@ export default function App() {
         }
       >
         <Route index element={<SHGDashboard />} />
-        <Route
-          path="orders"
-          element={<DashboardSubpage title="Group Bulk Orders" subtitle="Orders placed for catering, handloom batches, and organic harvest" category="Group Order" actionLabel="New Bulk Order" />}
-        />
-        <Route
-          path="services"
-          element={<DashboardSubpage title="Products & Services Catalog" subtitle="Active catalog items listed across regional Karya hubs" category="Catalog Item" actionLabel="Add Product" />}
-        />
-        <Route
-          path="members"
-          element={<DashboardSubpage title="SHG Member Roster" subtitle="Manage 24 active women artisans and verified bank links" category="Member Record" actionLabel="Add Member" />}
-        />
-        <Route
-          path="earnings"
-          element={<DashboardSubpage title="Shared Group Income" subtitle="Ledger of cluster revenue and member dividends" category="Dividend Settlement" actionLabel="Distribute Payout" />}
-        />
-        <Route
-          path="customers"
-          element={<DashboardSubpage title="Customer Directory" subtitle="Repeat buyers and institutional school/office clients" category="Client Profile" actionLabel="Add Client" />}
-        />
-        <Route
-          path="reviews"
-          element={<DashboardSubpage title="Community Testimonials" subtitle="Quality ratings on bulk food, stitching, and organic goods" category="SHG Review" actionLabel="Export Ratings" />}
-        />
-        <Route
-          path="settings"
-          element={<DashboardSubpage title="SHG Governance Settings" subtitle="Cluster registration number, bank accounts, and verification badges" category="Cluster Record" actionLabel="Update Reg" />}
-        />
+        <Route path="orders" element={<SHGOrders />} />
+        <Route path="services" element={<Navigate to="/shg/products" replace />} />
+        <Route path="products" element={<SHGProducts />} />
+        <Route path="members" element={<SHGMembers />} />
+        <Route path="earnings" element={<SHGEarnings />} />
+        <Route path="customers" element={<Navigate to="/shg/products" replace />} />
+        <Route path="reviews" element={<SHGReviews />} />
+        <Route path="settings" element={<Navigate to="/shg" replace />} />
+        <Route path="profile" element={<Navigate to="/" replace />} />
       </Route>
 
       {/* Admin Route - Redirects to dedicated Admin Console on port 5175 */}

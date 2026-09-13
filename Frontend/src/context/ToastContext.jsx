@@ -5,15 +5,28 @@ import { ToastContext } from "./contexts";
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
 
-  const addToast = useCallback((message, type = "info", duration = 3500) => {
-    const id = Math.random().toString(36).substring(2, 9);
-    setToasts((prev) => [...prev, { id, message, type }]);
+  const addToast = useCallback((message, type = "info", duration = 3000) => {
+    let finalType = "info";
+    let finalDuration = 3000;
 
-    if (duration > 0) {
-      setTimeout(() => {
-        setToasts((prev) => prev.filter((t) => t.id !== id));
-      }, duration);
+    if (typeof type === "string") {
+      finalType = type;
+    } else if (typeof type === "number") {
+      finalDuration = type;
     }
+
+    if (typeof duration === "number") {
+      finalDuration = duration;
+    }
+
+    const id = Math.random().toString(36).substring(2, 9);
+    setToasts((prev) => [...prev, { id, message, type: finalType }]);
+
+    // Always auto-remove after 3 seconds (or specified duration)
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, finalDuration);
+
     return id;
   }, []);
 
@@ -22,10 +35,15 @@ export function ToastProvider({ children }) {
   }, []);
 
   const toast = {
-    show: (msg, duration) => addToast(msg, "info", duration),
-    success: (msg, duration) => addToast(msg, "success", duration),
-    error: (msg, duration) => addToast(msg, "error", duration),
-    info: (msg, duration) => addToast(msg, "info", duration),
+    show: (msg, type = "info", duration = 3000) => {
+      if (typeof type === "number") {
+        return addToast(msg, "info", type);
+      }
+      return addToast(msg, type || "info", duration || 3000);
+    },
+    success: (msg, duration = 3000) => addToast(msg, "success", duration),
+    error: (msg, duration = 3000) => addToast(msg, "error", duration),
+    info: (msg, duration = 3000) => addToast(msg, "info", duration),
     remove: removeToast,
   };
 

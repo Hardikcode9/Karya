@@ -26,11 +26,12 @@
   html {
     scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;
+    overflow-x: clip;
   }
 
   body {
     @apply bg-cream text-charcoal font-sans antialiased transition-colors duration-200 selection:bg-olive-300 selection:text-olive-950;
-    overflow-x: hidden;
+    overflow-x: clip;
   }
 
   .dark body {
@@ -207,4 +208,85 @@ iframe.goog-te-banner-frame,
   height: 1px !important;
   overflow: hidden !important;
 }
+
+/* Custom Leaflet Yellow Customer Pinpoint */
+.leaflet-div-icon.karya-customer-pin-icon {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.karya-pin-wrapper {
+  position: relative;
+  width: 44px;
+  height: 54px;
+  pointer-events: auto;
+}
+
+.karya-radar-pulse {
+  position: absolute;
+  left: 22px;
+  top: 54px;
+  width: 64px;
+  height: 64px;
+  margin-left: -32px;
+  margin-top: -32px;
+  border-radius: 9999px;
+  background-color: rgba(250, 204, 21, 0.45);
+  animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+  pointer-events: none;
+}
+
+.karya-radar-core {
+  position: absolute;
+  left: 22px;
+  top: 54px;
+  width: 24px;
+  height: 24px;
+  margin-left: -12px;
+  margin-top: -12px;
+  border-radius: 9999px;
+  background-color: rgba(245, 158, 11, 0.6);
+  border: 2px solid #facc15;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  pointer-events: none;
+}
+
+.karya-pin-badge {
+  position: absolute;
+  top: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  pointer-events: none;
+  background-color: #facc15;
+  color: #1e293b;
+  font-weight: 900;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  border: 1px solid #b45309;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.karya-pin-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background-color: #b45309;
+  animation: pulse 1s infinite;
+}
+
+.karya-pin-svg {
+  width: 44px;
+  height: 54px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.45));
+  cursor: grab;
+}
+
 

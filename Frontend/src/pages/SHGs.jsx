@@ -428,11 +428,11 @@ export default function SHGs() {
                     Filters
                   </span>
                 </div>
-                {(selectedCategory !== "All" || priceLimit < 2500 || searchQuery || inStockOnly || giOnly) && (
+                {(selectedCategory !== "All" || priceLimit < 5000 || searchQuery || inStockOnly || giOnly) && (
                   <button
                     onClick={() => {
                       setSelectedCategory("All");
-                      setPriceLimit(2500);
+                      setPriceLimit(5000);
                       setSearchQuery("");
                       setInStockOnly(false);
                       setGiOnly(false);
@@ -555,10 +555,10 @@ export default function SHGs() {
                   onChange={(e) => setSortBy(e.target.value)}
                   className="flex-1 min-w-0 px-2 py-1 rounded-lg bg-cream dark:bg-dark-surface border border-charcoal/15 dark:border-dark-border text-[11px] text-charcoal dark:text-dark-text font-semibold focus:outline-none focus:border-olive-600 cursor-pointer"
                 >
-                  <option value="default">Featured</option>
-                  <option value="price-asc">Price: Low</option>
-                  <option value="price-desc">Price: High</option>
-                  <option value="rating">Top Rated</option>
+                  <option value="default">Featured First</option>
+                  <option value="price-asc">Price: Low to High</option>
+                  <option value="price-desc">Price: High to Low</option>
+                  <option value="rating">Highest Rated</option>
                 </select>
                 <div className="flex items-center gap-0.5 shrink-0">
                   <button
@@ -596,7 +596,7 @@ export default function SHGs() {
                   <p className="text-base font-bold text-charcoal dark:text-dark-text">No products match your filters.</p>
                   <p className="text-xs text-charcoal/60 dark:text-dark-muted mt-1">Try relaxing price or category filters.</p>
                   <button
-                    onClick={() => { setSelectedCategory("All"); setPriceLimit(2500); setSearchQuery(""); }}
+                    onClick={() => { setSelectedCategory("All"); setPriceLimit(5000); setSearchQuery(""); }}
                     className="mt-4 px-4 py-2 rounded-full bg-olive-700 text-cream text-xs font-bold"
                   >
                     Reset Filters
@@ -622,7 +622,7 @@ export default function SHGs() {
                         <div className="absolute top-3 right-3 p-1.5 rounded-full bg-white/80 dark:bg-black/60 backdrop-blur text-charcoal dark:text-dark-text">
                           <div className="flex items-center gap-0.5 text-[11px] font-bold">
                             <Star size={11} className="fill-amber-400 text-amber-400" />
-                            <span>{product.rating}</span>
+                            <span>{product.rating ?? "New"}</span>
                           </div>
                         </div>
                       </div>
@@ -779,7 +779,7 @@ export default function SHGs() {
                 <div className="flex items-center gap-3 mt-3">
                   <div className="flex items-center gap-1 text-amber-500 text-sm font-bold">
                     <Star size={16} className="fill-amber-400 text-amber-400" />
-                    <span>{selectedProduct.rating}</span>
+                    <span>{selectedProduct.rating ?? "New"}</span>
                   </div>
                   <span className="text-xs text-charcoal/40">|</span>
                   <span className="text-xs text-charcoal/60 dark:text-dark-muted">
@@ -804,7 +804,7 @@ export default function SHGs() {
               </div>
 
               {/* Variant Selector */}
-              {selectedProduct.variants && (
+              {selectedProduct.variants?.length > 0 && (
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-charcoal dark:text-dark-text">Select Package Option:</label>
                   <div className="flex flex-wrap gap-2">
@@ -899,7 +899,7 @@ export default function SHGs() {
               targetId={selectedProduct.id}
               targetName={selectedProduct.name}
               targetCategory={selectedProduct.category}
-              initialRating={selectedProduct.rating}
+              initialRating={selectedProduct.rating ?? 0}
               initialReviewsCount={selectedProduct.reviews}
             />
           </div>

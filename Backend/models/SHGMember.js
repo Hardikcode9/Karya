@@ -14,7 +14,7 @@ const shgMemberSchema = new mongoose.Schema(
     },
     memberRole: {
       type: String,
-      enum: ["member", "leader", "coordinator"],
+      enum: ["member", "leader", "coordinator", "treasurer", "secretary"],
       default: "member",
     },
     joinedAt: {

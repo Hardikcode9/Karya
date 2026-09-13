@@ -103,8 +103,9 @@ export default function AddMemberModal({ isOpen, onClose, onMemberAdded }) {
               className="w-full px-3 py-2 bg-charcoal/5 rounded-xl text-sm outline-none focus:ring-2 focus:ring-olive-500/20"
             >
               <option value="member">Member</option>
-              <option value="coordinator">Coordinator</option>
               <option value="leader">Leader</option>
+              <option value="treasurer">Treasurer</option>
+              <option value="secretary">Secretary</option>
             </select>
           </div>
 

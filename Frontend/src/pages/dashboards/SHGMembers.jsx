@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
-  Users, Search, ShieldCheck, MapPin, Building2, UserCheck, CheckCircle2, XCircle
+  Users, Search, ShieldCheck, MapPin, Building2, UserCheck, CheckCircle2, XCircle, Plus
 } from "lucide-react";
 import { useToast } from "../../hooks/useToast";
 import api from "../../utils/api";
@@ -78,15 +78,21 @@ export default function SHGMembers() {
           ))}
         </div>
         
-        <div className="relative w-full sm:w-64">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-charcoal/40" />
-          <input
-            type="text"
-            placeholder="Search by name, phone or role..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 bg-charcoal/5 dark:bg-dark-surface rounded-xl text-xs outline-none focus:ring-2 focus:ring-olive-500/20"
-          />
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="relative w-full sm:w-64">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-charcoal/40" />
+            <input
+              type="text"
+              placeholder="Search by name, phone or role..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-9 pr-4 py-2.5 bg-charcoal/5 dark:bg-dark-surface rounded-xl text-xs outline-none focus:ring-2 focus:ring-olive-500/20"
+            />
+          </div>
+          <button onClick={() => toast.info("Add member functionality coming soon")} className="shrink-0 flex items-center gap-2 bg-olive-700 hover:bg-olive-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-colors">
+            <Plus size={16} />
+            <span className="hidden sm:inline">Add Member</span>
+          </button>
         </div>
       </div>
 

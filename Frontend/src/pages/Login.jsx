@@ -96,7 +96,12 @@ export default function Login() {
 
         toast.success(`Welcome back, ${userData?.name || "User"}!`);
         const userRole = userData?.role || role;
-        const rolePath = roles.find((r) => r.id === userRole)?.path || "/customer";
+        let rolePath;
+        if (userRole === "admin") {
+          rolePath = "/admin";
+        } else {
+          rolePath = roles.find((r) => r.id === userRole)?.path || "/customer";
+        }
         navigate(rolePath);
       } catch (error) {
         console.error("OTP verification error:", error);
@@ -124,7 +129,12 @@ export default function Login() {
       toast.success(`Logged in as ${userData?.role?.toUpperCase() || role.toUpperCase()}`);
 
       const userRole = userData?.role || role;
-      const rolePath = roles.find((r) => r.id === userRole)?.path || "/customer";
+      let rolePath;
+      if (userRole === "admin") {
+        rolePath = "/admin";
+      } else {
+        rolePath = roles.find((r) => r.id === userRole)?.path || "/customer";
+      }
       navigate(rolePath);
     } catch (error) {
       toast.error(error.response?.data?.message || "Invalid credentials");

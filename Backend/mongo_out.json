@@ -1,0 +1,62 @@
+[
+  {
+    "_id": "6aa58d7a71038a138ffbff7b",
+    "recipient": "6aa584c7d8886c2f834502d2",
+    "title": "Booking Accepted",
+    "message": "The worker has accepted your booking request. Please proceed to payment.",
+    "type": "booking",
+    "relatedId": "6aa58d0771038a138ffbff79",
+    "isRead": false,
+    "createdAt": "2026-09-12T17:35:54.629Z",
+    "updatedAt": "2026-09-12T17:35:54.629Z",
+    "__v": 0
+  },
+  {
+    "_id": "6aa58d0771038a138ffbff7a",
+    "recipient": "6aa584c7d8886c2f834502c8",
+    "title": "New Booking Request",
+    "message": "A customer has requested your service. Please review and accept/decline.",
+    "type": "booking",
+    "relatedId": "6aa58d0771038a138ffbff79",
+    "isRead": false,
+    "createdAt": "2026-09-12T17:33:59.698Z",
+    "updatedAt": "2026-09-12T17:33:59.698Z",
+    "__v": 0
+  },
+  {
+    "_id": "6aa58c9771038a138ffbff78",
+    "recipient": "6aa584c7d8886c2f834502d6",
+    "title": "Payment Received",
+    "message": "A payment of ₹500 has been made by a customer for booking 6aa58c4271038a138ffbff74.",
+    "type": "payment",
+    "relatedId": "6aa58c9771038a138ffbff77",
+    "isRead": false,
+    "createdAt": "2026-09-12T17:32:07.240Z",
+    "updatedAt": "2026-09-12T17:32:07.240Z",
+    "__v": 0
+  },
+  {
+    "_id": "6aa58c7171038a138ffbff76",
+    "recipient": "6aa584c7d8886c2f834502d2",
+    "title": "Booking Accepted",
+    "message": "The worker has accepted your booking request. Please proceed to payment.",
+    "type": "booking",
+    "relatedId": "6aa58c4271038a138ffbff74",
+    "isRead": true,
+    "createdAt": "2026-09-12T17:31:29.725Z",
+    "updatedAt": "2026-09-12T17:32:00.734Z",
+    "__v": 0
+  },
+  {
+    "_id": "6aa58c4271038a138ffbff75",
+    "recipient": "6aa584c7d8886c2f834502c9",
+    "title": "New Booking Request",
+    "message": "A customer has requested your service. Please review and accept/decline.",
+    "type": "booking",
+    "relatedId": "6aa58c4271038a138ffbff74",
+    "isRead": true,
+    "createdAt": "2026-09-12T17:30:42.479Z",
+    "updatedAt": "2026-09-12T17:31:17.477Z",
+    "__v": 0
+  }
+]

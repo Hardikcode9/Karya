@@ -19,14 +19,14 @@ const mapWorkerData = (w) => ({
   role: w.service?.name || w.role || "Technician",
   village: w.village || "Local District",
   distanceKm: w.distanceInKm ?? w.distanceKm ?? 3.5,
-  rating: w.rating || 4.5,
+  rating: w.rating || 0,
   skills: w.skills && w.skills.length > 0 ? w.skills : [w.service?.name || "Maintenance"],
   price: w.pricePerService || w.price || 400,
   priceUnit: w.priceUnit || "visit",
-  matchPercent: w.matchScore ? Math.round(w.matchScore) : (w.matchPercent || 92),
+  matchPercent: w.matchScore ? Math.round(w.matchScore) : (w.matchPercent || 0),
   verified: w.verified || { skill: true, phone: true, shg: false },
-  completedJobs: w.totalReviews || w.completedJobs || 18,
-  experienceYears: w.experience || w.experienceYears || 4,
+  completedJobs: w.totalReviews || w.completedJobs || 0,
+  experienceYears: w.experience || w.experienceYears || 0,
   bio: w.bio || "Experienced local trade specialist available for house visits.",
   phone: w.user?.phone || w.phone || "",
 });
@@ -84,7 +84,7 @@ export default function Workers() {
     .sort((a, b) => {
       if (sortBy === "priceAsc") return a.price - b.price;
       if (sortBy === "rating") return b.rating - a.rating;
-      return (b.matchPercent || 90) - (a.matchPercent || 90);
+      return (b.matchPercent || 0) - (a.matchPercent || 0);
     });
 
   return (
@@ -216,9 +216,11 @@ export default function Workers() {
               <div>
                 <div className="aspect-[16/10] relative overflow-hidden">
                   <ImageTile keywords={`${w.role} india portrait`} alt={w.name} seed="500x320" className="w-full h-full object-cover" />
-                  <span className="absolute top-3 right-3 bg-cream/90 dark:bg-dark-card/90 backdrop-blur px-2.5 py-1 rounded-full text-xs font-bold text-olive-800 dark:text-olive-300 shadow-sm">
-                    {w.matchPercent}% Match
-                  </span>
+                  {w.matchPercent > 0 && (
+                    <span className="absolute top-3 right-3 bg-cream/90 dark:bg-dark-card/90 backdrop-blur px-2.5 py-1 rounded-full text-xs font-bold text-olive-800 dark:text-olive-300 shadow-sm">
+                      {w.matchPercent}% Match
+                    </span>
+                  )}
                 </div>
                 <div className="p-5 flex flex-col gap-2">
                   <div className="flex items-start justify-between">

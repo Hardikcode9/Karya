@@ -5,87 +5,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../../utils/api";
 
-// Dynamic Filter Datasets for Overview (Today, Yesterday, Last Week, Last 15 Days, Last Month)
-const OVERVIEW_FILTER_DATA = {
-  today: {
-    label: "Today",
-    totalRequests: 7,
-    totalAccepted: 6,
-    totalEarning: 1850,
-    rating: "5.0",
-    dataPoints: [
-      { label: "08 AM", value: 0, jobs: 0 },
-      { label: "10 AM", value: 350, jobs: 1 },
-      { label: "12 PM", value: 450, jobs: 1 },
-      { label: "02 PM", value: 0, jobs: 0 },
-      { label: "04 PM", value: 650, jobs: 2 },
-      { label: "06 PM", value: 400, jobs: 1 },
-      { label: "08 PM", value: 0, jobs: 0 }
-    ]
-  },
-  yesterday: {
-    label: "Yesterday",
-    totalRequests: 9,
-    totalAccepted: 8,
-    totalEarning: 2400,
-    rating: "4.9",
-    dataPoints: [
-      { label: "08 AM", value: 200, jobs: 1 },
-      { label: "10 AM", value: 450, jobs: 1 },
-      { label: "12 PM", value: 300, jobs: 1 },
-      { label: "02 PM", value: 850, jobs: 3 },
-      { label: "04 PM", value: 400, jobs: 1 },
-      { label: "06 PM", value: 200, jobs: 1 },
-      { label: "08 PM", value: 0, jobs: 0 }
-    ]
-  },
-  lastWeek: {
-    label: "Last Week",
-    totalRequests: 34,
-    totalAccepted: 31,
-    totalEarning: 9650,
-    rating: "4.9",
-    dataPoints: [
-      { label: "Mon", value: 1200, jobs: 4 },
-      { label: "Tue", value: 950, jobs: 3 },
-      { label: "Wed", value: 1450, jobs: 5 },
-      { label: "Thu", value: 1100, jobs: 3 },
-      { label: "Fri", value: 1750, jobs: 6 },
-      { label: "Sat", value: 2100, jobs: 7 },
-      { label: "Sun", value: 1100, jobs: 3 }
-    ]
-  },
-  last15Days: {
-    label: "Last 15 Days",
-    totalRequests: 62,
-    totalAccepted: 57,
-    totalEarning: 17800,
-    rating: "4.9",
-    dataPoints: [
-      { label: "Day 1-2", value: 1800, jobs: 6 },
-      { label: "Day 3-4", value: 2100, jobs: 7 },
-      { label: "Day 5-6", value: 1650, jobs: 5 },
-      { label: "Day 7-8", value: 2450, jobs: 8 },
-      { label: "Day 9-10", value: 1950, jobs: 6 },
-      { label: "Day 11-12", value: 2800, jobs: 9 },
-      { label: "Day 13-14", value: 3100, jobs: 10 },
-      { label: "Day 15", value: 1950, jobs: 6 }
-    ]
-  },
-  lastMonth: {
-    label: "Last Month",
-    totalRequests: 118,
-    totalAccepted: 108,
-    totalEarning: 32450,
-    rating: "4.9",
-    dataPoints: [
-      { label: "Week 1", value: 7200, jobs: 24 },
-      { label: "Week 2", value: 8100, jobs: 27 },
-      { label: "Week 3", value: 9200, jobs: 31 },
-      { label: "Week 4", value: 7950, jobs: 26 }
-    ]
-  }
-};
+// Dynamic data computation will replace OVERVIEW_FILTER_DATA
 
 const FILTER_KEYS = [
   { key: "today", label: "Today" },
@@ -96,26 +16,36 @@ const FILTER_KEYS = [
 ];
 
 export default function WorkerDashboard() {
-  const [isAvailable, setIsAvailable] = useState(true);
+  const [isAvailable, setIsAvailable] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState("today");
   const [hoveredPoint, setHoveredPoint] = useState(null);
+  const [workerRating, setWorkerRating] = useState("0.0");
 
   const [bookings, setBookings] = useState([]);
 
-  const fetchBookings = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     try {
-      const response = await api.get("/bookings/worker");
-      if (response.data?.bookings) {
-        setBookings(response.data.bookings);
+      const [bookingsRes, profileRes] = await Promise.all([
+        api.get("/bookings/worker").catch(() => ({ data: { bookings: [] } })),
+        api.get("/workers/me").catch(() => ({ data: { workerProfile: null } }))
+      ]);
+
+      if (bookingsRes.data?.bookings) {
+        setBookings(bookingsRes.data.bookings);
+      }
+      
+      if (profileRes.data?.workerProfile) {
+        setIsAvailable(profileRes.data.workerProfile.isAvailable);
+        setWorkerRating((profileRes.data.workerProfile.rating || 0).toFixed(1));
       }
     } catch (err) {
-      console.error("Failed to fetch worker bookings:", err);
+      console.error("Failed to fetch dashboard data:", err);
     }
   }, []);
 
   useEffect(() => {
-    fetchBookings();
-  }, [fetchBookings]);
+    fetchData();
+  }, [fetchData]);
 
   // Active period dataset
   const activeData = useMemo(() => {
@@ -147,21 +77,37 @@ export default function WorkerDashboard() {
     const completedBookings = filteredBookings.filter(b => b.status === "completed");
     const totalEarning = completedBookings.reduce((sum, b) => sum + (b.price || 0), 0);
     
-    // Fallback to static trend shape for now
-    const dataPoints = OVERVIEW_FILTER_DATA[selectedPeriod]?.dataPoints || [
-      { label: "Start", value: 0, jobs: 0 },
-      { label: "End", value: totalEarning, jobs: completedBookings.length }
-    ];
+    // Compute dynamic trend points
+    const dataPoints = [];
+    if (completedBookings.length === 0) {
+      dataPoints.push({ label: "Start", value: 0, jobs: 0 });
+      dataPoints.push({ label: "End", value: 0, jobs: 0 });
+    } else {
+      // Group by day for simplicity
+      const grouped = {};
+      completedBookings.forEach(b => {
+        const d = new Date(b.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+        if (!grouped[d]) grouped[d] = { value: 0, jobs: 0 };
+        grouped[d].value += (b.price || 0);
+        grouped[d].jobs += 1;
+      });
+      Object.keys(grouped).forEach(k => {
+        dataPoints.push({ label: k, value: grouped[k].value, jobs: grouped[k].jobs });
+      });
+      if (dataPoints.length === 1) {
+        dataPoints.unshift({ label: "Start", value: 0, jobs: 0 });
+      }
+    }
 
     return {
       label: selectedPeriod,
       totalRequests,
       totalAccepted,
       totalEarning,
-      rating: "5.0",
+      rating: workerRating,
       dataPoints
     };
-  }, [selectedPeriod, bookings]);
+  }, [selectedPeriod, bookings, workerRating]);
 
   // SVG Chart Geometry Calculations
   const chartGeometry = useMemo(() => {

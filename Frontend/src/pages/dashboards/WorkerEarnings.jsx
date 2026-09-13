@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   IndianRupee, TrendingUp, Wallet, ArrowDownLeft, ArrowUpRight,
   Filter, Search, Download, Calendar, CheckCircle2, Clock,
@@ -7,136 +7,51 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../hooks/useToast";
-
-const INITIAL_EARNINGS_RECORDS = [
-  {
-    id: "TXN-9812",
-    bookingId: "BKG-9201",
-    customerName: "Aarav Sharma",
-    customerPhone: "+91 98765 23412",
-    serviceName: "4 Sets School Uniforms Stitching",
-    date: "11 Sep 2026",
-    time: "02:45 PM",
-    amount: 1200,
-    platformFee: 0,
-    netPayout: 1200,
-    paymentMode: "UPI Instant Pay",
-    status: "Completed",
-    upiRef: "UPI-RRR-9281048",
-  },
-  {
-    id: "TXN-9745",
-    bookingId: "BKG-8845",
-    customerName: "Meera Devi",
-    customerPhone: "+91 94150 87342",
-    serviceName: "Chanderi Cotton Saree Fall & Pico",
-    date: "09 Sep 2026",
-    time: "11:20 AM",
-    amount: 450,
-    platformFee: 0,
-    netPayout: 450,
-    paymentMode: "Cash Collected",
-    status: "Completed",
-    upiRef: "Cash Handover Slip #44",
-  },
-  {
-    id: "TXN-9689",
-    bookingId: "BKG-8419",
-    customerName: "Rajeshwar Singh",
-    customerPhone: "+91 91200 45892",
-    serviceName: "Kurta Pajama Festive Stitching",
-    date: "05 Sep 2026",
-    time: "04:15 PM",
-    amount: 1450,
-    platformFee: 0,
-    netPayout: 1450,
-    paymentMode: "UPI Instant Pay",
-    status: "Completed",
-    upiRef: "UPI-RRR-8419201",
-  },
-  {
-    id: "TXN-9512",
-    bookingId: "BKG-8022",
-    customerName: "Pooja Verma",
-    customerPhone: "+91 97890 34112",
-    serviceName: "Designer Zari Blouse Cutting",
-    date: "28 Aug 2026",
-    time: "05:30 PM",
-    amount: 850,
-    platformFee: 0,
-    netPayout: 850,
-    paymentMode: "UPI Instant Pay",
-    status: "Completed",
-    upiRef: "UPI-RRR-8022194",
-  },
-  {
-    id: "TXN-9420",
-    bookingId: "BKG-7650",
-    customerName: "Mohit Tiwari",
-    customerPhone: "+91 99180 67234",
-    serviceName: "Emergency Backpack & Uniform Repair",
-    date: "21 Aug 2026",
-    time: "09:10 AM",
-    amount: 350,
-    platformFee: 0,
-    netPayout: 350,
-    paymentMode: "Cash Collected",
-    status: "Completed",
-    upiRef: "Cash Handover Slip #39",
-  },
-  {
-    id: "TXN-9380",
-    bookingId: "BKG-7119",
-    customerName: "Dinesh Patel",
-    customerPhone: "+91 93350 11984",
-    serviceName: "Canvas Tool Bag Stitching",
-    date: "14 Aug 2026",
-    time: "03:00 PM",
-    amount: 900,
-    platformFee: 0,
-    netPayout: 900,
-    paymentMode: "Direct Bank Transfer",
-    status: "Completed",
-    upiRef: "NEFT-SBI-711928",
-  },
-  {
-    id: "TXN-9201",
-    bookingId: "BKG-6890",
-    customerName: "Sanjay Mishra",
-    customerPhone: "+91 94500 66120",
-    serviceName: "Village School Batch Uniforms (Partial)",
-    date: "04 Aug 2026",
-    time: "01:15 PM",
-    amount: 2800,
-    platformFee: 0,
-    netPayout: 2800,
-    paymentMode: "UPI Instant Pay",
-    status: "Completed",
-    upiRef: "UPI-RRR-6890412",
-  },
-  {
-    id: "TXN-9110",
-    bookingId: "BKG-6450",
-    customerName: "Kalyani Devi",
-    customerPhone: "+91 98390 44219",
-    serviceName: "Panchayat Banner & Fabric Embroidery",
-    date: "29 Jul 2026",
-    time: "04:40 PM",
-    amount: 1600,
-    platformFee: 0,
-    netPayout: 1600,
-    paymentMode: "Direct Bank Transfer",
-    status: "Completed",
-    upiRef: "NEFT-SBI-645019",
-  },
-];
+import api from "../../utils/api";
 
 export default function WorkerEarnings() {
   const { user } = useAuth();
   const toast = useToast();
 
-  const [records] = useState(INITIAL_EARNINGS_RECORDS);
+  const [records, setRecords] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    const fetchEarnings = async () => {
+      try {
+        setLoading(true);
+        const res = await api.get("/earnings/worker");
+        if (res.data?.earnings) {
+          const mappedRecords = res.data.earnings.map((e) => ({
+            id: e._id,
+            bookingId: String(e.booking?._id || "").substring(0, 8),
+            customerName: e.booking?.customer?.name || "Customer",
+            customerPhone: String(e.booking?.customer?.phone || "N/A"),
+            serviceName: e.booking?.service?.name || "Service Booking",
+            date: new Date(e.createdAt).toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }),
+            rawDate: new Date(e.createdAt),
+            time: new Date(e.createdAt).toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' }),
+            amount: e.amount || 0,
+            platformFee: 0,
+            netPayout: e.amount || 0,
+            paymentMode: e.paymentMode === "upi" ? "UPI" : "Cash",
+            status: e.status === "cleared" ? "Completed" : "Pending",
+            upiRef: String(e._id || "").substring(0, 10),
+          }));
+          // Sort by newest first
+          mappedRecords.sort((a, b) => b.rawDate - a.rawDate);
+          setRecords(mappedRecords);
+        }
+      } catch (err) {
+        console.error("Failed to load earnings", err);
+        toast.show("Failed to load earnings data", "error");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchEarnings();
+  }, []);
   const [statusFilter, setStatusFilter] = useState("all"); // 'all', 'Completed', 'Pending'
   const [modeFilter, setModeFilter] = useState("all"); // 'all', 'UPI', 'Cash', 'Bank'
   const [dateFilter, setDateFilter] = useState("all"); // 'all', 'sep26', 'aug26', 'jul26'
@@ -146,24 +61,50 @@ export default function WorkerEarnings() {
   const [hoveredGraphPoint, setHoveredGraphPoint] = useState(null);
 
   const activeGraphSeries = useMemo(() => {
+    const points = [];
+    const now = new Date();
+
     if (graphMode === "weekly") {
-      return [
-        { label: "Week 1", amount: 6800, jobs: 22, growth: "+12%" },
-        { label: "Week 2", amount: 7400, jobs: 24, growth: "+9%" },
-        { label: "Week 3", amount: 6100, jobs: 20, growth: "-17%" },
-        { label: "Week 4", amount: 4200, jobs: 14, growth: "-31%" },
-        { label: "Week 5", amount: 1800, jobs: 6, growth: "Current" },
-      ];
+      // Create buckets for last 4 weeks
+      for (let i = 3; i >= 0; i--) {
+        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (i * 7 + 7));
+        const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (i * 7));
+        points.push({ label: `Week ${4-i}`, amount: 0, jobs: 0, start, end, growth: "Active" });
+      }
+      
+      records.forEach(r => {
+        if (r.status !== "Completed") return;
+        const d = r.rawDate;
+        for (let p of points) {
+          if (d >= p.start && d < p.end) {
+            p.amount += r.netPayout;
+            p.jobs += 1;
+            break;
+          }
+        }
+      });
+    } else {
+      // Create buckets for last 6 months
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        points.push({ label: d.toLocaleDateString("en-IN", { month: "short" }), amount: 0, jobs: 0, month: d.getMonth(), year: d.getFullYear(), growth: "Active" });
+      }
+
+      records.forEach(r => {
+        if (r.status !== "Completed") return;
+        const d = r.rawDate;
+        for (let p of points) {
+          if (d.getMonth() === p.month && d.getFullYear() === p.year) {
+            p.amount += r.netPayout;
+            p.jobs += 1;
+            break;
+          }
+        }
+      });
     }
-    return [
-      { label: "Apr", amount: 18400, jobs: 62, growth: "+15%" },
-      { label: "May", amount: 21600, jobs: 72, growth: "+17%" },
-      { label: "Jun", amount: 24200, jobs: 80, growth: "+12%" },
-      { label: "Jul", amount: 22400, jobs: 74, growth: "-7%" },
-      { label: "Aug", amount: 25800, jobs: 85, growth: "+15%" },
-      { label: "Sep", amount: 26300, jobs: 86, growth: "+2%" },
-    ];
-  }, [graphMode]);
+
+    return points;
+  }, [graphMode, records]);
 
   const earningsChartGeom = useMemo(() => {
     const points = activeGraphSeries;
@@ -228,18 +169,20 @@ export default function WorkerEarnings() {
 
   // Summary Metrics
   const summary = useMemo(() => {
-    const totalEarnings = records.reduce((acc, r) => acc + r.netPayout, 0);
-    const thisMonth = records
-      .filter((r) => r.date.includes("Sep 2026"))
+    const completedRecords = records.filter(r => r.status === "Completed");
+    const totalEarnings = completedRecords.reduce((acc, r) => acc + r.netPayout, 0);
+    const currentMonthStr = new Date().toLocaleDateString("en-IN", { month: 'short', year: 'numeric' });
+    const thisMonth = completedRecords
+      .filter((r) => r.date.includes(currentMonthStr))
       .reduce((acc, r) => acc + r.netPayout, 0);
-    const upiEarnings = records
+    const upiEarnings = completedRecords
       .filter((r) => r.paymentMode.includes("UPI"))
       .reduce((acc, r) => acc + r.netPayout, 0);
-    const cashEarnings = records
+    const cashEarnings = completedRecords
       .filter((r) => r.paymentMode.includes("Cash"))
       .reduce((acc, r) => acc + r.netPayout, 0);
 
-    return { totalEarnings, thisMonth, upiEarnings, cashEarnings, count: records.length };
+    return { totalEarnings, thisMonth, upiEarnings, cashEarnings, count: completedRecords.length };
   }, [records]);
 
   // Filtered Ledger
@@ -248,11 +191,11 @@ export default function WorkerEarnings() {
       const q = searchQuery.toLowerCase().trim();
       const matchSearch =
         !q ||
-        r.customerName.toLowerCase().includes(q) ||
-        r.customerPhone.toLowerCase().includes(q) ||
-        r.serviceName.toLowerCase().includes(q) ||
-        r.bookingId.toLowerCase().includes(q) ||
-        r.id.toLowerCase().includes(q);
+        String(r.customerName || "").toLowerCase().includes(q) ||
+        String(r.customerPhone || "").toLowerCase().includes(q) ||
+        String(r.serviceName || "").toLowerCase().includes(q) ||
+        String(r.bookingId || "").toLowerCase().includes(q) ||
+        String(r.id || "").toLowerCase().includes(q);
 
       let matchStatus = true;
       if (statusFilter !== "all") matchStatus = r.status === statusFilter;

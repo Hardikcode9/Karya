@@ -41,31 +41,21 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-
-    avatar: {
-      type: String,
-      trim: true,
-    },
-
-    address: {
-      type: String,
-      trim: true,
-    },
-
-    village: {
-      type: String,
-      trim: true,
-    },
-
-    district: {
-      type: String,
-      trim: true,
-    },
-
-    state: {
-      type: String,
-      trim: true,
-    },
+    avatar: { type: String, trim: true },
+    photo: { type: String }, // alias/alternative for avatar
+    address: { type: String, trim: true },
+    houseNo: { type: String, trim: true },
+    village: { type: String, trim: true },
+    block: { type: String, trim: true },
+    district: { type: String, trim: true },
+    state: { type: String, trim: true },
+    pincode: { type: String, trim: true },
+    landmark: { type: String, trim: true },
+    altPhone: { type: String, trim: true },
+    docType: { type: String, trim: true },
+    docNumber: { type: String, trim: true },
+    language: { type: String, default: "Hindi" },
+    smsUpdates: { type: Boolean, default: true },
   },
   {
     timestamps: true,

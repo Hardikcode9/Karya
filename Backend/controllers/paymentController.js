@@ -60,31 +60,47 @@ const createPayment = async (req, res) => {
       });
     }
 
-    // Prevent duplicate payment
-    const existingPayment = await Payment.findOne({
+    // Handle existing pending payment or prevent duplicate paid
+    let payment = await Payment.findOne({
       booking: booking._id,
     });
 
-    if (existingPayment) {
-      return res.status(409).json({
-        success: false,
-        message: "Payment already exists for this booking",
-        payment: existingPayment,
+    const isDigital = paymentMethod !== "cash";
+    const paymentStatus = "paid"; // User wants the payment to be immediately successful even for cash in this prototype
+    const transactionId = isDigital 
+      ? `SIM-${Date.now()}-${Math.floor(Math.random() * 10000)}` 
+      : `CASH-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+
+    if (payment) {
+      if (payment.status === "paid") {
+        return res.status(409).json({
+          success: false,
+          message: "Payment already completed for this booking",
+          payment,
+        });
+      }
+      
+      // Update existing pending payment
+      payment.paymentMethod = paymentMethod;
+      payment.status = paymentStatus;
+      if (transactionId) payment.transactionId = transactionId;
+      await payment.save();
+    } else {
+      // Create payment using server-side booking information
+      payment = await Payment.create({
+        booking: booking._id,
+        customer: booking.customer,
+        worker: booking.worker,
+        amount: booking.price,
+        paymentMethod,
+        status: paymentStatus,
+        transactionId,
       });
     }
 
-    // Create payment using server-side booking information
-    const payment = await Payment.create({
-      booking: booking._id,
-      customer: booking.customer,
-      worker: booking.worker,
-      amount: booking.price,
-      paymentMethod,
-      status: "pending",
-    });
-
     // Update booking status to in_progress to signify confirmation
     booking.status = "in_progress";
+    booking.paymentStatus = "paid";
     await booking.save();
 
     // Create Notification for the worker (use User ID, not WorkerProfile ID)

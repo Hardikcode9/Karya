@@ -6,7 +6,7 @@ import {
   Inbox, Briefcase, Settings2, Clock, IndianRupee,
   ShoppingBag, Users, TrendingUp, MessageSquare, Sliders,
   Users2, ShieldCheck, FileWarning, BarChart3, Globe2, Cog, Activity, HelpCircle, MapPin,
-  UserCheck, Package, Lightbulb, PhoneCall,
+  UserCheck, Package, Lightbulb, PhoneCall, Sparkles
 } from "lucide-react";
 
 import PublicLayout from "./components/layout/PublicLayout";
@@ -38,10 +38,12 @@ import CustomerReviews from "./pages/dashboards/CustomerReviews";
 import CustomerProfile from "./pages/dashboards/CustomerProfile";
 import CustomerActivity from "./pages/dashboards/CustomerActivity";
 import CustomerQueries from "./pages/dashboards/CustomerQueries";
+import CustomerPayments from "./pages/dashboards/CustomerPayments";
 import WorkerDashboard from "./pages/dashboards/WorkerDashboard";
 import WorkerRequests from "./pages/dashboards/WorkerRequests";
 import WorkerReviews from "./pages/dashboards/WorkerReviews";
 import WorkerProfileDashboard from "./pages/dashboards/WorkerProfileDashboard";
+import WorkerAvailability from "./pages/dashboards/WorkerAvailability";
 import WorkerEarnings from "./pages/dashboards/WorkerEarnings";
 import WorkerServices from "./pages/dashboards/WorkerServices";
 import SHGDashboard from "./pages/dashboards/SHGDashboard";
@@ -67,8 +69,12 @@ function AdminRedirect() {
   );
 }
 
+import AdminDashboard from "./pages/dashboards/AdminDashboard";
+import OrderAutomationHub from "./components/automation/OrderAutomationHub";
+
 const customerNav = [
   { to: "/customer", end: true, label: "Overview", icon: LayoutDashboard },
+  { to: "/customer/automation", label: "Order Automation", icon: Sparkles },
   { to: "/customer/map", label: "Nearby Map", icon: MapPin },
   { to: "/customer/activity", label: "Recent Activity", icon: Activity },
   { to: "/customer/payments", label: "Payments", icon: Wallet },
@@ -139,13 +145,11 @@ export default function App() {
         }
       >
         <Route index element={<CustomerDashboard />} />
+        <Route path="automation" element={<OrderAutomationHub />} />
         <Route path="map" element={<CustomerMap />} />
         <Route path="activity" element={<CustomerActivity />} />
         <Route path="requests" element={<CustomerActivity />} />
-        <Route
-          path="payments"
-          element={<DashboardSubpage title="Payment History" subtitle="Verified digital and cash transaction slips" category="Payment Slip" actionLabel="Make Payment" />}
-        />
+        <Route path="payments" element={<CustomerPayments />} />
         <Route path="reviews" element={<CustomerReviews />} />
         <Route path="queries" element={<CustomerQueries />} />
         <Route path="profile" element={<CustomerProfile />} />
@@ -171,7 +175,7 @@ export default function App() {
         />
         <Route
           path="availability"
-          element={<DashboardSubpage title="Working Hours & Availability" subtitle="Set days and timing when customers can book you" category="Schedule Slot" actionLabel="Add Slot" />}
+          element={<WorkerAvailability />}
         />
         <Route
           path="earnings"

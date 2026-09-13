@@ -53,35 +53,9 @@ const workerProfileSchema = new mongoose.Schema(
     },
 
     workingHours: {
-  monday: {
-    start: { type: String, default: "09:00" },
-    end: { type: String, default: "18:00" },
-  },
-  tuesday: {
-    start: { type: String, default: "09:00" },
-    end: { type: String, default: "18:00" },
-  },
-  wednesday: {
-    start: { type: String, default: "09:00" },
-    end: { type: String, default: "18:00" },
-  },
-  thursday: {
-    start: { type: String, default: "09:00" },
-    end: { type: String, default: "18:00" },
-  },
-  friday: {
-    start: { type: String, default: "09:00" },
-    end: { type: String, default: "18:00" },
-  },
-  saturday: {
-    start: { type: String, default: "10:00" },
-    end: { type: String, default: "14:00" },
-  },
-  sunday: {
-    start: { type: String, default: null },
-    end: { type: String, default: null },
-  },
-},
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
 
     rating: {
       type: Number,

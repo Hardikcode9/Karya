@@ -6,6 +6,7 @@ import {
 import Button from "../../components/ui/Button";
 import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../hooks/useToast";
+import api from "../../utils/api";
 
 const AVATAR_PRESETS = [
   {
@@ -101,18 +102,28 @@ export default function CustomerProfile() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
-    setTimeout(() => {
-      if (updateUser) {
-        updateUser(formData);
+    try {
+      const res = await api.put("/auth/update-profile", formData);
+      if (res.data?.success && res.data?.user) {
+        // Update local state and localStorage with the server response
+        if (updateUser) {
+          updateUser(res.data.user);
+        }
+        setSaveSuccess(true);
+        toast.success("Profile & personal details updated successfully!");
+        setTimeout(() => setSaveSuccess(false), 4000);
+      } else {
+        toast.error("Failed to update profile. Please try again.");
       }
+    } catch (err) {
+      const errMsg = err.response?.data?.message || "Failed to update profile";
+      toast.error(errMsg);
+    } finally {
       setSaving(false);
-      setSaveSuccess(true);
-      toast.success("Profile & personal details updated successfully!");
-      setTimeout(() => setSaveSuccess(false), 4000);
-    }, 400);
+    }
   };
 
   return (

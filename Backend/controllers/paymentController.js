@@ -354,8 +354,17 @@ const getCustomerPayments = async (req, res) => {
       });
     }
 
+    const customerProfile = await CustomerProfile.findOne({
+      user: req.user.userId,
+    });
+
+    const customerIds = [req.user.userId];
+    if (customerProfile) {
+      customerIds.push(customerProfile._id);
+    }
+
     const payments = await Payment.find({
-      customer: req.user.userId,
+      customer: { $in: customerIds },
     })
       .populate({
         path: "booking",
@@ -425,8 +434,16 @@ const getPaymentById = async (req, res) => {
       });
     }
 
+    const customerProfile = await CustomerProfile.findOne({
+      user: req.user.userId,
+    });
+
+    const isOwner =
+      (customerProfile && payment.customer._id.toString() === customerProfile._id.toString()) ||
+      payment.customer._id.toString() === req.user.userId.toString();
+
     // Security check
-    if (payment.customer._id.toString() !== req.user.userId.toString()) {
+    if (!isOwner) {
       return res.status(403).json({
         success: false,
         message: "You cannot access this payment",

@@ -91,7 +91,7 @@ export default function AdminLayout() {
   const handleLogout = () => {
     if (window.confirm("Are you sure you want to log out of the Admin Console?")) {
       logout();
-      navigate("/");
+      window.location.href = "/";
     }
   };
 

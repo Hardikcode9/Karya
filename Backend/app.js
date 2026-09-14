@@ -69,3 +69,5 @@ const PORT =
 app.listen(PORT, () => {
   console.log(`KARYA Backend running on port ${PORT}`);
 });
+
+module.exports = app;

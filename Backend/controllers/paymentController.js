@@ -499,8 +499,10 @@ const createRazorpayOrder = async (req, res) => {
     if (orderItems && orderItems.length > 0) {
       const Order = require("../models/Order");
       const payAmount = Number(amount) || 0;
+      const orderNumber = "ORD" + Date.now() + Math.floor(Math.random() * 1000);
       
       order = await Order.create({
+        orderNumber,
         customer: customerProfile._id,
         items: orderItems,
         totalAmount: payAmount,

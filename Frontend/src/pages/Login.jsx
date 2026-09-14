@@ -62,6 +62,11 @@ export default function Login() {
       setOtpSent(true);
       setTimer(60); // 60s cooldown
       toast.success(res.data?.message || `OTP sent to ${email}`);
+      
+      if (res.data?.devOtp) {
+        setOtp(res.data.devOtp);
+        toast.info("Dev Mode: OTP auto-filled because email delivery failed.");
+      }
     } catch (error) {
       console.error("sendOtp error:", error);
       if (error.response && error.response.status === 404) {

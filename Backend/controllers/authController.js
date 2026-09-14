@@ -277,9 +277,10 @@ const sendOtp = async (req, res) => {
       success: true,
       message: emailResult?.success
         ? `OTP verification code sent to ${cleanEmail}`
-        : `OTP generated for ${cleanEmail}. (Check server terminal if Gmail SMTP is not yet authenticated)`,
+        : `OTP generated for ${cleanEmail}. (Dev mode fallback activated due to SMTP error)`,
       email: cleanEmail,
       smtpDelivered: !!emailResult?.success,
+      devOtp: !emailResult?.success ? otp : undefined,
     });
   } catch (error) {
     console.error("sendOtp Error:", error);

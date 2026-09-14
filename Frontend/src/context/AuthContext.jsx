@@ -30,6 +30,10 @@ export function AuthProvider({ children }) {
         
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(userData));
+        if (userData.role === "admin") {
+          localStorage.setItem("admin_token", token);
+          localStorage.setItem("admin_user", JSON.stringify(userData));
+        }
         setUser(userData);
         
         return userData;
@@ -76,6 +80,10 @@ export function AuthProvider({ children }) {
       
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(userData));
+      if (userData.role === "admin") {
+        localStorage.setItem("admin_token", token);
+        localStorage.setItem("admin_user", JSON.stringify(userData));
+      }
       setUser(userData);
       
       return userData;
@@ -98,6 +106,8 @@ export function AuthProvider({ children }) {
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    localStorage.removeItem("admin_token");
+    localStorage.removeItem("admin_user");
     setUser(null);
   };
 

@@ -318,6 +318,7 @@ export const processRazorpayPayment = async ({
   bookingId,
   amount: customAmount,
   paymentMethod = "upi",
+  orderItems,
   user,
   onSuccess,
   onError,
@@ -328,6 +329,7 @@ export const processRazorpayPayment = async ({
       bookingId,
       amount: customAmount,
       paymentMethod,
+      orderItems,
     });
 
     const { orderId, amount, currency, keyId, paymentId, isTestFallback } =

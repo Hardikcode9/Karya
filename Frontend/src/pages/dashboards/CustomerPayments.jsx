@@ -70,7 +70,12 @@ export default function CustomerPayments() {
     const matchesStatus = statusFilter === "all" || p.status === statusFilter;
     const searchLower = search.toLowerCase();
     const serviceName = p.booking?.service?.name || "";
-    const workerName = p.booking?.worker?.user?.name || "";
+    const workerName =
+      p.booking?.worker?.user?.name ||
+      p.booking?.worker?.name ||
+      p.worker?.name ||
+      p.worker?.user?.name ||
+      "";
     const txnId = p.transactionId || "";
     const matchesSearch =
       serviceName.toLowerCase().includes(searchLower) ||
@@ -165,7 +170,12 @@ export default function CustomerPayments() {
             const StatusIcon = statusCfg.icon;
             const MethodIcon = METHOD_ICONS[payment.paymentMethod] || CreditCard;
             const serviceName = payment.booking?.service?.name || "Service";
-            const workerName = payment.booking?.worker?.user?.name || "Worker";
+            const workerName =
+              payment.booking?.worker?.user?.name ||
+              payment.booking?.worker?.name ||
+              payment.worker?.name ||
+              payment.worker?.user?.name ||
+              "Worker";
             const dateStr = payment.createdAt
               ? new Date(payment.createdAt).toLocaleDateString("en-IN", {
                   day: "numeric",

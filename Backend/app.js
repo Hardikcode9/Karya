@@ -29,6 +29,7 @@ const contactRoutes = require("./routes/contactRoutes");
 const queryRoutes = require("./routes/queryRoutes");
 const suggestionRoutes = require("./routes/suggestionRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+
 const app = express();
 
 app.use(cors());
@@ -54,6 +55,7 @@ app.use("/api/contact", contactRoutes);
 app.use("/api/queries", queryRoutes);
 app.use("/api/suggestions", suggestionRoutes);
 app.use("/api/admin", adminRoutes);
+
 app.get("/", (req, res) => {
   res.json({
     success: true,

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   Users, IndianRupee, Star, Package, CheckCircle2, Clock,
-  ArrowRight, Award, MapPin, Building2, Plus, ShoppingBag, TrendingUp
+  MapPin, Building2, Plus
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import api from "../../utils/api";
@@ -13,27 +13,19 @@ export default function SHGDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        const response = await api.get("/shg/dashboard");
-        if(response.data?.success && response.data.dashboard) {
-          // Keep backwards compatibility with HEAD API structure if it returns .dashboard
-          setDashboardData({
-            shgProfile: response.data.dashboard,
-            statistics: response.data.dashboard,
-            recentOrders: [] 
-          });
-        } else {
-          setDashboardData(response.data.data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch SHG dashboard", error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchDashboardData();
   }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      const response = await api.get("/shg/dashboard");
+      setDashboardData(response.data.data);
+    } catch (error) {
+      console.error("Failed to fetch SHG dashboard", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) return <div className="p-8 text-center text-charcoal/50">Loading dashboard...</div>;
 
@@ -116,7 +108,7 @@ export default function SHGDashboard() {
               Total Members
             </p>
             <p className="font-display text-2xl sm:text-3xl font-bold text-charcoal dark:text-dark-text mt-1">
-              {stats.totalMembers || profile.totalMembers || 0}
+              {stats.totalMembers || 0}
             </p>
             <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold mt-0.5">
               100% Aadhaar &amp; Bank linked
@@ -136,7 +128,7 @@ export default function SHGDashboard() {
               Total Earning
             </p>
             <p className="font-display text-2xl sm:text-3xl font-bold text-olive-700 dark:text-olive-400 mt-1">
-              ₹{(stats.totalEarnings || profile.totalEarnings || 0).toLocaleString("en-IN")}
+              ₹{stats.totalEarnings || 0}
             </p>
             <p className="text-[11px] text-charcoal/50 dark:text-dark-muted mt-0.5">
               100% Zero-Cut Village Payout

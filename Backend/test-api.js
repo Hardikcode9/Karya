@@ -6,7 +6,7 @@ const api = axios.create({
 
 async function runTest() {
   try {
-    require('dotenv').config({path: 'C:/Users/jeeha/Desktop/Karya/Backend/.env'});
+    require('dotenv').config();
     
     // 1. Register a customer
     const cRes = await api.post("/auth/register", {

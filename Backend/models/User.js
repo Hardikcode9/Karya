@@ -42,9 +42,9 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
     // Extended profile fields
-    altPhone: { type: String, trim: true },
-    photo: { type: String },
     avatar: { type: String, trim: true },
+    photo: { type: String }, // alias/alternative for avatar
+    altPhone: { type: String, trim: true },
     houseNo: { type: String, trim: true },
     address: { type: String, trim: true },
     landmark: { type: String, trim: true },

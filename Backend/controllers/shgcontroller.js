@@ -7,6 +7,8 @@ const Booking = require("../models/Booking");
 const Payment = require("../models/Payment");
 const Rating = require("../models/Rating");
 const Product = require("../models/Product");
+const CustomerProfile = require("../models/CustomerProfile");
+const Notification = require("../models/Notification");
 
 // ==========================================
 // CREATE SHG PROFILE
@@ -555,6 +557,18 @@ exports.assignMembersToJob = async (req, res) => {
 
     if (booking.status === "pending") {
       booking.status = "accepted";
+      const customerProfile = await CustomerProfile.findById(booking.customer).select("user");
+      if (customerProfile) {
+        const shgProfile = await SHGProfile.findOne({ user: req.user.userId }).select("shgName");
+        const shgName = shgProfile?.shgName || "The SHG group";
+        await Notification.create({
+          recipient: customerProfile.user,
+          title: "Booking Accepted",
+          message: `${shgName} has accepted your service request and assigned members.`,
+          type: "booking",
+          relatedId: booking._id,
+        });
+      }
     }
 
     await booking.save();

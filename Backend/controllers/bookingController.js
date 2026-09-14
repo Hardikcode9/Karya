@@ -292,6 +292,10 @@ const updateBookingStatus = async (req, res) => {
     const workerUser = await User.findById(req.user.userId).select("name");
     const workerName = workerUser?.name || "The worker";
 
+    // Look up the customer's User ID from CustomerProfile (booking.customer is CustomerProfile ID)
+    const customerProfile = await CustomerProfile.findById(booking.customer).select("user");
+    const customerUserId = customerProfile ? customerProfile.user : booking.customer;
+
     if (status === "accepted") {
       // Create a pending payment record so it shows up in customer's payment history
       const existingPayment = await Payment.findOne({ booking: booking._id });
@@ -307,7 +311,7 @@ const updateBookingStatus = async (req, res) => {
       }
 
       await Notification.create({
-        recipient: booking.customer, // Customer's User ID
+        recipient: customerUserId,
         title: "Booking Accepted",
         message: `${workerName} has accepted your booking request. Please proceed to payment.`,
         type: "booking",
@@ -315,7 +319,7 @@ const updateBookingStatus = async (req, res) => {
       });
     } else if (status === "rejected") {
       await Notification.create({
-        recipient: booking.customer, // Customer's User ID
+        recipient: customerUserId,
         title: "Booking Declined",
         message: `Unfortunately, ${workerName} cannot fulfill your booking request at this time.`,
         type: "booking",
@@ -323,7 +327,7 @@ const updateBookingStatus = async (req, res) => {
       });
     } else if (status === "completed") {
       await Notification.create({
-        recipient: booking.customer,
+        recipient: customerUserId,
         title: "Work Completed",
         message: `${workerName} has marked the job as completed.`,
         type: "booking",

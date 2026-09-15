@@ -107,13 +107,15 @@ const connectDB = async () => {
     console.log("Attempting to start persistent local MongoDB...");
   }
 
+  const localUri = "mongodb://127.0.0.1:27017/Karya";
+
   // Next: start a persistent local mongod (data survives restarts)
   try {
     await startPersistentMongod();
-    await mongoose.connect(uri, {
+    await mongoose.connect(localUri, {
       serverSelectionTimeoutMS: 3000,
     });
-    console.log("MongoDB Connected Successfully to:", uri.replace(/\/\/.*@/, "//<credentials>@"));
+    console.log("MongoDB Connected Successfully to local MongoDB:", localUri);
     return;
   } catch (error) {
     console.warn("Persistent MongoDB fallback failed:", error.message);

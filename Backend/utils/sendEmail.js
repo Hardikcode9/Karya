@@ -49,9 +49,77 @@ const sendOtpEmail = async (toEmail, otpCode, userName = "User", userRole = "Cus
   console.log(`Expires in: 5 Minutes`);
   console.log("=================================================\n");
 
+  // 1. If Google Apps Script Webhook is configured, send via Google Apps Script (Works on Render)
+  const googleScriptUrl = process.env.GOOGLE_SCRIPT_URL;
+  if (googleScriptUrl) {
+    try {
+      const emailHtml = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #FBF7EE; margin: 0; padding: 20px; color: #1e293b; }
+            .container { max-width: 500px; margin: 0 auto; background: #ffffff; border-radius: 20px; padding: 32px; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+            .header { text-align: center; margin-bottom: 24px; }
+            .logo { font-size: 28px; font-weight: bold; color: #526B3C; margin: 0; }
+            .tagline { font-size: 12px; color: #64748b; margin-top: 4px; }
+            .card { background-color: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; padding: 24px; text-align: center; margin: 20px 0; }
+            .otp-box { font-size: 36px; font-weight: 800; letter-spacing: 10px; color: #526B3C; background: #EEF5E6; padding: 14px 20px; border-radius: 10px; display: inline-block; margin: 16px 0; border: 1px solid #C8DEC0; }
+            .expiry { font-size: 13px; color: #ef4444; font-weight: 600; }
+            .footer { text-align: center; font-size: 11px; color: #94a3b8; margin-top: 24px; border-top: 1px solid #f1f5f9; padding-top: 16px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1 class="logo">Karya</h1>
+              <p class="tagline">Local skills. Better opportunities.</p>
+            </div>
+            <p>Hello <strong>${userName}</strong>,</p>
+            <p>Use the verification code below to complete your login as <strong>${userRole}</strong> on the Karya Portal:</p>
+            <div class="card">
+              <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #64748b; font-weight: 600;">Your 6-Digit Code</div>
+              <div class="otp-box">${otpCode}</div>
+              <div class="expiry">⏱ Valid for 5 minutes only</div>
+            </div>
+            <p style="font-size: 13px; color: #64748b;">If you did not request this verification code, please ignore this email.</p>
+            <div class="footer">
+              © ${new Date().getFullYear()} Karya Digital Public Infrastructure Platform.<br>
+              Direct village payouts & zero middleman deductions.
+            </div>
+          </div>
+        </body>
+        </html>
+      `;
+
+      const axios = require("axios");
+      const res = await axios.post(
+        googleScriptUrl,
+        {
+          secret: process.env.GOOGLE_SCRIPT_SECRET || "karya_secret_token_123",
+          to: toEmail,
+          subject: `Your Karya Verification Code: ${otpCode}`,
+          html: emailHtml,
+        },
+        {
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          maxRedirects: 5,
+        }
+      );
+
+      if (res.data?.success || res.status === 200) {
+        console.log(`✅ [Google Apps Script] OTP successfully sent to ${toEmail}`);
+        return { success: true, via: "google_apps_script" };
+      }
+    } catch (gErr) {
+      console.error("❌ Google Apps Script Delivery Error:", gErr.response?.data || gErr.message);
+    }
+  }
+
   // If SMTP credentials are dummy or missing, don't crash - allow developer to test
   if (!user || !pass || pass.includes("your_") || pass === "") {
-    console.warn("⚠️  EMAIL_USER or EMAIL_PASS not set in Backend/.env. Using console OTP display for development.");
+    console.warn("⚠️ Neither GOOGLE_SCRIPT_URL nor valid EMAIL_USER/EMAIL_PASS configured. Using console OTP display for development.");
     return { devMode: true, message: "OTP logged to server terminal" };
   }
 

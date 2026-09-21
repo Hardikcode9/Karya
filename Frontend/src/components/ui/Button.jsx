@@ -4,14 +4,14 @@ import { ArrowRight, Loader2 } from "lucide-react";
 const variants = {
   primary:
     "bg-olive-700 text-cream hover:bg-olive-800 active:bg-olive-900 shadow-sm dark:bg-olive-600 dark:hover:bg-olive-500",
+  secondary:
+    "bg-charcoal text-cream hover:bg-olive-950 active:bg-black dark:bg-dark-card dark:text-dark-text dark:border dark:border-dark-border dark:hover:bg-dark-cardHover",
   dark:
     "bg-charcoal text-cream hover:bg-olive-950 active:bg-black dark:bg-dark-card dark:text-dark-text dark:border dark:border-dark-border dark:hover:bg-dark-cardHover",
   outline:
     "bg-transparent text-charcoal border border-charcoal/25 hover:border-charcoal/70 hover:bg-charcoal/5 dark:text-dark-text dark:border-dark-border dark:hover:border-olive-400 dark:hover:bg-white/5",
   ghost:
     "bg-cream-card text-charcoal hover:bg-ivory active:bg-cream-warm dark:bg-dark-card dark:text-dark-text dark:hover:bg-dark-cardHover",
-  clay:
-    "bg-clay-500 text-cream hover:bg-clay-600 active:bg-clay-700 shadow-sm",
   danger:
     "bg-red-600 text-white hover:bg-red-700 active:bg-red-800 shadow-sm",
 };
